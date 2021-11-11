@@ -1,0 +1,11 @@
+[workspace]
+members = [
+  "api",
+  "core",
+  "server",
+
+]
+
+[workspace.metadata]
+# minimum supported rust version
+msrv = "1.51.0"

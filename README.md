@@ -1,2 +1,5 @@
-# mosaic
-MLOps Platform designed for the automotive industry
+<h1 align="center">
+  <b>Mosaic</b><br>
+</h1>
+
+MLOps platform designed for the automotive industry.
