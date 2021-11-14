@@ -4,6 +4,7 @@ members = [
   "core",
   "device",
   "server",
+
 ]
 
 [workspace.metadata]
