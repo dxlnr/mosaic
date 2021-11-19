@@ -1,0 +1,36 @@
+syntax = "proto3";
+
+package mosaic;
+
+// service Communication {
+//   rpc Join(stream ClientMessage) returns (stream ServerMessage) {}
+// }
+service Communication {
+  rpc Test(ClientMessage) returns (ServerMessage);
+}
+
+message Parameters {
+  bytes tensors = 1;
+  string tensor_type = 2;
+}
+
+message ServerMessage {
+  Parameters parameters = 1;
+}
+
+message ClientMessage {
+  Parameters parameters = 1;
+}
+
+
+// service Communication {
+//   rpc SayHello (HelloRequest) returns (HelloReply);
+// }
+//
+// message HelloRequest {
+//   string name = 1;
+// }
+//
+// message HelloReply {
+//   string message = 1;
+// }
