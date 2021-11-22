@@ -27,6 +27,9 @@ impl Communication for Communicator {
             tensor_type: "TestTensor".to_string(),
         };
 
+        let back = request.into_inner();
+        println!("{:?}", back.parameters.unwrap());
+
         let server_msg = mosaic::ServerMessage {
             parameters: Some(params),
         };
