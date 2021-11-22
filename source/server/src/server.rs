@@ -3,6 +3,8 @@ use std::convert::Infallible;
 use thiserror::Error;
 use tonic::{transport::Server, Request, Response, Status};
 
+use crate::settings::APISettings;
+
 pub mod mosaic {
     tonic::include_proto!("mosaic");
 }
@@ -38,15 +40,14 @@ impl Communication for Communicator {
     }
 }
 
-pub async fn start() -> Result<(), Box<dyn std::error::Error>> {
-    let addr = "127.0.0.1:8080".parse().unwrap();
+pub async fn start(api_settings: APISettings) -> Result<(), Box<dyn std::error::Error>> {
     let com = Communicator::default();
 
-    println!("Communication Server listening on {}", addr);
+    println!("Communication Server listening on {}", api_settings.address);
 
     Server::builder()
         .add_service(CommunicationServer::new(com))
-        .serve(addr)
+        .serve(api_settings.address)
         .await?;
 
     Ok(())
