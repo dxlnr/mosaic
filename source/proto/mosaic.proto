@@ -6,7 +6,7 @@ package mosaic;
 //   rpc Join(stream ClientMessage) returns (stream ServerMessage) {}
 // }
 service Communication {
-  rpc Test(ClientMessage) returns (ServerMessage);
+  rpc Broadcast(ClientMessage) returns (ServerMessage);
 }
 
 message Parameters {

@@ -1,9 +1,13 @@
 //! Sets up a gRPC server.
 use std::convert::Infallible;
+
 use thiserror::Error;
 use tonic::{transport::Server, Request, Response, Status};
 
-use crate::settings::APISettings;
+use crate::{
+    engine::message::{DataType, IntoPrimitives, Message},
+    settings::APISettings,
+};
 
 pub mod mosaic {
     tonic::include_proto!("mosaic");
@@ -18,7 +22,7 @@ pub struct Communicator {}
 
 #[tonic::async_trait]
 impl Communication for Communicator {
-    async fn test(
+    async fn broadcast(
         &self,
         request: Request<ClientMessage>,
     ) -> Result<Response<ServerMessage>, Status> {
@@ -29,8 +33,13 @@ impl Communication for Communicator {
             tensor_type: "TestTensor".to_string(),
         };
 
-        let back = request.into_inner();
-        println!("{:?}", back.parameters.unwrap());
+        let msgs = Message {
+            bytes: request.into_inner().parameters.unwrap().tensors,
+            dtype: DataType::F64,
+        };
+
+        let testtest: Vec<f64> = Message::into_primitives(msgs);
+        println!("{:?}", testtest);
 
         let server_msg = mosaic::ServerMessage {
             parameters: Some(params),
