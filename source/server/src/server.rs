@@ -30,9 +30,12 @@ pub mod mosaic {
 
 use mosaic::communication_server::{Communication, CommunicationServer};
 #[allow(unused_imports)]
-use mosaic::{ClientMessage, Parameters, ServerMessage};
+use mosaic::{
+    ClientDefault, ClientMessage, ClientUpdate, Parameters, ServerDefault, ServerMessage,
+    ServerModel,
+};
 
-#[derive(Default)]
+#[derive(Default, Debug)]
 pub struct Communicator {
     features: Arc<Mutex<Vec<f64>>>,
     counter: Arc<Mutex<u32>>,
@@ -55,8 +58,8 @@ impl Communicator {
 impl Communication for Communicator {
     async fn broadcast(
         &self,
-        request: Request<ClientMessage>,
-    ) -> Result<Response<ServerMessage>, Status> {
+        request: Request<ClientDefault>,
+    ) -> Result<Response<ServerDefault>, Status> {
         let global_counter = Arc::clone(&self.counter);
         let global_model = Arc::clone(&self.features);
 
@@ -65,13 +68,13 @@ impl Communication for Communicator {
             let mut cupd = global_model.lock().unwrap();
             *cupd = cupd.iter().map(|&v| v / *num as f64).collect();
 
-            println!("global model: {:?}", cupd);
+            println!("global model after aggregation: {:?}", cupd);
         }
         //println!("Got a request from {:?}", request.remote_addr());
 
         let params = mosaic::Parameters {
             tensors: vec![1, 3, 4, 5],
-            tensor_type: "TestTensor".to_string(),
+            data_type: "f64".to_string(),
         };
 
         let msgs = Message {
@@ -90,11 +93,25 @@ impl Communication for Communicator {
             .map(|(&b, &v)| b + v)
             .collect();
 
-        let server_msg = mosaic::ServerMessage {
+        let server_msg = mosaic::ServerDefault {
             parameters: Some(params),
         };
 
         Ok(Response::new(server_msg))
+    }
+
+    async fn get_global_model(
+        &self,
+        request: Request<ClientMessage>,
+    ) -> Result<Response<ServerModel>, Status> {
+        todo!()
+    }
+
+    async fn send_update(
+        &self,
+        request: Request<ClientUpdate>,
+    ) -> Result<Response<ServerMessage>, Status> {
+        todo!()
     }
 }
 
@@ -113,6 +130,8 @@ pub async fn start(api_settings: APISettings) -> Result<(), Box<dyn std::error::
     //     // Interceptors can be also be applied as middleware
     //     .layer(tonic::service::interceptor(intercept))
     //     .into_inner();
+
+    println!("Communicator object: {:?}", &com);
 
     Server::builder()
         //.add_service(test_service)

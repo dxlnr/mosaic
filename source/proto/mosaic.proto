@@ -6,32 +6,43 @@ package mosaic;
 //   rpc Join(stream ClientMessage) returns (stream ServerMessage) {}
 // }
 service Communication {
-  rpc Broadcast(ClientMessage) returns (ServerMessage);
+  rpc Broadcast(ClientDefault) returns (ServerDefault);
+
+  rpc GetGlobalModel(ClientMessage) returns (ServerModel);
+  rpc SendUpdate(ClientUpdate) returns (ServerMessage);
   // rpc SingleRound(stream ClientMessage) returns (ServerMessage);
 }
 
 message Parameters {
   bytes tensors = 1;
-  string tensor_type = 2;
+  string data_type = 2;
 }
 
 message ServerMessage {
+  //map<string, uint32> msgs = 1;
+  string msg = 1;
+}
+
+message ServerModel {
   Parameters parameters = 1;
+  uint32 id = 2;
 }
 
 message ClientMessage {
+  //map<string, uint32> msgs = 1;
+  string msg = 1;
+}
+
+message ClientUpdate {
   Parameters parameters = 1;
+  uint32 id = 2;
 }
 
 
-// service Communication {
-//   rpc SayHello (HelloRequest) returns (HelloReply);
-// }
-//
-// message HelloRequest {
-//   string name = 1;
-// }
-//
-// message HelloReply {
-//   string message = 1;
-// }
+message ClientDefault {
+  Parameters parameters = 1;
+}
+
+message ServerDefault {
+  Parameters parameters = 1;
+}
