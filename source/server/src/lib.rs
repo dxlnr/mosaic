@@ -2,5 +2,5 @@
 pub mod analytics;
 pub mod engine;
 pub mod server;
+pub mod services;
 pub mod settings;
-pub mod storage;

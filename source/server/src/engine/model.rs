@@ -2,7 +2,7 @@
 use serde::{Deserialize, Serialize};
 use std::slice::{Iter, IterMut};
 
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]
 /// A representation of a machine learning model as vector object.
 // pub struct Model(Vec<Ratio<BigInt>>);
 pub struct Model(Vec<f64>);
@@ -16,7 +16,7 @@ impl std::convert::AsRef<Model> for Model {
 impl Model {
     /// Instantiates a new empty model.
     pub fn new() -> Self {
-        Model(Vec::new())
+        Model(vec![0.0, 0.0, 0.0, 0.0])
     }
     /// Returns the number of weights/parameters of a model.
     pub fn len(&self) -> usize {
@@ -31,6 +31,12 @@ impl Model {
     pub fn iter_mut(&mut self) -> IterMut<f64> {
         self.0.iter_mut()
     }
+
+    pub fn add(mut self, data: Vec<f64>) {
+        for i in 0..self.len() {
+            self.0[i] = self.0[i] + data[i];
+        }
+    }
 }
 
 #[derive(Debug)]
@@ -39,19 +45,3 @@ pub enum DataType {
     F32,
     F64,
 }
-
-// #[derive(Clone, Error, Debug)]
-// #[error("Could not convert primitive type {0:?} to weight")]
-// /// Errors related to weight conversion from bytes stream.
-// pub struct CastingErrorFrom<T: Debug>(pub(crate) T);
-//
-// pub trait FromBytes {
-//     fn from_bytes<I: Iterator<Item = T>>(iter: I) -> Result<Self, PrimitiveCastError<T>>;
-// }
-//
-// impl FromBytes<f32> for Model {
-//     fn from_bytes<I: Iterator<Item = f32>>(iter: I) -> Result<Self, CastingErrorFrom<f32>> {
-//         iter.map(|f| BigEndian::read_f64(f).ok_or(CastingErrorFrom(f)))
-//             .collect()
-//     }
-// }

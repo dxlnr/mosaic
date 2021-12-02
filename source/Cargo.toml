@@ -2,7 +2,6 @@
 members = [
   "api",
   "core",
-  "device",
   "server",
 
 ]

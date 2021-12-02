@@ -1,7 +1,6 @@
 use std::{path::PathBuf, process};
 
-use server::server::start;
-use server::settings::Settings;
+use server::{engine, server::start, services, settings::Settings};
 use structopt::StructOpt;
 use tracing::warn;
 //use tracing_subscriber::*;
@@ -21,6 +20,9 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     });
 
     let Settings { api: api_settings } = settings;
+
+    // let message_handler = engine::message::MessageHandler::new();
+    // let fetcher = services::fetcher::fetcher();
 
     tokio::select! {
         result = start(api_settings) => {

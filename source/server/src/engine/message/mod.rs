@@ -1,18 +1,26 @@
 use byteorder::{BigEndian, ByteOrder};
+//use std::convert::Infallible;
 use std::slice::Chunks;
 //use thiserror::Error;
 
-// pub struct MessageHandler {
-//     parser: MessageParser;
-//     engine: Engine;
-// }
+#[derive(Default, Debug, Clone)]
+pub struct MessageHandler {
+    pub message_bundle: Vec<Vec<f64>>,
+}
 
-// impl MessageHandler {
-//     pub async fn handle_message(&mut self, data: Vec<u8>) -> Result<(), _> {
-//         let message = data
-//     }
-// }
-//
+impl MessageHandler {
+    pub fn new() -> Self {
+        MessageHandler {
+            message_bundle: Vec::new(),
+        }
+    }
+    // pub async fn handle_message(&mut self, data: Vec<u8>) -> Result<(), _> {
+    //     let message = data
+    // }
+    pub async fn add_msg(&mut self, data: Vec<f64>) {
+        self.message_bundle.push(data);
+    }
+}
 
 pub struct Message {
     pub bytes: Vec<u8>,
