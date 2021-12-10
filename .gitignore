@@ -1,2 +1,3 @@
 source/target
 source/Cargo.lock
+source/server/src/console-subscriber

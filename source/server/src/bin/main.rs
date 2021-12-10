@@ -1,7 +1,11 @@
+//! mosaic server.
+//!
+//! This binary serves as entry point for the server implementation.
 use std::{path::PathBuf, process};
 
-use server::{engine, server::start, services, settings::Settings};
+use server::{engine::EngineInitializer, server::start, settings::Settings};
 use structopt::StructOpt;
+use tokio::signal;
 use tracing::warn;
 //use tracing_subscriber::*;
 
@@ -12,6 +16,7 @@ struct Config {
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
+    //console_subscriber::init();
     let cfg = Config::from_args();
 
     let settings = Settings::new(cfg.config_path).unwrap_or_else(|err| {
@@ -21,15 +26,22 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     let Settings { api: api_settings } = settings;
 
-    // let message_handler = engine::message::MessageHandler::new();
-    // let fetcher = services::fetcher::fetcher();
+    // let engine = EngineInitializer::new().init();
+    // .await
+    // .expect("failed to start the engine.");
 
     tokio::select! {
+        biased;
+
+        _ =  signal::ctrl_c() => {}
+        // _ = engine.run() => {
+        //     warn!("training finished: terminating the engine.")
+        // }
         result = start(api_settings) => {
             match result {
                 Ok(()) => warn!("shutting down: gRPC server terminated."),
                 Err(_error) => {
-                    warn!("shutting down as an error occured.");
+                    warn!("shutting down the server as an error occured.");
                 },
             }
         }

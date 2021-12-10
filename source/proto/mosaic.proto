@@ -14,7 +14,7 @@ service Communication {
 }
 
 message Parameters {
-  bytes tensors = 1;
+  repeated bytes tensor = 1;
   string data_type = 2;
 }
 
@@ -30,7 +30,8 @@ message ServerModel {
 
 message ClientMessage {
   //map<string, uint32> msgs = 1;
-  string msg = 1;
+  //string msg = 1;
+  uint32 id = 1;
 }
 
 message ClientUpdate {

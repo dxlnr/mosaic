@@ -1,28 +1,24 @@
 //! Sets up a gRPC server.
-use futures::future::{ready, Ready};
-use std::mem::drop;
 use std::sync::Mutex;
 
 use std::convert::Infallible;
 use std::sync::Arc;
 use thiserror::Error;
 
-use hyper::{service::make_service_fn, Body};
-use std::{
-    task::{Context, Poll},
-    time::Duration,
-};
 use tonic::{body::BoxBody, transport::Server, Request, Response, Status};
-use tower::{Layer, Service};
 
 use crate::{
+    db::{Db, DbDropGuard},
     engine::{
         message::{DataType, IntoPrimitives, Message, MessageHandler},
         model::Model,
     },
-    services::fetcher::Fetchers,
     settings::APISettings,
 };
+
+struct State {
+    global_model: Model,
+}
 
 pub mod mosaic {
     tonic::include_proto!("mosaic");
@@ -35,17 +31,25 @@ use mosaic::{
     ServerModel,
 };
 
-#[derive(Default, Debug)]
+#[derive(Debug)]
 pub struct Communicator {
-    features: Arc<Mutex<Vec<f64>>>,
+    model: Arc<Mutex<Vec<f64>>>,
+    features: Arc<Mutex<Vec<Vec<Vec<u8>>>>>,
     counter: Arc<Mutex<u32>>,
+    /// Shared database handle.
+    ///
+    /// This is the entry point for handling the incoming client information that is shipped
+    /// to the database layer.
+    db: Db,
 }
 
 impl Communicator {
-    fn new() -> Self {
+    fn new(model_length: usize) -> Self {
         Communicator {
-            features: Arc::new(Mutex::new(vec![0.0, 0.0, 0.0, 0.0])),
+            model: Arc::new(Mutex::new(vec![0.0; model_length])),
+            features: Arc::new(Mutex::new(Vec::new())),
             counter: Arc::new(Mutex::new(0)),
+            db: Db::new(),
         }
     }
 
@@ -60,81 +64,62 @@ impl Communication for Communicator {
         &self,
         request: Request<ClientDefault>,
     ) -> Result<Response<ServerDefault>, Status> {
-        let global_counter = Arc::clone(&self.counter);
-        let global_model = Arc::clone(&self.features);
-
-        let mut num = global_counter.lock().unwrap();
-        if *num == 10 {
-            let mut cupd = global_model.lock().unwrap();
-            *cupd = cupd.iter().map(|&v| v / *num as f64).collect();
-
-            println!("global model after aggregation: {:?}", cupd);
-        }
-        //println!("Got a request from {:?}", request.remote_addr());
-
-        let params = mosaic::Parameters {
-            tensors: vec![1, 3, 4, 5],
-            data_type: "f64".to_string(),
-        };
-
-        let msgs = Message {
-            bytes: request.into_inner().parameters.unwrap().tensors,
-            dtype: DataType::F64,
-        };
-
-        *num += 1;
-
-        let single_model: Vec<f64> = Message::into_primitives(msgs);
-
-        let mut cupd = global_model.lock().unwrap();
-        *cupd = cupd
-            .iter()
-            .zip(single_model.iter())
-            .map(|(&b, &v)| b + v)
-            .collect();
-
-        let server_msg = mosaic::ServerDefault {
-            parameters: Some(params),
-        };
-
-        Ok(Response::new(server_msg))
+        todo!()
     }
 
     async fn get_global_model(
         &self,
         request: Request<ClientMessage>,
     ) -> Result<Response<ServerModel>, Status> {
-        todo!()
+        println!(
+            "Request received from client {:?} requesting a global model.",
+            request.remote_addr().unwrap()
+        );
+
+        let global_model = Arc::clone(&self.model);
+        let cupd = global_model.lock().unwrap();
+
+        let tensor = into_bytes_array(&*cupd);
+
+        let params = mosaic::Parameters {
+            tensor: tensor.to_vec(),
+            data_type: "f64".to_string(),
+        };
+
+        let server_msg = mosaic::ServerModel {
+            parameters: Some(params),
+            id: request.into_inner().id,
+        };
+        Ok(Response::new(server_msg))
     }
 
     async fn send_update(
         &self,
         request: Request<ClientUpdate>,
     ) -> Result<Response<ServerMessage>, Status> {
-        todo!()
+        println!(
+            "Request received from client {:?} sending an update.",
+            request.remote_addr().unwrap()
+        );
+        let feature_list = Arc::clone(&self.features);
+        let mut flist = feature_list.lock().unwrap();
+        flist.push(request.into_inner().parameters.unwrap().tensor);
+
+        println!("feature list {:?}", &flist);
+
+        let server_msg = mosaic::ServerMessage {
+            msg: "success".to_string(),
+        };
+        Ok(Response::new(server_msg))
     }
 }
 
 pub async fn start(api_settings: APISettings) -> Result<(), Box<dyn std::error::Error>> {
-    let com = Communicator::new();
-
-    //let test_service = make_service_fn(|_conn| async { Ok::<_, Infallible>(Engine) });
+    let com = Communicator::new(4);
 
     println!("Communication Server listening on {}", api_settings.address);
 
-    // The stack of middleware that our service will be wrapped in
-    // let layer = tower::ServiceBuilder::new()
-    //     // Apply middleware from tower
-    //     // Apply our own middleware
-    //     .layer(EngineLayer::default())
-    //     // Interceptors can be also be applied as middleware
-    //     .layer(tonic::service::interceptor(intercept))
-    //     .into_inner();
-
-    println!("Communicator object: {:?}", &com);
-
     Server::builder()
-        //.add_service(test_service)
         .add_service(CommunicationServer::new(com))
         .serve(api_settings.address)
         .await?;
@@ -153,4 +138,12 @@ impl From<Infallible> for ServerError {
     fn from(infallible: Infallible) -> ServerError {
         match infallible {}
     }
+}
+
+fn into_bytes_array(primitives: &Vec<f64>) -> Vec<Vec<u8>> {
+    primitives
+        .iter()
+        .map(|r| r.to_be_bytes().to_vec())
+        .collect::<Vec<_>>()
+        .to_vec()
 }

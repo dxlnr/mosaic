@@ -3,3 +3,4 @@ address = "127.0.0.1:8080"
 
 [model]
 data_type = "F64"
+length = 4
