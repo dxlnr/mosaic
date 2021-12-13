@@ -1,5 +1,4 @@
 use std::path::Path;
-//use std::path::PathBuf;
 
 use config::{Config, ConfigError};
 use displaydoc::Display;
@@ -22,6 +21,7 @@ pub enum SettingsError {
 pub struct Settings {
     //pub log: LoggingSettings,
     pub api: APISettings,
+    pub model: ModelSettings,
 }
 
 impl Settings {
@@ -50,4 +50,9 @@ impl Settings {
 #[derive(Debug, Deserialize, Clone)]
 pub struct APISettings {
     pub address: std::net::SocketAddr,
+}
+
+#[derive(Debug, Deserialize, Clone)]
+pub struct ModelSettings {
+    pub length: usize,
 }

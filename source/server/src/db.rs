@@ -10,7 +10,7 @@ pub(crate) struct DbDropGuard {
 }
 
 #[derive(Debug, Clone)]
-pub(crate) struct Db {
+pub struct Db {
     /// Handle to shared state. The background task will also have an
     /// `Arc<Shared>`.
     shared: Arc<Shared>,

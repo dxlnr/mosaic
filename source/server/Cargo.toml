@@ -5,6 +5,11 @@ edition = "2021"
 
 [dependencies]
 byteorder = { version = "1", default-features = false }
+async-trait = "0.1.51"
+derive_more = { version = "0.99.16", default-features = false, features = [
+    "display",
+    "from",
+] }
 config = "0.11.0"
 thiserror = "1.0.30"
 displaydoc = "0.2.3"

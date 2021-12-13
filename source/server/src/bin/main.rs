@@ -24,19 +24,20 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         process::exit(1);
     });
 
-    let Settings { api: api_settings } = settings;
+    let Settings {
+        api: api_settings,
+        model: model_settings,
+    } = settings;
 
-    // let engine = EngineInitializer::new().init();
-    // .await
-    // .expect("failed to start the engine.");
+    let engine = EngineInitializer::new(model_settings).init().await;
 
     tokio::select! {
         biased;
 
         _ =  signal::ctrl_c() => {}
-        // _ = engine.run() => {
-        //     warn!("training finished: terminating the engine.")
-        // }
+        _ = engine.run() => {
+            warn!("training finished: terminating the engine.")
+        }
         result = start(api_settings) => {
             match result {
                 Ok(()) => warn!("shutting down: gRPC server terminated."),

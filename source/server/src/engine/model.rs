@@ -15,8 +15,8 @@ impl std::convert::AsRef<Model> for Model {
 
 impl Model {
     /// Instantiates a new empty model.
-    pub fn new() -> Self {
-        Model(vec![0.0, 0.0, 0.0, 0.0])
+    pub fn new(length: usize) -> Self {
+        Model(vec![0.0; length])
     }
     /// Returns the number of weights/parameters of a model.
     pub fn len(&self) -> usize {
