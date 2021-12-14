@@ -5,20 +5,19 @@ use std::convert::Infallible;
 use std::sync::Arc;
 use thiserror::Error;
 
-use tonic::{body::BoxBody, transport::Server, Request, Response, Status};
+use tonic::{transport::Server, Request, Response, Status};
 
 use crate::{
-    db::{Db, DbDropGuard},
+    db::Db,
     engine::{
         message::{DataType, IntoPrimitives, Message, MessageHandler},
-        model::Model,
     },
     settings::APISettings,
 };
 
-struct State {
-    global_model: Model,
-}
+// struct State {
+//     global_model: Model,
+// }
 
 pub mod mosaic {
     tonic::include_proto!("mosaic");
@@ -35,7 +34,7 @@ use mosaic::{
 pub struct Communicator {
     model: Arc<Mutex<Vec<f64>>>,
     features: Arc<Mutex<Vec<Vec<Vec<u8>>>>>,
-    counter: Arc<Mutex<u32>>,
+    //counter: Arc<Mutex<u32>>,
     /// Shared database handle.
     ///
     /// This is the entry point for handling the incoming client information that is shipped
@@ -48,7 +47,7 @@ impl Communicator {
         Communicator {
             model: Arc::new(Mutex::new(vec![0.0; model_length])),
             features: Arc::new(Mutex::new(Vec::new())),
-            counter: Arc::new(Mutex::new(0)),
+            //counter: Arc::new(Mutex::new(0)),
             db: Db::new(),
         }
     }

@@ -2,7 +2,7 @@ use async_trait::async_trait;
 use std::convert::Infallible;
 
 use crate::engine::{
-    phases::{Phase, PhaseName, PhaseState},
+    phases::{Collect, Phase, PhaseName, PhaseState},
     Engine, ServerState,
 };
 
@@ -19,8 +19,7 @@ impl Phase for PhaseState<Init> {
     }
 
     async fn next(self) -> Option<Engine> {
-        todo!()
-        //Some(PhaseState::<Sum, _>::new(self.shared).into())
+        Some(PhaseState::<Collect>::new(self.shared).into())
     }
 }
 

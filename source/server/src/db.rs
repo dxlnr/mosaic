@@ -1,3 +1,5 @@
+#![allow(dead_code)]
+#![allow(unused_variables)]
 use bytes::Bytes;
 use std::collections::HashMap;
 use std::sync::{Arc, Mutex};

@@ -12,6 +12,10 @@ use crate::engine::ServerState;
 pub enum PhaseName {
     #[display(fmt = "Init")]
     Init,
+    #[display(fmt = "Collect")]
+    Collect,
+    #[display(fmt = "Shutdown")]
+    Shutdown,
 }
 
 /// A trait that must be implemented by a state in order to perform its tasks and to move to a next state.

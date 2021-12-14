@@ -16,7 +16,7 @@ struct Config {
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
-    //console_subscriber::init();
+    // console_subscriber::init();
     let cfg = Config::from_args();
 
     let settings = Settings::new(cfg.config_path).unwrap_or_else(|err| {

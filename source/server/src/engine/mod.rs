@@ -10,21 +10,23 @@ use crate::settings::ModelSettings;
 use derive_more::From;
 use std::sync::{Arc, Mutex};
 
-use crate::engine::phases::{Init, Phase, PhaseState};
+use crate::engine::phases::{Collect, Init, PhaseState, Shutdown};
 
 // use std::convert::Infallible;
 #[derive(From)]
 pub enum Engine {
     Init(PhaseState<Init>),
-    // Collect,
+    Collect(PhaseState<Collect>),
+    Shutdown(PhaseState<Shutdown>),
     // Aggregate,
-    // Shutdown,
 }
 
 impl Engine {
     pub async fn next(self) -> Option<Self> {
         match self {
             Engine::Init(state) => state.run_phase().await,
+            Engine::Collect(state) => state.run_phase().await,
+            Engine::Shutdown(state) => state.run_phase().await,
         }
     }
 
@@ -53,9 +55,6 @@ impl EngineInitializer {
         );
         Engine::Init(PhaseState::<Init>::new(shared))
     }
-    // fn init_engine(self) {
-    //     todo!()
-    // }
 }
 
 pub struct ServerState {
