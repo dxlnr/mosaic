@@ -1,11 +1,11 @@
 //use std::fmt;
-
 use async_trait::async_trait;
 use derive_more::Display;
+use futures::StreamExt;
 use std::convert::Infallible;
+use tokio::signal;
 
-use crate::engine::Engine;
-use crate::engine::ServerState;
+use crate::engine::{tunnel::EngineRequest, Engine, ServerState};
 
 /// The name of the current phase.
 #[derive(Clone, Copy, Debug, Display, Eq, PartialEq)]
@@ -54,5 +54,42 @@ where
             self.next().await
         }
         .await
+    }
+    /// Receives the next [`Request`] from gRPC server.
+    pub async fn next_request(&mut self) -> EngineRequest {
+        println!("{:?}", "waiting for the next incoming request");
+        self.shared.rx.next().await.unwrap()
+    }
+}
+
+/// A trait that must be implemented by a state to handle a request.
+#[async_trait]
+pub trait Handler {
+    /// Handling a request.
+    async fn handle_request(&mut self, req: EngineRequest) -> Result<(), Infallible>;
+}
+
+impl<S> PhaseState<S>
+where
+    Self: Phase + Handler,
+{
+    /// Processes requests.
+    pub async fn process(&mut self) -> Result<(), Infallible> {
+        loop {
+            tokio::select! {
+                biased;
+
+                _ =  signal::ctrl_c() => {
+                    break Ok(())
+                }
+                next = self.next_request() => {
+                    let req = next;
+                    self.process_single(req).await;
+                }
+            }
+        }
+    }
+    async fn process_single(&mut self, req: EngineRequest) {
+        let response = self.handle_request(req).await;
     }
 }

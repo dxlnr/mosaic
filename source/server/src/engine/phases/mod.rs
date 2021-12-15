@@ -1,4 +1,5 @@
 mod collect;
+mod handling;
 mod init;
 mod phase;
 mod shutdown;
@@ -6,6 +7,6 @@ mod shutdown;
 pub use self::{
     collect::Collect,
     init::Init,
-    phase::{Phase, PhaseName, PhaseState},
+    phase::{Handler, Phase, PhaseName, PhaseState},
     shutdown::Shutdown,
 };

@@ -2,7 +2,8 @@ use async_trait::async_trait;
 use std::convert::Infallible;
 
 use crate::engine::{
-    phases::{Phase, PhaseName, PhaseState, Shutdown},
+    phases::{Handler, Phase, PhaseName, PhaseState, Shutdown},
+    tunnel::EngineRequest,
     Engine, ServerState,
 };
 
@@ -11,21 +12,14 @@ use crate::engine::{
 pub struct Collect;
 
 #[async_trait]
-impl Phase for PhaseState<Collect> {
+impl Phase for PhaseState<Collect>
+where
+    Self: Handler,
+{
     const NAME: PhaseName = PhaseName::Collect;
 
     async fn perform(&mut self) -> Result<(), Infallible> {
-        let mut n = 0;
-
-        loop {
-            if n > 5 {
-                break;
-            }
-            n += 1;
-            println!("{:?}", n);
-            use std::{thread, time};
-            thread::sleep(time::Duration::from_secs(1));
-        }
+        self.process().await?;
         Ok(())
     }
 
@@ -41,5 +35,12 @@ impl PhaseState<Collect> {
             private: Collect,
             shared,
         }
+    }
+}
+
+#[async_trait]
+impl Handler for PhaseState<Collect> {
+    async fn handle_request(&mut self, req: EngineRequest) -> Result<(), Infallible> {
+        Ok(())
     }
 }

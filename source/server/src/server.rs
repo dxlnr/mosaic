@@ -56,7 +56,7 @@ impl Communicator {
 impl Communication for Communicator {
     async fn broadcast(
         &self,
-        request: Request<ClientDefault>,
+        _request: Request<ClientDefault>,
     ) -> Result<Response<ServerDefault>, Status> {
         todo!()
     }
