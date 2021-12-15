@@ -4,13 +4,19 @@
 pub mod message;
 pub mod model;
 pub mod phases;
+pub mod tunnel;
 
 // use crate::db::Db;
-use crate::settings::ModelSettings;
 use derive_more::From;
 use std::sync::{Arc, Mutex};
 
-use crate::engine::phases::{Collect, Init, PhaseState, Shutdown};
+use crate::{
+    engine::{
+        phases::{Collect, Init, PhaseState, Shutdown},
+        tunnel::{RequestReceiver, RequestSender},
+    },
+    settings::ModelSettings,
+};
 
 // use std::convert::Infallible;
 #[derive(From)]
@@ -47,13 +53,15 @@ impl EngineInitializer {
         EngineInitializer { model_settings }
     }
 
-    pub async fn init(self) -> Engine {
+    pub async fn init(self) -> (Engine, RequestSender) {
+        let (rx, tx) = RequestSender::new();
         let shared = ServerState::new(
             0,
             0,
+            rx,
             Arc::new(Mutex::new(Model::new(self.model_settings.length))),
         );
-        Engine::Init(PhaseState::<Init>::new(shared))
+        (Engine::Init(PhaseState::<Init>::new(shared)), tx)
     }
 }
 
@@ -64,16 +72,22 @@ pub struct ServerState {
     //pub client_params: ClientState,
 
     // Holds the shared model & message states.
-    //pub shared_state: Db,
+    pub rx: RequestReceiver,
     pub global_model: Arc<Mutex<Model>>,
 }
 
 impl ServerState {
     /// Init new shared server state.
-    pub fn new(round_id: u64, client_count: u64, global_model: Arc<Mutex<Model>>) -> Self {
+    pub fn new(
+        round_id: u64,
+        client_count: u64,
+        rx: RequestReceiver,
+        global_model: Arc<Mutex<Model>>,
+    ) -> Self {
         ServerState {
             round_id,
             client_count,
+            rx,
             global_model,
         }
     }

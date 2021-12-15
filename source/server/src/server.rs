@@ -7,13 +7,7 @@ use thiserror::Error;
 
 use tonic::{transport::Server, Request, Response, Status};
 
-use crate::{
-    db::Db,
-    engine::{
-        message::{DataType, IntoPrimitives, Message, MessageHandler},
-    },
-    settings::APISettings,
-};
+use crate::{db::Db, service::messages::MessageHandler, settings::APISettings};
 
 // struct State {
 //     global_model: Model,
@@ -40,21 +34,22 @@ pub struct Communicator {
     /// This is the entry point for handling the incoming client information that is shipped
     /// to the database layer.
     db: Db,
+    handler: MessageHandler,
 }
 
 impl Communicator {
-    fn new(model_length: usize) -> Self {
+    fn new(handler: MessageHandler, model_length: usize) -> Self {
         Communicator {
             model: Arc::new(Mutex::new(vec![0.0; model_length])),
             features: Arc::new(Mutex::new(Vec::new())),
             //counter: Arc::new(Mutex::new(0)),
             db: Db::new(),
+            handler,
         }
     }
-
-    async fn read(mut handler: MessageHandler, data: Vec<f64>) {
-        handler.add_msg(data).await;
-    }
+    // async fn read(mut handler: MessageHandler, data: Vec<f64>) {
+    //     handler.add_msg(data).await;
+    // }
 }
 
 #[tonic::async_trait]
@@ -113,8 +108,11 @@ impl Communication for Communicator {
     }
 }
 
-pub async fn start(api_settings: APISettings) -> Result<(), Box<dyn std::error::Error>> {
-    let com = Communicator::new(4);
+pub async fn start(
+    api_settings: APISettings,
+    message_handler: MessageHandler,
+) -> Result<(), Box<dyn std::error::Error>> {
+    let com = Communicator::new(message_handler, 4);
 
     println!("Communication Server listening on {}", api_settings.address);
 

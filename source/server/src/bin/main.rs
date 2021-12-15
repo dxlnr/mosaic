@@ -3,7 +3,9 @@
 //! This binary serves as entry point for the server implementation.
 use std::{path::PathBuf, process};
 
-use server::{engine::EngineInitializer, server::start, settings::Settings};
+use server::{
+    engine::EngineInitializer, server::start, service::messages::MessageHandler, settings::Settings,
+};
 use structopt::StructOpt;
 use tokio::signal;
 use tracing::warn;
@@ -29,7 +31,8 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         model: model_settings,
     } = settings;
 
-    let engine = EngineInitializer::new(model_settings).init().await;
+    let (engine, tx) = EngineInitializer::new(model_settings).init().await;
+    let message_handler = MessageHandler::new(tx);
 
     tokio::select! {
         biased;
@@ -38,7 +41,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         _ = engine.run() => {
             warn!("training finished: terminating the engine.")
         }
-        result = start(api_settings) => {
+        result = start(api_settings, message_handler) => {
             match result {
                 Ok(()) => warn!("shutting down: gRPC server terminated."),
                 Err(_error) => {
