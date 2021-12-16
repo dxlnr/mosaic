@@ -2,7 +2,6 @@
 /// Aggregation of the global model, keeping track of the training state, publishing protocol events
 /// and handling protocol errors.
 pub mod channel;
-pub mod message;
 pub mod model;
 pub mod states;
 

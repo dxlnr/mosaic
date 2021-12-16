@@ -91,6 +91,6 @@ where
         }
     }
     async fn process_single(&mut self, req: EngineRequest) {
-        let response = self.handle_request(req).await;
+        let _response = self.handle_request(req).await;
     }
 }
