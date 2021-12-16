@@ -8,11 +8,11 @@ use tracing::info;
 
 use crate::engine::{channel::EngineRequest, Engine, ServerState};
 
-/// The name of the current phase.
+/// The name of the current state.
 #[derive(Clone, Copy, Debug, Display, Eq, PartialEq)]
-pub enum PhaseName {
-    #[display(fmt = "Init")]
-    Init,
+pub enum StateName {
+    #[display(fmt = "Idle")]
+    Idle,
     #[display(fmt = "Collect")]
     Collect,
     #[display(fmt = "Shutdown")]
@@ -21,36 +21,36 @@ pub enum PhaseName {
 
 /// A trait that must be implemented by a state in order to perform its tasks and to move to a next state.
 #[async_trait]
-pub trait Phase {
-    /// The name of the current phase.
-    const NAME: PhaseName;
+pub trait State {
+    /// The name of the current state.
+    const NAME: StateName;
 
-    /// Performs the tasks of this phase.
+    /// Performs the tasks of this state.
     async fn perform(&mut self) -> Result<(), Infallible>;
 
-    /// Moves from this phase to the next phase.
+    /// Moves from the current to the next state.
     async fn next(self) -> Option<Engine>;
 }
 
-pub struct PhaseState<S> {
+pub struct StateCondition<S> {
     pub(in crate::engine) private: S,
     /// Some shared state.
     pub shared: ServerState,
 }
 
-impl<S> PhaseState<S>
+impl<S> StateCondition<S>
 where
-    Self: Phase,
+    Self: State,
 {
-    /// Runs the current phase to completion.
-    pub async fn run_phase(mut self) -> Option<Engine> {
-        let phase = Self::NAME;
+    /// Runs the current State to completion.
+    pub async fn run_state(mut self) -> Option<Engine> {
+        let state = Self::NAME;
 
-        info!("Engine runs phase: {:?}", &phase);
+        info!("Engine runs in state: {:?}", &state);
 
         async move {
             if let Err(_err) = self.perform().await {
-                println!("{:?}", "phase error");
+                println!("{:?}", "state error");
             }
             self.next().await
         }
@@ -58,7 +58,7 @@ where
     }
     /// Receives the next [`Request`] from gRPC server.
     pub async fn next_request(&mut self) -> EngineRequest {
-        info!("{:?}", "waiting for the next incoming request");
+        info!("waiting for the next request");
         self.shared.rx.next().await.unwrap()
     }
 }
@@ -70,9 +70,9 @@ pub trait Handler {
     async fn handle_request(&mut self, req: EngineRequest) -> Result<(), Infallible>;
 }
 
-impl<S> PhaseState<S>
+impl<S> StateCondition<S>
 where
-    Self: Phase + Handler,
+    Self: State + Handler,
 {
     /// Processes requests.
     pub async fn process(&mut self) -> Result<(), Infallible> {

@@ -1,11 +1,11 @@
 use derive_more::From;
-use futures::{future::FutureExt, Stream};
+use futures::Stream;
 use std::convert::Infallible;
 use std::{
     pin::Pin,
     task::{Context, Poll},
 };
-use tokio::sync::{mpsc, oneshot};
+use tokio::sync::mpsc;
 
 /// A handle to send requests to the [`Engine`].
 #[derive(Clone, From, Debug)]
@@ -16,7 +16,7 @@ impl RequestSender {
         let (tx, rx) = mpsc::unbounded_channel::<EngineRequest>();
         (RequestReceiver(rx), RequestSender(tx))
     }
-    pub async fn sending(&mut self, req: EngineRequest) -> Result<(), Infallible> {
+    pub async fn sending(&mut self, _req: EngineRequest) -> Result<(), Infallible> {
         todo!()
     }
 }

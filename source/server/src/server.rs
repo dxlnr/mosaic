@@ -8,7 +8,7 @@ use thiserror::Error;
 use tonic::{transport::Server, Request, Response, Status};
 use tracing::info;
 
-use crate::{db::Db, service::messages::MessageHandler, settings::APISettings};
+use crate::{service::messages::MessageHandler, settings::APISettings};
 
 pub mod mosaic {
     tonic::include_proto!("mosaic");
@@ -25,12 +25,7 @@ use mosaic::{
 pub struct Communicator {
     model: Arc<Mutex<Vec<f64>>>,
     features: Arc<Mutex<Vec<Vec<Vec<u8>>>>>,
-    //counter: Arc<Mutex<u32>>,
-    /// Shared database handle.
-    ///
-    /// This is the entry point for handling the incoming client information that is shipped
-    /// to the database layer.
-    db: Db,
+    /// Shared handle for passing messages from participant to engine.
     handler: MessageHandler,
 }
 
@@ -39,14 +34,9 @@ impl Communicator {
         Communicator {
             model: Arc::new(Mutex::new(vec![0.0; model_length])),
             features: Arc::new(Mutex::new(Vec::new())),
-            //counter: Arc::new(Mutex::new(0)),
-            db: Db::new(),
             handler,
         }
     }
-    // async fn read(mut handler: MessageHandler, data: Vec<f64>) {
-    //     handler.add_msg(data).await;
-    // }
 }
 
 #[tonic::async_trait]
@@ -82,7 +72,7 @@ impl Communication for Communicator {
         request: Request<ClientUpdate>,
     ) -> Result<Response<ServerMessage>, Status> {
         info!(
-            "Request received from client {:?} sending an update.",
+            "Request received from client {}: Sending an update to engine.",
             request.remote_addr().unwrap()
         );
         let feature_list = Arc::clone(&self.features);

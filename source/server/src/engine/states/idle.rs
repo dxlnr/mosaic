@@ -2,32 +2,33 @@ use async_trait::async_trait;
 use std::convert::Infallible;
 
 use crate::engine::{
-    phases::{Phase, PhaseName, PhaseState},
+    states::{Collect, State, StateCondition, StateName},
     Engine, ServerState,
 };
 
-/// The shutdown state.
+/// The idle state.
 #[derive(Debug)]
-pub struct Shutdown;
+pub struct Idle;
 
 #[async_trait]
-impl Phase for PhaseState<Shutdown> {
-    const NAME: PhaseName = PhaseName::Shutdown;
+impl State for StateCondition<Idle> {
+    const NAME: StateName = StateName::Idle;
 
     async fn perform(&mut self) -> Result<(), Infallible> {
         Ok(())
     }
 
     async fn next(self) -> Option<Engine> {
-        None
+        Some(StateCondition::<Collect>::new(self.shared).into())
     }
 }
 
-impl PhaseState<Shutdown> {
+impl StateCondition<Idle> {
     /// Creates a new idle state.
     pub fn new(mut shared: ServerState) -> Self {
+        shared.set_round_id(shared.round_id() + 1);
         Self {
-            private: Shutdown,
+            private: Idle,
             shared,
         }
     }

@@ -4,7 +4,7 @@
 pub mod channel;
 pub mod message;
 pub mod model;
-pub mod phases;
+pub mod states;
 
 // use crate::db::Db;
 use derive_more::From;
@@ -13,7 +13,7 @@ use std::sync::{Arc, Mutex};
 use crate::{
     engine::{
         channel::{RequestReceiver, RequestSender},
-        phases::{Collect, Init, PhaseState, Shutdown},
+        states::{Collect, Idle, Shutdown, StateCondition},
     },
     settings::ModelSettings,
 };
@@ -21,18 +21,18 @@ use crate::{
 // use std::convert::Infallible;
 #[derive(From)]
 pub enum Engine {
-    Init(PhaseState<Init>),
-    Collect(PhaseState<Collect>),
-    Shutdown(PhaseState<Shutdown>),
+    Idle(StateCondition<Idle>),
+    Collect(StateCondition<Collect>),
+    Shutdown(StateCondition<Shutdown>),
     // Aggregate,
 }
 
 impl Engine {
     pub async fn next(self) -> Option<Self> {
         match self {
-            Engine::Init(state) => state.run_phase().await,
-            Engine::Collect(state) => state.run_phase().await,
-            Engine::Shutdown(state) => state.run_phase().await,
+            Engine::Idle(state) => state.run_state().await,
+            Engine::Collect(state) => state.run_state().await,
+            Engine::Shutdown(state) => state.run_state().await,
         }
     }
 
@@ -61,7 +61,7 @@ impl EngineInitializer {
             rx,
             Arc::new(Mutex::new(Model::new(self.model_settings.length))),
         );
-        (Engine::Init(PhaseState::<Init>::new(shared)), tx)
+        (Engine::Idle(StateCondition::<Idle>::new(shared)), tx)
     }
 }
 

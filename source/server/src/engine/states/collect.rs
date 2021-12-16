@@ -3,7 +3,7 @@ use std::convert::Infallible;
 
 use crate::engine::{
     channel::EngineRequest,
-    phases::{Handler, Phase, PhaseName, PhaseState, Shutdown},
+    states::{Handler, Shutdown, State, StateCondition, StateName},
     Engine, ServerState,
 };
 
@@ -12,11 +12,11 @@ use crate::engine::{
 pub struct Collect;
 
 #[async_trait]
-impl Phase for PhaseState<Collect>
+impl State for StateCondition<Collect>
 where
     Self: Handler,
 {
-    const NAME: PhaseName = PhaseName::Collect;
+    const NAME: StateName = StateName::Collect;
 
     async fn perform(&mut self) -> Result<(), Infallible> {
         self.process().await?;
@@ -24,11 +24,11 @@ where
     }
 
     async fn next(self) -> Option<Engine> {
-        Some(PhaseState::<Shutdown>::new(self.shared).into())
+        Some(StateCondition::<Shutdown>::new(self.shared).into())
     }
 }
 
-impl PhaseState<Collect> {
+impl StateCondition<Collect> {
     /// Creates a new collect state.
     pub fn new(mut shared: ServerState) -> Self {
         Self {
@@ -39,8 +39,8 @@ impl PhaseState<Collect> {
 }
 
 #[async_trait]
-impl Handler for PhaseState<Collect> {
-    async fn handle_request(&mut self, req: EngineRequest) -> Result<(), Infallible> {
+impl Handler for StateCondition<Collect> {
+    async fn handle_request(&mut self, _req: EngineRequest) -> Result<(), Infallible> {
         Ok(())
     }
 }
