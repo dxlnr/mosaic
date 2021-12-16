@@ -29,6 +29,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let Settings {
         api: api_settings,
         model: model_settings,
+        process: process_setttings,
     } = settings;
 
     let (engine, tx) = EngineInitializer::new(model_settings).init().await;

@@ -1,7 +1,7 @@
 use async_trait::async_trait;
 use std::convert::Infallible;
 
-use crate::engine::tunnel::EngineRequest;
+use crate::engine::channel::EngineRequest;
 /// A trait that must be implemented by a state to handle a request.
 #[async_trait]
 pub trait Handler {

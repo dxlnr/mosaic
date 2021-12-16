@@ -2,8 +2,8 @@ use async_trait::async_trait;
 use std::convert::Infallible;
 
 use crate::engine::{
+    channel::EngineRequest,
     phases::{Handler, Phase, PhaseName, PhaseState, Shutdown},
-    tunnel::EngineRequest,
     Engine, ServerState,
 };
 

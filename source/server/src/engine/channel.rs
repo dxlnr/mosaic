@@ -36,8 +36,8 @@ pub struct EngineRequest {
     pub model: Vec<Vec<u8>>,
 }
 
-struct Inner {}
-struct Shared {}
+// struct Inner {}
+// struct Shared {}
 
 impl RequestReceiver {
     pub fn recv(&mut self) {

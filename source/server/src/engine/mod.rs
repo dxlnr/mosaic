@@ -1,10 +1,10 @@
 /// Main module as it implements all the key functionality.
 /// Aggregation of the global model, keeping track of the training state, publishing protocol events
 /// and handling protocol errors.
+pub mod channel;
 pub mod message;
 pub mod model;
 pub mod phases;
-pub mod tunnel;
 
 // use crate::db::Db;
 use derive_more::From;
@@ -12,8 +12,8 @@ use std::sync::{Arc, Mutex};
 
 use crate::{
     engine::{
+        channel::{RequestReceiver, RequestSender},
         phases::{Collect, Init, PhaseState, Shutdown},
-        tunnel::{RequestReceiver, RequestSender},
     },
     settings::ModelSettings,
 };

@@ -5,7 +5,7 @@ use futures::StreamExt;
 use std::convert::Infallible;
 use tokio::signal;
 
-use crate::engine::{tunnel::EngineRequest, Engine, ServerState};
+use crate::engine::{channel::EngineRequest, Engine, ServerState};
 
 /// The name of the current phase.
 #[derive(Clone, Copy, Debug, Display, Eq, PartialEq)]

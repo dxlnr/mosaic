@@ -4,7 +4,7 @@ use tower::Service;
 
 use std::convert::Infallible;
 
-use crate::engine::tunnel::RequestSender;
+use crate::engine::channel::RequestSender;
 
 pub type BoxedServiceFuture<Response, Error> = std::pin::Pin<
     Box<dyn futures::Future<Output = Result<Response, Error>> + 'static + Send + Sync>,

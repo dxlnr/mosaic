@@ -22,6 +22,7 @@ pub struct Settings {
     //pub log: LoggingSettings,
     pub api: APISettings,
     pub model: ModelSettings,
+    pub process: ProcessSettings,
 }
 
 impl Settings {
@@ -55,4 +56,12 @@ pub struct APISettings {
 #[derive(Debug, Deserialize, Clone)]
 pub struct ModelSettings {
     pub length: usize,
+}
+
+#[derive(Debug, Deserialize, Clone)]
+pub struct ProcessSettings {
+    /// Defines the number of training rounds.
+    pub rounds: u32,
+    /// Sets the number of participants.
+    pub participants: u32,
 }

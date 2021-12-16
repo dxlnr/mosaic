@@ -1,7 +1,7 @@
 mod engine;
 
 use self::engine::EngineService;
-use crate::engine::tunnel::RequestSender;
+use crate::engine::channel::RequestSender;
 
 #[derive(Debug)]
 pub struct MessageHandler {
