@@ -6,12 +6,9 @@ use std::sync::Arc;
 use thiserror::Error;
 
 use tonic::{transport::Server, Request, Response, Status};
+use tracing::info;
 
 use crate::{db::Db, service::messages::MessageHandler, settings::APISettings};
-
-// struct State {
-//     global_model: Model,
-// }
 
 pub mod mosaic {
     tonic::include_proto!("mosaic");
@@ -54,13 +51,6 @@ impl Communicator {
 
 #[tonic::async_trait]
 impl Communication for Communicator {
-    async fn broadcast(
-        &self,
-        _request: Request<ClientDefault>,
-    ) -> Result<Response<ServerDefault>, Status> {
-        todo!()
-    }
-
     async fn get_global_model(
         &self,
         request: Request<ClientMessage>,
@@ -87,11 +77,11 @@ impl Communication for Communicator {
         Ok(Response::new(server_msg))
     }
 
-    async fn send_update(
+    async fn update(
         &self,
         request: Request<ClientUpdate>,
     ) -> Result<Response<ServerMessage>, Status> {
-        println!(
+        info!(
             "Request received from client {:?} sending an update.",
             request.remote_addr().unwrap()
         );
@@ -114,7 +104,7 @@ pub async fn start(
 ) -> Result<(), Box<dyn std::error::Error>> {
     let com = Communicator::new(message_handler, 4);
 
-    println!("Communication Server listening on {}", api_settings.address);
+    info!("Communication Server listening on {}", api_settings.address);
 
     Server::builder()
         .add_service(CommunicationServer::new(com))

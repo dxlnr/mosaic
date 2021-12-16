@@ -4,6 +4,7 @@ use derive_more::Display;
 use futures::StreamExt;
 use std::convert::Infallible;
 use tokio::signal;
+use tracing::info;
 
 use crate::engine::{channel::EngineRequest, Engine, ServerState};
 
@@ -45,7 +46,7 @@ where
     pub async fn run_phase(mut self) -> Option<Engine> {
         let phase = Self::NAME;
 
-        println!("Engine runs phase: {:?}", &phase);
+        info!("Engine runs phase: {:?}", &phase);
 
         async move {
             if let Err(_err) = self.perform().await {
@@ -57,7 +58,7 @@ where
     }
     /// Receives the next [`Request`] from gRPC server.
     pub async fn next_request(&mut self) -> EngineRequest {
-        println!("{:?}", "waiting for the next incoming request");
+        info!("{:?}", "waiting for the next incoming request");
         self.shared.rx.next().await.unwrap()
     }
 }

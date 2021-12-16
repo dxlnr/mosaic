@@ -1,11 +1,14 @@
-use std::path::Path;
+use std::{fmt, path::Path};
 
 use config::{Config, ConfigError};
 use displaydoc::Display;
-use serde::Deserialize;
+use serde::{
+    de::{self, Deserializer, Visitor},
+    Deserialize,
+};
 
 use thiserror::Error;
-//use tracing_subscriber::filter::EnvFilter;
+use tracing_subscriber::filter::EnvFilter;
 use validator::{Validate, ValidationErrors};
 
 #[derive(Debug, Display, Error)]
@@ -23,6 +26,7 @@ pub struct Settings {
     pub api: APISettings,
     pub model: ModelSettings,
     pub process: ProcessSettings,
+    pub log: LogSettings,
 }
 
 impl Settings {
@@ -43,10 +47,12 @@ impl Settings {
     }
 }
 
-// #[derive(Debug, Deserialize, Clone)]
-// pub struct LoggingSettings {
-//     pub filter: EnvFilter,
-// }
+#[derive(Debug, Deserialize)]
+pub struct LogSettings {
+    /// Tokio tracing filter which filters spans and events based on a set of filter directives.
+    #[serde(deserialize_with = "deserialize_env_filter")]
+    pub filter: EnvFilter,
+}
 
 #[derive(Debug, Deserialize, Clone)]
 pub struct APISettings {
@@ -64,4 +70,25 @@ pub struct ProcessSettings {
     pub rounds: u32,
     /// Sets the number of participants.
     pub participants: u32,
+}
+
+fn deserialize_env_filter<'de, D>(deserializer: D) -> Result<EnvFilter, D::Error>
+where
+    D: Deserializer<'de>,
+{
+    struct EnvFilterVisitor;
+    impl<'de> Visitor<'de> for EnvFilterVisitor {
+        type Value = EnvFilter;
+        fn expecting(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
+            write!(formatter, "tokio tracing")
+        }
+        fn visit_str<E>(self, value: &str) -> Result<Self::Value, E>
+        where
+            E: de::Error,
+        {
+            EnvFilter::try_new(value)
+                .map_err(|_| de::Error::invalid_value(serde::de::Unexpected::Str(value), &self))
+        }
+    }
+    deserializer.deserialize_str(EnvFilterVisitor)
 }

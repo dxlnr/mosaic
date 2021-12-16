@@ -6,10 +6,8 @@ package mosaic;
 //   rpc Join(stream ClientMessage) returns (stream ServerMessage) {}
 // }
 service Communication {
-  rpc Broadcast(ClientDefault) returns (ServerDefault);
-
   rpc GetGlobalModel(ClientMessage) returns (ServerModel);
-  rpc SendUpdate(ClientUpdate) returns (ServerMessage);
+  rpc Update(ClientUpdate) returns (ServerMessage);
   // rpc SingleRound(stream ClientMessage) returns (ServerMessage);
 }
 

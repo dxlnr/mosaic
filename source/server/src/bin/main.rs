@@ -4,12 +4,15 @@
 use std::{path::PathBuf, process};
 
 use server::{
-    engine::EngineInitializer, server::start, service::messages::MessageHandler, settings::Settings,
+    engine::EngineInitializer,
+    server::start,
+    service::messages::MessageHandler,
+    settings::{LogSettings, Settings},
 };
 use structopt::StructOpt;
 use tokio::signal;
 use tracing::warn;
-//use tracing_subscriber::*;
+use tracing_subscriber::*;
 
 #[derive(Debug, StructOpt)]
 struct Config {
@@ -18,7 +21,6 @@ struct Config {
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
-    // console_subscriber::init();
     let cfg = Config::from_args();
 
     let settings = Settings::new(cfg.config_path).unwrap_or_else(|err| {
@@ -29,8 +31,10 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let Settings {
         api: api_settings,
         model: model_settings,
-        process: process_setttings,
+        process: _process_setttings,
+        log: logging,
     } = settings;
+    init_logging(logging);
 
     let (engine, tx) = EngineInitializer::new(model_settings).init().await;
     let message_handler = MessageHandler::new(tx);
@@ -52,4 +56,11 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         }
     }
     Ok(())
+}
+
+fn init_logging(settings: LogSettings) {
+    let _fmt_subscriber = FmtSubscriber::builder()
+        .with_env_filter(settings.filter)
+        .with_ansi(true)
+        .init();
 }

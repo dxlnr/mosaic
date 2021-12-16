@@ -29,7 +29,7 @@ bytes = "1.1.0"
 prost = "0.9"
 
 tracing = "0.1"
-tracing-subscriber = "0.2"
+tracing-subscriber = { version = "0.3.2", features = ["env-filter"] }
 futures = { version = "0.3.0", features = ["thread-pool"]}
 futures-core = "0.3"
 

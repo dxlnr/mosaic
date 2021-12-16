@@ -8,3 +8,6 @@ length = 4
 [process]
 rounds = 2
 participants = 10
+
+[log]
+filter = "info"
