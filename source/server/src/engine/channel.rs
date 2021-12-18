@@ -1,40 +1,54 @@
 use derive_more::From;
 use futures::Stream;
-use std::convert::Infallible;
+use std::io::{Error, ErrorKind};
 use std::{
     pin::Pin,
     task::{Context, Poll},
 };
-use tokio::sync::mpsc;
+use tokio::sync::{mpsc, oneshot};
+
+use crate::message::Message;
 
 /// A handle to send requests to the [`Engine`].
 #[derive(Clone, From, Debug)]
-pub struct RequestSender(mpsc::UnboundedSender<EngineRequest>);
+pub struct RequestSender(pub mpsc::UnboundedSender<Message>);
 
 impl RequestSender {
     pub fn new() -> (RequestReceiver, RequestSender) {
-        let (tx, rx) = mpsc::unbounded_channel::<EngineRequest>();
+        let (tx, rx) = mpsc::unbounded_channel::<Message>();
         (RequestReceiver(rx), RequestSender(tx))
     }
-    pub async fn sending(&mut self, _req: EngineRequest) -> Result<(), Infallible> {
-        todo!()
+    pub async fn sending(&mut self, req: Message) -> Result<(), Error> {
+        let (tx, rx) = oneshot::channel::<Result<(), Error>>();
+        self.0.send(req).map_err(|_| {
+            Error::new(
+                ErrorKind::Other,
+                "failed to send request to the engine: engine shuts down.",
+            )
+        })?;
+        rx.await.map_err(|_| {
+            Error::new(
+                ErrorKind::Other,
+                "failed to receive response from the engine.",
+            )
+        })?
     }
 }
 
 /// A handle to receive requests that the ['Engine'] makes use of.
 #[derive(From, Debug)]
-pub struct RequestReceiver(mpsc::UnboundedReceiver<EngineRequest>);
+pub struct RequestReceiver(mpsc::UnboundedReceiver<Message>);
 
 impl Stream for RequestReceiver {
-    type Item = EngineRequest;
+    type Item = Message;
     fn poll_next(self: Pin<&mut Self>, cx: &mut Context) -> Poll<Option<Self::Item>> {
         Pin::new(&mut self.get_mut().0).poll_recv(cx)
     }
 }
 
-pub struct EngineRequest {
-    pub model: Vec<Vec<u8>>,
-}
+// pub struct Message {
+//     pub model: Message,
+// }
 
 // struct Inner {}
 // struct Shared {}

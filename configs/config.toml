@@ -10,4 +10,4 @@ rounds = 2
 participants = 10
 
 [log]
-filter = "info"
+filter = "mosaic=debug,info"

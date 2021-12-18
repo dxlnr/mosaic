@@ -3,10 +3,14 @@ use async_trait::async_trait;
 use derive_more::Display;
 use futures::StreamExt;
 use std::convert::Infallible;
+use std::io::{Error, ErrorKind};
 use tokio::signal;
 use tracing::info;
 
-use crate::engine::{channel::EngineRequest, Engine, ServerState};
+use crate::{
+    engine::{Engine, ServerState},
+    message::Message,
+};
 
 /// The name of the current state.
 #[derive(Clone, Copy, Debug, Display, Eq, PartialEq)]
@@ -26,7 +30,7 @@ pub trait State {
     const NAME: StateName;
 
     /// Performs the tasks of this state.
-    async fn perform(&mut self) -> Result<(), Infallible>;
+    async fn perform(&mut self) -> Result<(), Error>;
 
     /// Moves from the current to the next state.
     async fn next(self) -> Option<Engine>;
@@ -57,9 +61,13 @@ where
         .await
     }
     /// Receives the next [`Request`] from gRPC server.
-    pub async fn next_request(&mut self) -> EngineRequest {
+    pub async fn next_request(&mut self) -> Result<Message, Error> {
         info!("waiting for the next request");
-        self.shared.rx.next().await.unwrap()
+        self.shared
+            .rx
+            .next()
+            .await
+            .ok_or_else(|| Error::new(ErrorKind::Other, "Error when receiving next request."))
     }
 }
 
@@ -67,7 +75,7 @@ where
 #[async_trait]
 pub trait Handler {
     /// Handling a request.
-    async fn handle_request(&mut self, req: EngineRequest) -> Result<(), Infallible>;
+    async fn handle_request(&mut self, req: Message) -> Result<(), Infallible>;
 }
 
 impl<S> StateCondition<S>
@@ -75,7 +83,8 @@ where
     Self: State + Handler,
 {
     /// Processes requests.
-    pub async fn process(&mut self) -> Result<(), Infallible> {
+    pub async fn process(&mut self) -> Result<(), Error> {
+        info!("process function called in StateCondition");
         loop {
             tokio::select! {
                 biased;
@@ -84,13 +93,14 @@ where
                     break Ok(())
                 }
                 next = self.next_request() => {
-                    let req = next;
+                    let req = next?;
+                    info!("received something");
                     self.process_single(req).await;
                 }
             }
         }
     }
-    async fn process_single(&mut self, req: EngineRequest) {
+    async fn process_single(&mut self, req: Message) {
         let _response = self.handle_request(req).await;
     }
 }

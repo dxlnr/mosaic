@@ -3,19 +3,17 @@ use std::task::Poll;
 use tower::Service;
 
 use std::convert::Infallible;
+use std::io::{Error, ErrorKind};
 
-use crate::engine::channel::RequestSender;
+use crate::{engine::channel::RequestSender, message::Message};
 
 pub type BoxedServiceFuture<Response, Error> = std::pin::Pin<
     Box<dyn futures::Future<Output = Result<Response, Error>> + 'static + Send + Sync>,
 >;
 
-pub struct Message {
-    data: Vec<Vec<u8>>,
-}
 #[derive(Debug, Clone)]
 pub struct EngineService {
-    handle: RequestSender,
+    pub handle: RequestSender,
 }
 
 impl EngineService {
@@ -28,7 +26,7 @@ impl EngineService {
 
 impl Service<Message> for EngineService {
     type Response = ();
-    type Error = Infallible;
+    type Error = Error;
     type Future = BoxedServiceFuture<Self::Response, Self::Error>;
 
     fn poll_ready(&mut self, _cx: &mut Context<'_>) -> Poll<Result<(), Self::Error>> {
@@ -36,8 +34,7 @@ impl Service<Message> for EngineService {
     }
 
     fn call(&mut self, req: Message) -> Self::Future {
-        todo!()
-        // let handle = self.handle.clone();
-        // Box::pin(async move { handle.sending(req).await })
+        let mut handle = self.handle.clone();
+        Box::pin(async move { handle.sending(req).await })
     }
 }

@@ -1,10 +1,14 @@
 use async_trait::async_trait;
 use std::convert::Infallible;
+use std::io::Error;
+use tracing::info;
 
-use crate::engine::{
-    channel::EngineRequest,
-    states::{Handler, Shutdown, State, StateCondition, StateName},
-    Engine, ServerState,
+use crate::{
+    engine::{
+        states::{Handler, Shutdown, State, StateCondition, StateName},
+        Engine, ServerState,
+    },
+    message::Message,
 };
 
 /// The collect state.
@@ -18,7 +22,7 @@ where
 {
     const NAME: StateName = StateName::Collect;
 
-    async fn perform(&mut self) -> Result<(), Infallible> {
+    async fn perform(&mut self) -> Result<(), Error> {
         self.process().await?;
         Ok(())
     }
@@ -40,7 +44,8 @@ impl StateCondition<Collect> {
 
 #[async_trait]
 impl Handler for StateCondition<Collect> {
-    async fn handle_request(&mut self, _req: EngineRequest) -> Result<(), Infallible> {
+    async fn handle_request(&mut self, req: Message) -> Result<(), Infallible> {
+        info!("do I ever handle a request?");
         Ok(())
     }
 }

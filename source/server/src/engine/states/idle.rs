@@ -1,5 +1,5 @@
 use async_trait::async_trait;
-use std::convert::Infallible;
+use std::io::Error;
 
 use crate::engine::{
     states::{Collect, State, StateCondition, StateName},
@@ -14,7 +14,7 @@ pub struct Idle;
 impl State for StateCondition<Idle> {
     const NAME: StateName = StateName::Idle;
 
-    async fn perform(&mut self) -> Result<(), Infallible> {
+    async fn perform(&mut self) -> Result<(), Error> {
         Ok(())
     }
 
