@@ -94,6 +94,7 @@ where
                 }
                 next = self.next_request() => {
                     let req = next?;
+                    println!("{:?}", &req);
                     info!("received something");
                     self.process_single(req).await;
                 }
