@@ -22,7 +22,7 @@ tokio = { version = "1.0.0",features = ["full", "tracing"] }
 tokio-util = { version = "0.6.3", features = ["full"] }
 tokio-stream = "0.1"
 console-subscriber = { git = "https://github.com/tokio-rs/console" }
-tonic = "0.6"
+tonic = "0.6.2"
 tower = {version = "0.4"}
 hyper = {version = "0.14", features = ["full"]}
 bytes = "1.1.0"

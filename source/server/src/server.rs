@@ -21,10 +21,9 @@ use mosaic::{
     ServerModel,
 };
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Communicator {
     model: Arc<Mutex<Vec<f64>>>,
-    // features: Arc<Mutex<Vec<Vec<Vec<u8>>>>>,
     /// Shared handle for passing messages from participant to engine.
     handler: MessageHandler,
 }
@@ -33,12 +32,12 @@ impl Communicator {
     fn new(handler: MessageHandler, model_length: usize) -> Self {
         Communicator {
             model: Arc::new(Mutex::new(vec![0.0; model_length])),
-            // features: Arc::new(Mutex::new(Vec::new())),
             handler,
         }
     }
 
     async fn handle_message(msg: Message, mut handler: MessageHandler) -> Result<(), Infallible> {
+        info!("handling message");
         let _ = handler.process(msg).await.map_err(|e| {
             info!("failed to handle message: {:?}", e);
         });
@@ -52,7 +51,7 @@ impl Communication for Communicator {
         &self,
         request: Request<ClientMessage>,
     ) -> Result<Response<ServerModel>, Status> {
-        println!(
+        info!(
             "Request received from client {:?} requesting a global model.",
             request.remote_addr().unwrap()
         );
@@ -82,36 +81,14 @@ impl Communication for Communicator {
             "Request received from client {}: Sending an update to engine.",
             request.remote_addr().unwrap()
         );
-        // let feature_list = Arc::clone(&self.features);
-        // let mut flist = feature_list.lock().unwrap();
-        // flist.push(request.into_inner().parameters.unwrap().tensor);
-        //
-        // println!("feature list {:?}", &flist);
-        // self
-        // println!(
-        //     "features {:?}",
-        //     &request.into_inner().parameters.unwrap().tensor
-        // );
 
-        let handle_request = self.handler.clone();
-        // let mut handles = handle_request.lock().unwrap();
+        let handle = self.handler.clone();
 
         let req = Message {
             data: request.into_inner().parameters.unwrap().tensor,
         };
 
-        Communicator::handle_message(req, handle_request);
-        // self.handler
-        //     .engine_service
-        //     .handle
-        //     .0
-        //     .unbounded_send(engine_req);
-
-        // handles.process(engine_req).await;
-
-        // let feature_list = Arc::clone(&self.features);
-        // let mut flist = feature_list.lock().unwrap();
-        // flist.push(request.into_inner().parameters.unwrap().tensor);
+        Communicator::handle_message(req, handle).await;
 
         let server_msg = mosaic::ServerMessage {
             msg: "success".to_string(),
@@ -148,7 +125,6 @@ impl From<Infallible> for ServerError {
         match infallible {}
     }
 }
-
 fn into_bytes_array(primitives: &Vec<f64>) -> Vec<Vec<u8>> {
     primitives
         .iter()
