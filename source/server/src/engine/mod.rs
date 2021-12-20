@@ -76,7 +76,6 @@ pub struct ServerState {
     pub round_id: u64,
     pub client_count: u64,
     pub participants: u32,
-    //pub client_params: ClientState,
 
     // Holds the shared model & message states.
     pub rx: RequestReceiver,

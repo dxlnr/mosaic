@@ -1,11 +1,10 @@
-//use std::fmt;
 use async_trait::async_trait;
 use derive_more::Display;
 use futures::StreamExt;
 use std::convert::Infallible;
 use std::io::{Error, ErrorKind};
 use tokio::signal;
-use tracing::info;
+use tracing::{debug, info};
 
 use crate::{
     engine::{Engine, ServerState},
@@ -37,10 +36,10 @@ pub trait State {
     /// Moves from the current to the next state.
     async fn next(self) -> Option<Engine>;
 }
-
+#[allow(dead_code)]
 pub struct StateCondition<S> {
     pub(in crate::engine) private: S,
-    /// Some shared state.
+    /// Some shared server state.
     pub shared: ServerState,
 }
 
@@ -96,8 +95,6 @@ where
                 }
                 next = self.next_request() => {
                     let req = next?;
-                    println!("{:?}", &req);
-                    info!("received something");
                     self.process_single(req, counter.as_mut()).await;
                 }
             }
@@ -110,6 +107,8 @@ where
         let response = self.handle_request(req).await;
         if response.is_ok() {
             counter.increment_accepted();
+        } else {
+            counter.increment_rejected();
         }
     }
 }
@@ -151,5 +150,9 @@ impl Counter {
             "{} messages accepted -- at least {} participants required.",
             self.accepted, self.kp,
         );
+    }
+    fn increment_rejected(&mut self) {
+        self.rejected += 1;
+        debug!("{} messages rejected.", self.rejected);
     }
 }

@@ -1,7 +1,7 @@
 use async_trait::async_trait;
 use std::convert::Infallible;
 use std::io::Error;
-// use tracing::info;
+use tracing::info;
 
 use crate::{
     engine::{
@@ -23,7 +23,10 @@ where
     const NAME: StateName = StateName::Aggregate;
 
     async fn perform(&mut self) -> Result<(), Error> {
-        println!("{:?}", &self.shared.features);
+        info!(
+            "Features that will be aggregated on {:?}",
+            &self.shared.features
+        );
         Ok(())
     }
 
@@ -44,7 +47,7 @@ impl StateCondition<Aggregate> {
 
 #[async_trait]
 impl Handler for StateCondition<Aggregate> {
-    async fn handle_request(&mut self, req: Message) -> Result<(), Infallible> {
+    async fn handle_request(&mut self, _req: Message) -> Result<(), Infallible> {
         Ok(())
     }
 }

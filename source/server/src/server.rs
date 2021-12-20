@@ -6,7 +6,7 @@ use std::sync::Arc;
 use thiserror::Error;
 
 use tonic::{transport::Server, Request, Response, Status};
-use tracing::info;
+use tracing::{info, warn};
 
 use crate::{message::Message, service::messages::MessageHandler, settings::APISettings};
 
@@ -37,9 +37,8 @@ impl Communicator {
     }
 
     async fn handle_message(msg: Message, mut handler: MessageHandler) -> Result<(), Infallible> {
-        info!("handling message");
         let _ = handler.forward(msg).await.map_err(|e| {
-            info!("failed to handle message: {:?}", e);
+            warn!("failed to handle message: {:?}", e);
         });
         Ok(())
     }
