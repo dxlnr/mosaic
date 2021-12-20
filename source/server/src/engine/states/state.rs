@@ -19,6 +19,8 @@ pub enum StateName {
     Idle,
     #[display(fmt = "Collect")]
     Collect,
+    #[display(fmt = "Aggregate")]
+    Aggregate,
     #[display(fmt = "Shutdown")]
     Shutdown,
 }
@@ -145,7 +147,7 @@ impl Counter {
     /// Increments the counter for accepted requests.
     fn increment_accepted(&mut self) {
         self.accepted += 1;
-        debug!(
+        info!(
             "{} messages accepted -- at least {} participants required.",
             self.accepted, self.kp,
         );

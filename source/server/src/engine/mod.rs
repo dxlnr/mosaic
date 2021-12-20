@@ -12,18 +12,17 @@ use std::sync::{Arc, Mutex};
 use crate::{
     engine::{
         channel::{RequestReceiver, RequestSender},
-        states::{Collect, Idle, Shutdown, StateCondition},
+        states::{Aggregate, Collect, Idle, Shutdown, StateCondition},
     },
     settings::{ModelSettings, ProcessSettings},
 };
 
-// use std::convert::Infallible;
 #[derive(From)]
 pub enum Engine {
     Idle(StateCondition<Idle>),
     Collect(StateCondition<Collect>),
+    Aggregate(StateCondition<Aggregate>),
     Shutdown(StateCondition<Shutdown>),
-    // Aggregate,
 }
 
 impl Engine {
@@ -31,6 +30,7 @@ impl Engine {
         match self {
             Engine::Idle(state) => state.run_state().await,
             Engine::Collect(state) => state.run_state().await,
+            Engine::Aggregate(state) => state.run_state().await,
             Engine::Shutdown(state) => state.run_state().await,
         }
     }
