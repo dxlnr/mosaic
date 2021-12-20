@@ -1,11 +1,11 @@
 use async_trait::async_trait;
 use std::convert::Infallible;
 use std::io::Error;
-use tracing::info;
+// use tracing::info;
 
 use crate::{
     engine::{
-        states::{Handler, Shutdown, State, StateCondition, StateName},
+        states::{Aggregate, Handler, State, StateCondition, StateName},
         Engine, ServerState,
     },
     message::Message,
@@ -28,24 +28,27 @@ where
     }
 
     async fn next(self) -> Option<Engine> {
-        Some(StateCondition::<Shutdown>::new(self.shared).into())
+        Some(StateCondition::<Aggregate>::new(self.shared).into())
     }
 }
 
 impl StateCondition<Collect> {
     /// Creates a new collect state.
-    pub fn new(mut shared: ServerState) -> Self {
+    pub fn new(shared: ServerState) -> Self {
         Self {
             private: Collect,
             shared,
         }
+    }
+    /// Add message to feature list.
+    fn add(&mut self, req: Message) -> Result<(), Infallible> {
+        Ok(self.shared.features.push(req))
     }
 }
 
 #[async_trait]
 impl Handler for StateCondition<Collect> {
     async fn handle_request(&mut self, req: Message) -> Result<(), Infallible> {
-        info!("do I ever handle a request?");
-        Ok(())
+        self.add(req)
     }
 }

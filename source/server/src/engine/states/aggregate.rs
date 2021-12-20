@@ -1,7 +1,7 @@
 use async_trait::async_trait;
 use std::convert::Infallible;
 use std::io::Error;
-use tracing::info;
+// use tracing::info;
 
 use crate::{
     engine::{
@@ -23,7 +23,7 @@ where
     const NAME: StateName = StateName::Aggregate;
 
     async fn perform(&mut self) -> Result<(), Error> {
-        self.process().await?;
+        println!("{:?}", &self.shared.features);
         Ok(())
     }
 
@@ -34,7 +34,7 @@ where
 
 impl StateCondition<Aggregate> {
     /// Creates a new Aggregate state.
-    pub fn new(mut shared: ServerState) -> Self {
+    pub fn new(shared: ServerState) -> Self {
         Self {
             private: Aggregate,
             shared,
@@ -45,7 +45,6 @@ impl StateCondition<Aggregate> {
 #[async_trait]
 impl Handler for StateCondition<Aggregate> {
     async fn handle_request(&mut self, req: Message) -> Result<(), Infallible> {
-        info!("do I ever handle a request?");
         Ok(())
     }
 }

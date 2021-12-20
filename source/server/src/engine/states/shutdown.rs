@@ -25,7 +25,7 @@ impl State for StateCondition<Shutdown> {
 
 impl StateCondition<Shutdown> {
     /// Creates a new idle state.
-    pub fn new(mut shared: ServerState) -> Self {
+    pub fn new(shared: ServerState) -> Self {
         Self {
             private: Shutdown,
             shared,

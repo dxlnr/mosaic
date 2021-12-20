@@ -5,7 +5,7 @@ use futures::StreamExt;
 use std::convert::Infallible;
 use std::io::{Error, ErrorKind};
 use tokio::signal;
-use tracing::{debug, info};
+use tracing::info;
 
 use crate::{
     engine::{Engine, ServerState},

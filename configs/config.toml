@@ -7,7 +7,7 @@ length = 4
 
 [process]
 rounds = 2
-participants = 10
+participants = 5
 
 [log]
 filter = "mosaic=debug,info"

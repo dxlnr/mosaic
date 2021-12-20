@@ -14,6 +14,7 @@ use crate::{
         channel::{RequestReceiver, RequestSender},
         states::{Aggregate, Collect, Idle, Shutdown, StateCondition},
     },
+    message::Message,
     settings::{ModelSettings, ProcessSettings},
 };
 
@@ -80,7 +81,7 @@ pub struct ServerState {
     // Holds the shared model & message states.
     pub rx: RequestReceiver,
     pub global_model: Arc<Mutex<Model>>,
-    pub features: Vec<Model>,
+    pub features: Vec<Message>,
 }
 
 impl ServerState {
@@ -91,7 +92,7 @@ impl ServerState {
         participants: u32,
         rx: RequestReceiver,
         global_model: Arc<Mutex<Model>>,
-        features: Vec<Model>,
+        features: Vec<Message>,
     ) -> Self {
         ServerState {
             round_id,
