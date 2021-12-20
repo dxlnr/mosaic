@@ -35,6 +35,6 @@ impl Service<Message> for EngineService {
 
     fn call(&mut self, req: Message) -> Self::Future {
         let mut handle = self.handle.clone();
-        Box::pin(async move { handle.sending(req).await })
+        Box::pin(async move { handle.send(req).await })
     }
 }

@@ -1,6 +1,6 @@
 mod engine;
 use futures::future::poll_fn;
-use std::io::{Error, ErrorKind};
+use std::io::Error;
 use tower::Service;
 
 use self::engine::EngineService;
@@ -17,7 +17,7 @@ impl MessageHandler {
             engine_service: EngineService::new(tx),
         }
     }
-    pub async fn process(&mut self, message: Message) -> Result<(), Error> {
+    pub async fn forward(&mut self, message: Message) -> Result<(), Error> {
         poll_fn(|cx| self.engine_service.poll_ready(cx)).await?;
         self.engine_service.call(message).await
     }

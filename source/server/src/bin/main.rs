@@ -31,12 +31,14 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let Settings {
         api: api_settings,
         model: model_settings,
-        process: _process_setttings,
+        process: process_settings,
         log: logging,
     } = settings;
     init_logging(logging);
 
-    let (engine, tx) = EngineInitializer::new(model_settings).init().await;
+    let (engine, tx) = EngineInitializer::new(model_settings, process_settings)
+        .init()
+        .await;
     let message_handler = MessageHandler::new(tx);
 
     tokio::select! {

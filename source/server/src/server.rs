@@ -38,7 +38,7 @@ impl Communicator {
 
     async fn handle_message(msg: Message, mut handler: MessageHandler) -> Result<(), Infallible> {
         info!("handling message");
-        let _ = handler.process(msg).await.map_err(|e| {
+        let _ = handler.forward(msg).await.map_err(|e| {
             info!("failed to handle message: {:?}", e);
         });
         Ok(())
@@ -83,12 +83,11 @@ impl Communication for Communicator {
         );
 
         let handle = self.handler.clone();
-
         let req = Message {
             data: request.into_inner().parameters.unwrap().tensor,
         };
 
-        Communicator::handle_message(req, handle).await;
+        let _res = Communicator::handle_message(req, handle).await;
 
         let server_msg = mosaic::ServerMessage {
             msg: "success".to_string(),

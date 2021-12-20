@@ -5,7 +5,7 @@ use futures::StreamExt;
 use std::convert::Infallible;
 use std::io::{Error, ErrorKind};
 use tokio::signal;
-use tracing::info;
+use tracing::{debug, info};
 
 use crate::{
     engine::{Engine, ServerState},
@@ -62,7 +62,7 @@ where
     }
     /// Receives the next [`Request`] from gRPC server.
     pub async fn next_request(&mut self) -> Result<Message, Error> {
-        info!("waiting for the next request");
+        info!("Waiting for the next request");
         self.shared
             .rx
             .next()
@@ -84,7 +84,7 @@ where
 {
     /// Processes requests.
     pub async fn process(&mut self) -> Result<(), Error> {
-        info!("process function called in StateCondition");
+        let mut counter = Counter::new(self.shared.participants);
         loop {
             tokio::select! {
                 biased;
@@ -96,12 +96,58 @@ where
                     let req = next?;
                     println!("{:?}", &req);
                     info!("received something");
-                    self.process_single(req).await;
+                    self.process_single(req, counter.as_mut()).await;
                 }
+            }
+            if counter.is_reached() {
+                break Ok(());
             }
         }
     }
-    async fn process_single(&mut self, req: Message) {
-        let _response = self.handle_request(req).await;
+    async fn process_single(&mut self, req: Message, counter: &mut Counter) {
+        let response = self.handle_request(req).await;
+        if response.is_ok() {
+            counter.increment_accepted();
+        }
+    }
+}
+
+/// A counting object keep track of handled messages from participants.
+struct Counter {
+    /// The number of messages that should be processed to close the collect state.
+    kp: u32,
+    /// The number of messages successfully processed.
+    accepted: u32,
+    /// The number of messages failed to processed.
+    rejected: u32,
+}
+
+impl AsMut<Counter> for Counter {
+    fn as_mut(&mut self) -> &mut Self {
+        self
+    }
+}
+
+impl Counter {
+    /// Creates a new message counter.
+    fn new(kp: u32) -> Self {
+        Self {
+            kp,
+            accepted: 0,
+            rejected: 0,
+        }
+    }
+    /// Checks if the enough messages arrived from participants.
+    fn is_reached(&self) -> bool {
+        self.accepted >= self.kp
+    }
+
+    /// Increments the counter for accepted requests.
+    fn increment_accepted(&mut self) {
+        self.accepted += 1;
+        debug!(
+            "{} messages accepted -- at least {} participants required.",
+            self.accepted, self.kp,
+        );
     }
 }

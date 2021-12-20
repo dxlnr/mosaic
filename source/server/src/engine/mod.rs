@@ -14,7 +14,7 @@ use crate::{
         channel::{RequestReceiver, RequestSender},
         states::{Collect, Idle, Shutdown, StateCondition},
     },
-    settings::ModelSettings,
+    settings::{ModelSettings, ProcessSettings},
 };
 
 // use std::convert::Infallible;
@@ -44,12 +44,16 @@ impl Engine {
 
 pub struct EngineInitializer {
     model_settings: ModelSettings,
+    process_settings: ProcessSettings,
 }
 
 impl EngineInitializer {
     /// Creates a new [`EngineInitializer`] which sets up the engine running the aggregation algorithm.
-    pub fn new(model_settings: ModelSettings) -> Self {
-        EngineInitializer { model_settings }
+    pub fn new(model_settings: ModelSettings, process_settings: ProcessSettings) -> Self {
+        EngineInitializer {
+            model_settings,
+            process_settings,
+        }
     }
 
     pub async fn init(self) -> (Engine, RequestSender) {
@@ -57,8 +61,10 @@ impl EngineInitializer {
         let shared = ServerState::new(
             0,
             0,
+            self.process_settings.participants,
             rx,
             Arc::new(Mutex::new(Model::new(self.model_settings.length))),
+            Vec::new(),
         );
         (Engine::Idle(StateCondition::<Idle>::new(shared)), tx)
     }
@@ -68,11 +74,13 @@ pub struct ServerState {
     // Keeps training rounds in cache.
     pub round_id: u64,
     pub client_count: u64,
+    pub participants: u32,
     //pub client_params: ClientState,
 
     // Holds the shared model & message states.
     pub rx: RequestReceiver,
     pub global_model: Arc<Mutex<Model>>,
+    pub features: Vec<Model>,
 }
 
 impl ServerState {
@@ -80,14 +88,18 @@ impl ServerState {
     pub fn new(
         round_id: u64,
         client_count: u64,
+        participants: u32,
         rx: RequestReceiver,
         global_model: Arc<Mutex<Model>>,
+        features: Vec<Model>,
     ) -> Self {
         ServerState {
             round_id,
             client_count,
+            participants,
             rx,
             global_model,
+            features,
         }
     }
     /// Sets the round ID to the given value.

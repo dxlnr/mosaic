@@ -18,8 +18,8 @@ impl RequestSender {
         let (tx, rx) = mpsc::unbounded_channel::<Message>();
         (RequestReceiver(rx), RequestSender(tx))
     }
-    pub async fn sending(&mut self, req: Message) -> Result<(), Error> {
-        let (tx, rx) = oneshot::channel::<Result<(), Error>>();
+    pub async fn send(&mut self, req: Message) -> Result<(), Error> {
+        let (_tx, rx) = oneshot::channel::<Result<(), Error>>();
         self.0.send(req).map_err(|_| {
             Error::new(
                 ErrorKind::Other,
