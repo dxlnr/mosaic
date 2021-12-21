@@ -29,13 +29,14 @@ pub struct Communicator {
 }
 
 impl Communicator {
+    /// Constructs a new CommunicationServer
     fn new(handler: MessageHandler, model_length: usize) -> Self {
         Communicator {
             model: Arc::new(Mutex::new(vec![0.0; model_length])),
             handler,
         }
     }
-
+    /// Forwards the incoming request to the ['Engine']
     async fn handle_message(msg: Message, mut handler: MessageHandler) -> Result<(), Infallible> {
         let _ = handler.forward(msg).await.map_err(|e| {
             warn!("failed to handle message: {:?}", e);
@@ -58,7 +59,7 @@ impl Communication for Communicator {
         let global_model = Arc::clone(&self.model);
         let cupd = global_model.lock().unwrap();
 
-        let tensor = into_bytes_array(&*cupd);
+        let tensor = Message::into_bytes_array(&*cupd);
 
         let params = mosaic::Parameters {
             tensor: tensor.to_vec(),
@@ -81,11 +82,11 @@ impl Communication for Communicator {
             request.remote_addr().unwrap()
         );
 
-        let handle = self.handler.clone();
         let req = Message {
-            data: request.into_inner().parameters.unwrap().tensor,
+            data: Message::from_bytes_array(&request.into_inner().parameters.unwrap().tensor),
         };
 
+        let handle = self.handler.clone();
         let _res = Communicator::handle_message(req, handle).await;
 
         let server_msg = mosaic::ServerMessage {
@@ -99,10 +100,9 @@ pub async fn start(
     api_settings: APISettings,
     message_handler: MessageHandler,
 ) -> Result<(), Box<dyn std::error::Error>> {
-    let com = Communicator::new(message_handler, 4);
-
     info!("Communication Server listening on {}", api_settings.address);
 
+    let com = Communicator::new(message_handler, 4);
     Server::builder()
         .add_service(CommunicationServer::new(com))
         .serve(api_settings.address)
@@ -122,11 +122,4 @@ impl From<Infallible> for ServerError {
     fn from(infallible: Infallible) -> ServerError {
         match infallible {}
     }
-}
-fn into_bytes_array(primitives: &Vec<f64>) -> Vec<Vec<u8>> {
-    primitives
-        .iter()
-        .map(|r| r.to_be_bytes().to_vec())
-        .collect::<Vec<_>>()
-        .to_vec()
 }

@@ -4,7 +4,7 @@ use futures::StreamExt;
 use std::convert::Infallible;
 use std::io::{Error, ErrorKind};
 use tokio::signal;
-use tracing::{debug, info};
+use tracing::{debug, info, warn};
 
 use crate::{
     engine::{Engine, ServerState},
@@ -50,12 +50,11 @@ where
     /// Runs the current State to completion.
     pub async fn run_state(mut self) -> Option<Engine> {
         let state = Self::NAME;
-
         info!("Engine runs in state: {:?}", &state);
 
         async move {
             if let Err(_err) = self.perform().await {
-                println!("{:?}", "state error");
+                warn!("{:?}", "state error");
             }
             self.next().await
         }
@@ -142,8 +141,7 @@ impl Counter {
     fn is_reached(&self) -> bool {
         self.accepted >= self.kp
     }
-
-    /// Increments the counter for accepted requests.
+    /// Increments the counter for accepted messages.
     fn increment_accepted(&mut self) {
         self.accepted += 1;
         info!(
@@ -151,6 +149,7 @@ impl Counter {
             self.accepted, self.kp,
         );
     }
+    /// Increments the counter for rejected messages.
     fn increment_rejected(&mut self) {
         self.rejected += 1;
         debug!("{} messages rejected.", self.rejected);
