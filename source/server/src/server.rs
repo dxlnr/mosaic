@@ -1,12 +1,11 @@
 //! Sets up a gRPC server.
-use std::sync::Mutex;
-
 use std::convert::Infallible;
 use std::sync::Arc;
+use std::sync::Mutex;
 use thiserror::Error;
+use tracing::{info, warn};
 
 use tonic::{transport::Server, Request, Response, Status};
-use tracing::{info, warn};
 
 use crate::{message::Message, service::messages::MessageHandler, settings::APISettings};
 

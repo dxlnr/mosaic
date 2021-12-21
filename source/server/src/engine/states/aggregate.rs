@@ -23,9 +23,10 @@ where
     const NAME: StateName = StateName::Aggregate;
 
     async fn perform(&mut self) -> Result<(), Error> {
+        self.aggregate();
         info!(
-            "Features that will be aggregated on {:?}",
-            &self.shared.features
+            "Global Model after round {:?}: {:?}",
+            &self.shared.round_id, &self.shared.global_model
         );
         Ok(())
     }
@@ -42,6 +43,16 @@ impl StateCondition<Aggregate> {
             private: Aggregate,
             shared,
         }
+    }
+    /// Aggreates all the features from collect state into the global model.
+    pub fn aggregate(&mut self) {
+        self.shared
+            .features
+            .iter()
+            .map(|r| self.shared.global_model.add(&r.data))
+            .collect::<Vec<_>>()
+            .to_vec();
+        self.shared.global_model.avg(&self.shared.participants);
     }
 }
 

@@ -46,13 +46,6 @@ impl Stream for RequestReceiver {
     }
 }
 
-// pub struct Message {
-//     pub model: Message,
-// }
-
-// struct Inner {}
-// struct Shared {}
-
 impl RequestReceiver {
     pub fn recv(&mut self) {
         todo!()
@@ -62,5 +55,3 @@ impl RequestReceiver {
         todo!()
     }
 }
-
-// pub fn channel() (RequestSender, RequestReceiver) {}

@@ -31,11 +31,21 @@ impl Model {
     pub fn iter_mut(&mut self) -> IterMut<f64> {
         self.0.iter_mut()
     }
-
-    pub fn add(mut self, data: Vec<f64>) {
-        for i in 0..self.len() {
-            self.0[i] = self.0[i] + data[i];
-        }
+    /// Elementwise addition.
+    pub fn add(&mut self, data: &Vec<f64>) {
+        self.0 = self
+            .iter()
+            .zip(data)
+            .map(|(s, x)| s + x)
+            .collect::<Vec<_>>()
+            .to_vec();
+    }
+    pub fn avg(&mut self, participants: &u32) {
+        self.0 = self
+            .iter()
+            .map(|x| x / *participants as f64)
+            .collect::<Vec<_>>()
+            .to_vec();
     }
 }
 

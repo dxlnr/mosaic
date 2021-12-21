@@ -7,11 +7,12 @@ pub mod states;
 
 // use crate::db::Db;
 use derive_more::From;
-use std::sync::{Arc, Mutex};
+// use std::sync::{Arc, Mutex};
 
 use crate::{
     engine::{
         channel::{RequestReceiver, RequestSender},
+        model::Model,
         states::{Aggregate, Collect, Idle, Shutdown, StateCondition},
     },
     message::Message,
@@ -64,7 +65,7 @@ impl EngineInitializer {
             0,
             self.process_settings.participants,
             rx,
-            Arc::new(Mutex::new(Model::new(self.model_settings.length))),
+            Model::new(self.model_settings.length),
             Vec::new(),
         );
         (Engine::Idle(StateCondition::<Idle>::new(shared)), tx)
@@ -79,7 +80,7 @@ pub struct ServerState {
 
     // Holds the shared model & message states.
     pub rx: RequestReceiver,
-    pub global_model: Arc<Mutex<Model>>,
+    pub global_model: Model,
     pub features: Vec<Message>,
 }
 
@@ -90,7 +91,7 @@ impl ServerState {
         client_count: u64,
         participants: u32,
         rx: RequestReceiver,
-        global_model: Arc<Mutex<Model>>,
+        global_model: Model,
         features: Vec<Message>,
     ) -> Self {
         ServerState {
@@ -125,28 +126,29 @@ pub struct ClientState {
 //     // traits::{float::FloatCore, identities::Zero, ToPrimitive},
 // };
 // use serde::{Deserialize, Serialize};
-#[derive(Default, Debug, Clone, PartialEq)]
-/// A representation of a machine learning model as vector object.
-// pub struct Model(Vec<Ratio<BigInt>>);
-pub struct Model(Vec<Vec<u8>>);
 
-impl std::convert::AsRef<Model> for Model {
-    fn as_ref(&self) -> &Model {
-        self
-    }
-}
-
-impl Model {
-    /// Instantiates a new empty model.
-    pub fn new(length: usize) -> Self {
-        Model(vec![vec![0; 8]; length])
-    }
-    /// Returns the number of weights/parameters of a model.
-    pub fn len(&self) -> usize {
-        self.0.len()
-    }
-    // /// Creates an iterator that yields references to the weights/parameters of a model.
-    // pub fn iter(&self) -> Iter<f64> {
-    //     self.0.iter()
-    // }
-}
+// #[derive(Default, Debug, Clone, PartialEq)]
+// /// A representation of a machine learning model as vector object.
+// // pub struct Model(Vec<Ratio<BigInt>>);
+// pub struct Model(Vec<Vec<u8>>);
+//
+// impl std::convert::AsRef<Model> for Model {
+//     fn as_ref(&self) -> &Model {
+//         self
+//     }
+// }
+//
+// impl Model {
+//     /// Instantiates a new empty model.
+//     pub fn new(length: usize) -> Self {
+//         Model(vec![vec![0; 8]; length])
+//     }
+//     /// Returns the number of weights/parameters of a model.
+//     pub fn len(&self) -> usize {
+//         self.0.len()
+//     }
+//     // /// Creates an iterator that yields references to the weights/parameters of a model.
+//     // pub fn iter(&self) -> Iter<f64> {
+//     //     self.0.iter()
+//     // }
+// }
