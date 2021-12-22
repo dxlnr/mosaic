@@ -54,4 +54,8 @@ impl RequestReceiver {
     pub fn try_recv(&mut self) -> Option<()> {
         todo!()
     }
+    /// Closes the `Request` channel.
+    pub fn close(&mut self) {
+        self.0.close()
+    }
 }

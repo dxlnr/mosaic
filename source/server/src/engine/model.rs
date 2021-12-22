@@ -31,7 +31,7 @@ impl Model {
     pub fn iter_mut(&mut self) -> IterMut<f64> {
         self.0.iter_mut()
     }
-    /// Elementwise addition.
+    /// Elementwise addition some data to the ['Model'] object.
     pub fn add(&mut self, data: &Vec<f64>) {
         self.0 = self
             .iter()
@@ -40,6 +40,7 @@ impl Model {
             .collect::<Vec<_>>()
             .to_vec();
     }
+    /// Elementwise averaging of ['Model'] object depending on the number of participants.
     pub fn avg(&mut self, participants: &u32) {
         self.0 = self
             .iter()

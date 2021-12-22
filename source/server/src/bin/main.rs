@@ -23,8 +23,8 @@ struct Config {
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let cfg = Config::from_args();
 
-    let settings = Settings::new(cfg.config_path).unwrap_or_else(|err| {
-        eprintln!("{}", err);
+    let settings = Settings::new(cfg.config_path).unwrap_or_else(|error| {
+        eprintln!("{}", error);
         process::exit(1);
     });
 
@@ -46,13 +46,13 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
         _ =  signal::ctrl_c() => {}
         _ = engine.run() => {
-            warn!("training finished: terminating the engine.")
+            warn!("Training finished: Terminating the engine.")
         }
         result = start(api_settings, message_handler) => {
             match result {
-                Ok(()) => warn!("shutting down: gRPC server terminated."),
+                Ok(()) => warn!("Shutting down: gRPC server terminated."),
                 Err(_error) => {
-                    warn!("shutting down the server as an error occured.");
+                    warn!("Shutting down the server as an error occured.");
                 },
             }
         }

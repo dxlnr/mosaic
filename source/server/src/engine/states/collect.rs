@@ -24,6 +24,7 @@ where
 
     async fn perform(&mut self) -> Result<(), Error> {
         self.process().await?;
+        // self.shared.rx.close();
         Ok(())
     }
 
