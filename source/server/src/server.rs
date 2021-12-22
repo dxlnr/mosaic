@@ -7,7 +7,10 @@ use tracing::{info, warn};
 
 use tonic::{transport::Server, Request, Response, Status};
 
-use crate::{message::Message, service::messages::MessageHandler, settings::APISettings};
+use crate::{
+    engine::watch::Subscriber, message::Message, service::messages::MessageHandler,
+    settings::APISettings,
+};
 
 pub mod mosaic {
     tonic::include_proto!("mosaic");
@@ -25,14 +28,16 @@ pub struct Communicator {
     model: Arc<Mutex<Vec<f64>>>,
     /// Shared handle for passing messages from participant to engine.
     handler: MessageHandler,
+    subscriber: Subscriber,
 }
 
 impl Communicator {
     /// Constructs a new CommunicationServer
-    fn new(handler: MessageHandler, model_length: usize) -> Self {
+    fn new(handler: MessageHandler, subscriber: Subscriber, model_length: usize) -> Self {
         Communicator {
             model: Arc::new(Mutex::new(vec![0.0; model_length])),
             handler,
+            subscriber,
         }
     }
     /// Forwards the incoming request to the ['Engine']
@@ -54,6 +59,8 @@ impl Communication for Communicator {
             "Request received from client {:?} requesting a global model.",
             request.remote_addr().unwrap()
         );
+
+        let _sub = self.subscriber.clone();
 
         let global_model = Arc::clone(&self.model);
         let cupd = global_model.lock().unwrap();
@@ -98,10 +105,11 @@ impl Communication for Communicator {
 pub async fn start(
     api_settings: APISettings,
     message_handler: MessageHandler,
+    subscriber: Subscriber,
 ) -> Result<(), Box<dyn std::error::Error>> {
     info!("Communication Server listening on {}", api_settings.address);
 
-    let com = Communicator::new(message_handler, 4);
+    let com = Communicator::new(message_handler, subscriber, 4);
     Server::builder()
         .add_service(CommunicationServer::new(com))
         .serve(api_settings.address)

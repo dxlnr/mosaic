@@ -36,7 +36,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     } = settings;
     init_logging(logging);
 
-    let (engine, tx) = EngineInitializer::new(model_settings, process_settings)
+    let (engine, tx, subscriber) = EngineInitializer::new(model_settings, process_settings)
         .init()
         .await;
     let message_handler = MessageHandler::new(tx);
@@ -48,7 +48,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         _ = engine.run() => {
             warn!("Training finished: Terminating the engine.")
         }
-        result = start(api_settings, message_handler) => {
+        result = start(api_settings, message_handler, subscriber) => {
             match result {
                 Ok(()) => warn!("Shutting down: gRPC server terminated."),
                 Err(_error) => {

@@ -4,10 +4,10 @@
 pub mod channel;
 pub mod model;
 pub mod states;
+pub mod watch;
 
-// use crate::db::Db;
+use self::watch::{Publisher, Subscriber};
 use derive_more::From;
-// use std::sync::{Arc, Mutex};
 
 use crate::{
     engine::{
@@ -57,8 +57,10 @@ impl EngineInitializer {
             process_settings,
         }
     }
-
-    pub async fn init(self) -> (Engine, RequestSender) {
+    /// Initializes the engine and the communication handler.
+    pub async fn init(self) -> (Engine, RequestSender, Subscriber) {
+        let global = Model::new(self.model_settings.length);
+        let (publisher, subscriber) = Publisher::new(global);
         let (rx, tx) = RequestSender::new();
         let shared = ServerState::new(
             0,
@@ -68,7 +70,11 @@ impl EngineInitializer {
             Model::new(self.model_settings.length),
             Vec::new(),
         );
-        (Engine::Idle(StateCondition::<Idle>::new(shared)), tx)
+        (
+            Engine::Idle(StateCondition::<Idle>::new(shared)),
+            tx,
+            subscriber,
+        )
     }
 }
 
@@ -119,36 +125,3 @@ pub struct ClientState {
     pub count: u64,
     pub model_length: usize,
 }
-
-// use num::{
-//     bigint::BigInt,
-//     rational::Ratio,
-//     // traits::{float::FloatCore, identities::Zero, ToPrimitive},
-// };
-// use serde::{Deserialize, Serialize};
-
-// #[derive(Default, Debug, Clone, PartialEq)]
-// /// A representation of a machine learning model as vector object.
-// // pub struct Model(Vec<Ratio<BigInt>>);
-// pub struct Model(Vec<Vec<u8>>);
-//
-// impl std::convert::AsRef<Model> for Model {
-//     fn as_ref(&self) -> &Model {
-//         self
-//     }
-// }
-//
-// impl Model {
-//     /// Instantiates a new empty model.
-//     pub fn new(length: usize) -> Self {
-//         Model(vec![vec![0; 8]; length])
-//     }
-//     /// Returns the number of weights/parameters of a model.
-//     pub fn len(&self) -> usize {
-//         self.0.len()
-//     }
-//     // /// Creates an iterator that yields references to the weights/parameters of a model.
-//     // pub fn iter(&self) -> Iter<f64> {
-//     //     self.0.iter()
-//     // }
-// }
