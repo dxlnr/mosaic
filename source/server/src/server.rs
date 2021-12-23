@@ -47,6 +47,14 @@ impl Communicator {
         });
         Ok(())
     }
+
+    async fn handle_model() -> Result<(), Infallible> {
+        // let _ = handler.forward(msg).await.map_err(|e| {
+        //     warn!("failed to handle message: {:?}", e);
+        // });
+        // Ok(())
+        todo!()
+    }
 }
 
 #[tonic::async_trait]

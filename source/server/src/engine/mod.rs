@@ -67,6 +67,7 @@ impl EngineInitializer {
             0,
             self.process_settings.participants,
             rx,
+            publisher,
             Model::new(self.model_settings.length),
             Vec::new(),
         );
@@ -86,6 +87,7 @@ pub struct ServerState {
 
     // Holds the shared model & message states.
     pub rx: RequestReceiver,
+    pub publisher: Publisher,
     pub global_model: Model,
     pub features: Vec<Message>,
 }
@@ -97,6 +99,7 @@ impl ServerState {
         client_count: u64,
         participants: u32,
         rx: RequestReceiver,
+        publisher: Publisher,
         global_model: Model,
         features: Vec<Message>,
     ) -> Self {
@@ -105,6 +108,7 @@ impl ServerState {
             client_count,
             participants,
             rx,
+            publisher,
             global_model,
             features,
         }

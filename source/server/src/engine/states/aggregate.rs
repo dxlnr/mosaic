@@ -6,6 +6,7 @@ use tracing::info;
 use crate::{
     engine::{
         states::{Handler, Shutdown, State, StateCondition, StateName},
+        watch::Publisher,
         Engine, ServerState,
     },
     message::Message,
@@ -28,6 +29,9 @@ where
             "Global Model after round {:?}: {:?}",
             &self.shared.round_id, &self.shared.global_model
         );
+
+        let global = self.shared.global_model.clone();
+        self.shared.publisher.broadcast(global);
         Ok(())
     }
 

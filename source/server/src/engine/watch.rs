@@ -21,6 +21,11 @@ impl Publisher {
         };
         (publisher, subscriber)
     }
+
+    /// broadcasting the updated global model.
+    pub fn broadcast(&mut self, model: Model) {
+        let _ = self.tx.0.send(Arc::new(model));
+    }
 }
 
 #[derive(Debug, Clone)]
@@ -32,6 +37,25 @@ pub struct Subscriber {
 #[derive(Debug)]
 pub struct Broadcast(watch::Sender<Arc<Model>>);
 
+// impl Broadcast {
+//     /// Send `event` to all the `EventListener<E>`
+//     fn broadcast(&self, msg: M) {
+//         // We don't care whether there's a listener or not
+//         let _ = self.0.send(event);
+//     }
+
 /// A watch channel that functions as a listener.
 #[derive(Debug, Clone)]
 pub struct Listener(watch::Receiver<Arc<Model>>);
+
+impl From<watch::Receiver<Arc<Model>>> for Listener {
+    fn from(receiver: watch::Receiver<Arc<Model>>) -> Self {
+        Listener(receiver)
+    }
+}
+
+impl Listener {
+    pub fn recv(&self) -> Arc<Model> {
+        self.0.borrow().clone()
+    }
+}
