@@ -48,8 +48,8 @@ impl Communicator {
         Ok(())
     }
 
-    async fn handle_model() -> Result<(), Infallible> {
-        // let _ = handler.forward(msg).await.map_err(|e| {
+    async fn handle_model(self) -> Result<(), Infallible> {
+        // let _ = self.subscriber.forward(msg).await.map_err(|e| {
         //     warn!("failed to handle message: {:?}", e);
         // });
         // Ok(())

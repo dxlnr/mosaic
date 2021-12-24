@@ -3,14 +3,11 @@ use futures::{
     task::Context,
 };
 use std::io::Error;
+use std::sync::Arc;
 use std::task::Poll;
 use tower::Service;
 
 use crate::engine::{model::Model, watch::Subscriber};
-
-pub type BoxedServiceFuture<Response, Error> = std::pin::Pin<
-    Box<dyn futures::Future<Output = Result<Response, Error>> + 'static + Send + Sync>,
->;
 
 // /// [`ModelService`]'s request type
 // #[derive(Default, Clone, Eq, PartialEq, Debug)]
@@ -30,17 +27,15 @@ impl ModelService {
 }
 
 impl Service<Model> for ModelService {
-    type Response = Model;
+    type Response = Arc<Model>;
     type Error = Error;
-    type Future = BoxedServiceFuture<Self::Response, Self::Error>;
+    type Future = Ready<Result<Self::Response, Self::Error>>;
 
     fn poll_ready(&mut self, _cx: &mut Context<'_>) -> Poll<Result<(), Self::Error>> {
         Poll::Ready(Ok(()))
     }
 
-    fn call(&mut self, req: Model) -> Self::Future {
-        // let mut subs = self.subscriber.clone();
-        // self.0.call(req)
-        future::ready(self.recv())
+    fn call(&mut self, _req: Model) -> Self::Future {
+        future::ready(Ok(self.subscriber.rx.recv()))
     }
 }

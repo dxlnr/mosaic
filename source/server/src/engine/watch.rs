@@ -30,7 +30,7 @@ impl Publisher {
 
 #[derive(Debug, Clone)]
 pub struct Subscriber {
-    rx: Listener,
+    pub rx: Listener,
 }
 
 /// A watch channel to send events to clients.
