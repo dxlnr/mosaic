@@ -8,7 +8,9 @@ use tracing::{info, warn};
 use tonic::{transport::Server, Request, Response, Status};
 
 use crate::{
-    engine::watch::Subscriber, message::Message, service::messages::MessageHandler,
+    engine::watch::Subscriber,
+    message::Message,
+    service::{fetch::Fetcher, messages::MessageHandler},
     settings::APISettings,
 };
 
@@ -28,16 +30,16 @@ pub struct Communicator {
     model: Arc<Mutex<Vec<f64>>>,
     /// Shared handle for passing messages from participant to engine.
     handler: MessageHandler,
-    subscriber: Subscriber,
+    fetcher: Fetcher,
 }
 
 impl Communicator {
     /// Constructs a new CommunicationServer
-    fn new(handler: MessageHandler, subscriber: Subscriber, model_length: usize) -> Self {
+    fn new(handler: MessageHandler, fetcher: Fetcher, model_length: usize) -> Self {
         Communicator {
             model: Arc::new(Mutex::new(vec![0.0; model_length])),
             handler,
-            subscriber,
+            fetcher,
         }
     }
     /// Forwards the incoming request to the ['Engine']
@@ -48,12 +50,11 @@ impl Communicator {
         Ok(())
     }
 
-    async fn handle_model(self) -> Result<(), Infallible> {
-        // let _ = self.subscriber.forward(msg).await.map_err(|e| {
-        //     warn!("failed to handle message: {:?}", e);
-        // });
-        // Ok(())
-        todo!()
+    async fn handle_model(mut fetcher: Fetcher) -> Result<(), Infallible> {
+        let _ = fetcher.fetch().await.map_err(|_| {
+            warn!("failed to fetch model.");
+        });
+        Ok(())
     }
 }
 
@@ -68,7 +69,10 @@ impl Communication for Communicator {
             request.remote_addr().unwrap()
         );
 
-        let _sub = self.subscriber.clone();
+        let fetch = self.fetcher.clone();
+        let res = Communicator::handle_model(fetch).await;
+
+        println!("{:?}", &res.unwrap());
 
         let global_model = Arc::clone(&self.model);
         let cupd = global_model.lock().unwrap();
@@ -113,11 +117,11 @@ impl Communication for Communicator {
 pub async fn start(
     api_settings: APISettings,
     message_handler: MessageHandler,
-    subscriber: Subscriber,
+    fetcher: Fetcher,
 ) -> Result<(), Box<dyn std::error::Error>> {
     info!("Communication Server listening on {}", api_settings.address);
 
-    let com = Communicator::new(message_handler, subscriber, 4);
+    let com = Communicator::new(message_handler, fetcher, 4);
     Server::builder()
         .add_service(CommunicationServer::new(com))
         .serve(api_settings.address)

@@ -1,9 +1,7 @@
 use futures::task::Context;
+use std::io::Error;
 use std::task::Poll;
 use tower::Service;
-
-// use std::convert::Infallible;
-use std::io::Error;
 
 use crate::{engine::channel::RequestSender, message::Message};
 

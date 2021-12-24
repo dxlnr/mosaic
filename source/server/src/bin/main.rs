@@ -6,7 +6,7 @@ use std::{path::PathBuf, process};
 use server::{
     engine::EngineInitializer,
     server::start,
-    service::messages::MessageHandler,
+    service::{fetch::Fetcher, messages::MessageHandler},
     settings::{LogSettings, Settings},
 };
 use structopt::StructOpt;
@@ -40,6 +40,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         .init()
         .await;
     let message_handler = MessageHandler::new(tx);
+    let fetcher = Fetcher::new(subscriber);
 
     tokio::select! {
         biased;
@@ -48,7 +49,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         _ = engine.run() => {
             warn!("Training finished: Terminating the engine.")
         }
-        result = start(api_settings, message_handler, subscriber) => {
+        result = start(api_settings, message_handler, fetcher) => {
             match result {
                 Ok(()) => warn!("Shutting down: gRPC server terminated."),
                 Err(_error) => {

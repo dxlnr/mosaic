@@ -1,5 +1,6 @@
 use async_trait::async_trait;
 use std::io::Error;
+use std::sync::Arc;
 
 use crate::engine::{
     states::{Collect, State, StateCondition, StateName},
@@ -15,6 +16,8 @@ impl State for StateCondition<Idle> {
     const NAME: StateName = StateName::Idle;
 
     async fn perform(&mut self) -> Result<(), Error> {
+        let global = self.shared.global_model.clone();
+        let _ = self.shared.publisher.broadcast_model(global);
         Ok(())
     }
 

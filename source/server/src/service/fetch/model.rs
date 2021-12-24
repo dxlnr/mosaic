@@ -7,7 +7,10 @@ use std::sync::Arc;
 use std::task::Poll;
 use tower::Service;
 
-use crate::engine::{model::Model, watch::Subscriber};
+use crate::{
+    engine::{model::Model, watch::Subscriber},
+    service::fetch::ModelRequest,
+};
 
 // /// [`ModelService`]'s request type
 // #[derive(Default, Clone, Eq, PartialEq, Debug)]
@@ -26,7 +29,7 @@ impl ModelService {
     }
 }
 
-impl Service<Model> for ModelService {
+impl Service<ModelRequest> for ModelService {
     type Response = Arc<Model>;
     type Error = Error;
     type Future = Ready<Result<Self::Response, Self::Error>>;
@@ -35,7 +38,7 @@ impl Service<Model> for ModelService {
         Poll::Ready(Ok(()))
     }
 
-    fn call(&mut self, _req: Model) -> Self::Future {
+    fn call(&mut self, _req: ModelRequest) -> Self::Future {
         future::ready(Ok(self.subscriber.rx.recv()))
     }
 }

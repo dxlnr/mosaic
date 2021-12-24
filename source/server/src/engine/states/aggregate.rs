@@ -31,7 +31,7 @@ where
         );
 
         let global = self.shared.global_model.clone();
-        self.shared.publisher.broadcast(global);
+        self.shared.publisher.broadcast_model(global);
         Ok(())
     }
 
