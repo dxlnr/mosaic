@@ -6,8 +6,6 @@ use crate::engine::{
     Engine, ServerState,
 };
 
-use tracing::{info, warn};
-
 /// The idle state.
 #[derive(Debug)]
 pub struct Idle;
@@ -18,7 +16,6 @@ impl State for StateCondition<Idle> {
 
     async fn perform(&mut self) -> Result<(), Error> {
         let global = self.shared.global_model.clone();
-        info!("Global Model {:?}", &global);
         let _ = self.shared.publisher.broadcast_model(global);
         Ok(())
     }

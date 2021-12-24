@@ -5,7 +5,7 @@ use std::slice::{Iter, IterMut};
 #[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]
 /// A representation of a machine learning model as vector object.
 // pub struct Model(Vec<Ratio<BigInt>>);
-pub struct Model(Vec<f64>);
+pub struct Model(pub Vec<f64>);
 
 impl std::convert::AsRef<Model> for Model {
     fn as_ref(&self) -> &Model {
@@ -26,6 +26,10 @@ impl Model {
     pub fn iter(&self) -> Iter<f64> {
         self.0.iter()
     }
+    // /// Get the model to send it back.
+    // pub fn get<'a>(&self) -> &'a Vec<f64> {
+    //     &self.0
+    // }
 
     /// Creates an iterator that yields mutable references to the weights/parameters of a model.
     pub fn iter_mut(&mut self) -> IterMut<f64> {

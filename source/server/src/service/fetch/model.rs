@@ -12,10 +12,6 @@ use crate::{
     service::fetch::ModelRequest,
 };
 
-// /// [`ModelService`]'s request type
-// #[derive(Default, Clone, Eq, PartialEq, Debug)]
-// pub struct ModelRequest;
-
 #[derive(Debug, Clone)]
 pub struct ModelService {
     pub subscriber: Subscriber,

@@ -1,13 +1,14 @@
 //! Sets up a gRPC server.
 use std::convert::Infallible;
+use std::io::{Error, ErrorKind};
 use std::sync::Arc;
-use std::sync::Mutex;
 use thiserror::Error;
 use tracing::{info, warn};
 
 use tonic::{transport::Server, Request, Response, Status};
 
 use crate::{
+    engine::model::Model,
     message::Message,
     service::{fetch::Fetcher, messages::MessageHandler},
     settings::APISettings,
@@ -26,20 +27,16 @@ use mosaic::{
 
 #[derive(Debug, Clone)]
 pub struct Communicator {
-    model: Arc<Mutex<Vec<f64>>>,
     /// Shared handle for passing messages from participant to engine.
     handler: MessageHandler,
+    /// Shared fetcher for passing messages from engine to client.
     fetcher: Fetcher,
 }
 
 impl Communicator {
     /// Constructs a new CommunicationServer
-    fn new(handler: MessageHandler, fetcher: Fetcher, model_length: usize) -> Self {
-        Communicator {
-            model: Arc::new(Mutex::new(vec![0.0; model_length])),
-            handler,
-            fetcher,
-        }
+    fn new(handler: MessageHandler, fetcher: Fetcher) -> Self {
+        Communicator { handler, fetcher }
     }
     /// Forwards the incoming request to the ['Engine']
     async fn handle_message(msg: Message, mut handler: MessageHandler) -> Result<(), Infallible> {
@@ -49,11 +46,11 @@ impl Communicator {
         Ok(())
     }
 
-    async fn handle_model(mut fetcher: Fetcher) -> Result<(), Infallible> {
-        let _ = fetcher.fetch().await.map_err(|_| {
-            warn!("failed to fetch model.");
-        });
-        Ok(())
+    async fn handle_model(mut fetcher: Fetcher) -> Result<Arc<Model>, Error> {
+        fetcher
+            .fetch()
+            .await
+            .map_err(|_| Error::new(ErrorKind::Other, "failed to fetch model."))
     }
 }
 
@@ -69,14 +66,8 @@ impl Communication for Communicator {
         );
 
         let fetch = self.fetcher.clone();
-        let res = Communicator::handle_model(fetch).await;
-
-        println!("{:?}", &res.unwrap());
-
-        let global_model = Arc::clone(&self.model);
-        let cupd = global_model.lock().unwrap();
-
-        let tensor = Message::into_bytes_array(&*cupd);
+        let res = Communicator::handle_model(fetch).await.unwrap();
+        let tensor = Message::into_bytes_array(&res.0);
 
         let params = mosaic::Parameters {
             tensor: tensor.to_vec(),
@@ -120,7 +111,7 @@ pub async fn start(
 ) -> Result<(), Box<dyn std::error::Error>> {
     info!("Communication Server listening on {}", api_settings.address);
 
-    let com = Communicator::new(message_handler, fetcher, 4);
+    let com = Communicator::new(message_handler, fetcher);
     Server::builder()
         .add_service(CommunicationServer::new(com))
         .serve(api_settings.address)

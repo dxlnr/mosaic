@@ -5,7 +5,7 @@ use tracing::info;
 
 use crate::{
     engine::{
-        states::{Handler, Shutdown, State, StateCondition, StateName},
+        states::{Handler, Idle, State, StateCondition, StateName},
         Engine, ServerState,
     },
     message::Message,
@@ -35,7 +35,7 @@ where
     }
 
     async fn next(self) -> Option<Engine> {
-        Some(StateCondition::<Shutdown>::new(self.shared).into())
+        Some(StateCondition::<Idle>::new(self.shared).into())
     }
 }
 
