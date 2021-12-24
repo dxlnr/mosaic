@@ -1,11 +1,12 @@
 use async_trait::async_trait;
 use std::io::Error;
-use std::sync::Arc;
 
 use crate::engine::{
     states::{Collect, State, StateCondition, StateName},
     Engine, ServerState,
 };
+
+use tracing::{info, warn};
 
 /// The idle state.
 #[derive(Debug)]
@@ -17,6 +18,7 @@ impl State for StateCondition<Idle> {
 
     async fn perform(&mut self) -> Result<(), Error> {
         let global = self.shared.global_model.clone();
+        info!("Global Model {:?}", &global);
         let _ = self.shared.publisher.broadcast_model(global);
         Ok(())
     }

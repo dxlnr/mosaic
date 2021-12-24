@@ -6,7 +6,6 @@ use tracing::info;
 use crate::{
     engine::{
         states::{Handler, Shutdown, State, StateCondition, StateName},
-        watch::Publisher,
         Engine, ServerState,
     },
     message::Message,

@@ -8,7 +8,6 @@ use tracing::{info, warn};
 use tonic::{transport::Server, Request, Response, Status};
 
 use crate::{
-    engine::watch::Subscriber,
     message::Message,
     service::{fetch::Fetcher, messages::MessageHandler},
     settings::APISettings,
