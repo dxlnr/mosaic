@@ -66,6 +66,7 @@ impl EngineInitializer {
             0,
             0,
             self.process_settings.participants,
+            self.process_settings.rounds,
             rx,
             publisher,
             Model::new(self.model_settings.length),
@@ -81,9 +82,10 @@ impl EngineInitializer {
 
 pub struct ServerState {
     // Keeps training rounds in cache.
-    pub round_id: u64,
+    pub round_id: u32,
     pub client_count: u64,
     pub participants: u32,
+    pub rounds: u32,
 
     // Holds the shared model & message states.
     pub rx: RequestReceiver,
@@ -95,9 +97,10 @@ pub struct ServerState {
 impl ServerState {
     /// Init new shared server state.
     pub fn new(
-        round_id: u64,
+        round_id: u32,
         client_count: u64,
         participants: u32,
+        rounds: u32,
         rx: RequestReceiver,
         publisher: Publisher,
         global_model: Model,
@@ -107,6 +110,7 @@ impl ServerState {
             round_id,
             client_count,
             participants,
+            rounds,
             rx,
             publisher,
             global_model,
@@ -114,12 +118,12 @@ impl ServerState {
         }
     }
     /// Sets the round ID to the given value.
-    pub fn set_round_id(&mut self, id: u64) {
+    pub fn set_round_id(&mut self, id: u32) {
         self.round_id = id;
     }
 
     /// Returns the current round ID.
-    pub fn round_id(&self) -> u64 {
+    pub fn round_id(&self) -> u32 {
         self.round_id
     }
 }

@@ -2,7 +2,7 @@ use async_trait::async_trait;
 use std::io::Error;
 
 use crate::engine::{
-    states::{Collect, State, StateCondition, StateName},
+    states::{Collect, Shutdown, State, StateCondition, StateName},
     Engine, ServerState,
 };
 
@@ -21,7 +21,11 @@ impl State for StateCondition<Idle> {
     }
 
     async fn next(self) -> Option<Engine> {
-        Some(StateCondition::<Collect>::new(self.shared).into())
+        if self.shared.round_id() > self.shared.rounds {
+            Some(StateCondition::<Shutdown>::new(self.shared).into())
+        } else {
+            Some(StateCondition::<Collect>::new(self.shared).into())
+        }
     }
 }
 
