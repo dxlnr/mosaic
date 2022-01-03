@@ -38,14 +38,14 @@ impl Communicator {
     fn new(handler: MessageHandler, fetcher: Fetcher) -> Self {
         Communicator { handler, fetcher }
     }
-    /// Forwards the incoming request to the ['Engine']
+    /// Forwards the incoming request to the ['Engine'].
     async fn handle_message(msg: Message, mut handler: MessageHandler) -> Result<(), Infallible> {
         let _ = handler.forward(msg).await.map_err(|e| {
             warn!("failed to handle message: {:?}", e);
         });
         Ok(())
     }
-
+    /// Handles the request for the latest global model from the ['Engine'].
     async fn handle_model(mut fetcher: Fetcher) -> Result<Arc<Model>, Error> {
         fetcher
             .fetch()
@@ -95,7 +95,9 @@ impl Communication for Communicator {
         };
 
         let handle = self.handler.clone();
-        let _res = Communicator::handle_message(req, handle).await;
+        let res = Communicator::handle_message(req, handle).await;
+
+        info!("{:?}", res.unwrap());
 
         let server_msg = mosaic::ServerMessage {
             msg: "success".to_string(),

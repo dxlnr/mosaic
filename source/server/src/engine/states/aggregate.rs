@@ -49,13 +49,13 @@ impl StateCondition<Aggregate> {
     }
     /// Aggreates all the features from collect state into the global model.
     pub fn aggregate(&mut self) {
+        self.shared.features.add();
         self.shared
             .features
-            .iter()
-            .map(|r| self.shared.global_model.add(&r.data))
-            .collect::<Vec<_>>()
-            .to_vec();
-        self.shared.global_model.avg(&self.shared.participants);
+            .avg(&self.shared.participants, &self.shared.round_id);
+        self.shared.global_model.0 = self.shared.features.global.clone();
+        self.shared.features.increment(&self.shared.participants);
+        self.shared.features.flush();
     }
 }
 

@@ -1,4 +1,6 @@
+mod client;
 mod engine;
+
 use futures::future::poll_fn;
 use std::io::Error;
 use tower::Service;

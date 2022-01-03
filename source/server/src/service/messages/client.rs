@@ -10,19 +10,19 @@ pub type BoxedServiceFuture<Response, Error> = std::pin::Pin<
 >;
 
 #[derive(Debug, Clone)]
-pub struct EngineService {
-    pub handle: RequestSender,
+pub struct ClientService {
+    pub response: RequestSender,
 }
 
-impl EngineService {
-    /// Create a new (tower) service with a handler for forwarding
-    /// requests from gRPC setup to the engine.
-    pub fn new(handle: RequestSender) -> Self {
-        Self { handle }
+impl ClientService {
+    /// Create a new (tower) service with a handler for responding
+    /// to the client that sent a request to the ['Engine'].
+    pub fn new(response: RequestSender) -> Self {
+        Self { response }
     }
 }
 
-impl Service<Message> for EngineService {
+impl Service<Message> for ClientService {
     type Response = ();
     type Error = Error;
     type Future = BoxedServiceFuture<Self::Response, Self::Error>;
@@ -31,8 +31,7 @@ impl Service<Message> for EngineService {
         Poll::Ready(Ok(()))
     }
 
-    fn call(&mut self, req: Message) -> Self::Future {
-        let mut handle = self.handle.clone();
-        Box::pin(async move { handle.send(req).await })
+    fn call(&mut self, _req: Message) -> Self::Future {
+        todo!()
     }
 }

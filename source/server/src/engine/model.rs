@@ -45,10 +45,10 @@ impl Model {
             .to_vec();
     }
     /// Elementwise averaging of ['Model'] object depending on the number of participants.
-    pub fn avg(&mut self, participants: &u32) {
+    pub fn avg(&mut self, participants: &u32, round_id: &u32) {
         self.0 = self
             .iter()
-            .map(|x| x / *participants as f64)
+            .map(|x| x / (*participants * *round_id) as f64)
             .collect::<Vec<_>>()
             .to_vec();
     }

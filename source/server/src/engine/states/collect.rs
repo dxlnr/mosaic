@@ -43,7 +43,7 @@ impl StateCondition<Collect> {
     }
     /// Add message to feature list.
     fn add(&mut self, req: Message) -> Result<(), Infallible> {
-        Ok(self.shared.features.push(req))
+        Ok(self.shared.features.msgs.push(req))
     }
 }
 

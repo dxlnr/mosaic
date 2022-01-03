@@ -1,6 +1,6 @@
 //! mosaic server.
 //!
-//! This binary serves as entry point for the server implementation.
+//! This binary serves as entry point for the server implementation and executes it.
 use std::{path::PathBuf, process};
 
 use server::{
