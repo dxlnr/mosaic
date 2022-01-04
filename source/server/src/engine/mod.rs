@@ -67,9 +67,10 @@ impl EngineInitializer {
         let (rx, tx) = RequestSender::new();
         let shared = ServerState::new(
             0,
-            0,
-            self.process_settings.participants,
-            self.process_settings.rounds,
+            RoundParams::new(
+                self.process_settings.rounds,
+                self.process_settings.participants,
+            ),
             rx,
             publisher,
             Model::new(self.model_settings.length),
@@ -83,17 +84,19 @@ impl EngineInitializer {
     }
 }
 
+/// Shared ['ServerState']
 pub struct ServerState {
-    // Keeps training rounds in cache.
+    /// Keeps the actual training round updated and in cache.
     pub round_id: u32,
-    pub client_count: u64,
-    pub participants: u32,
-    pub rounds: u32,
-
-    // Holds the shared model & message states.
+    /// Information about the whole process cached in ['RoundParams'].
+    pub round_params: RoundParams,
+    /// Field for enabling receiving requests from the client.
     pub rx: RequestReceiver,
+    /// Server publishes latest updates.
     pub publisher: Publisher,
+    /// Holds the actual global model updated after each completed training round.
     pub global_model: Model,
+    /// Caches all the incoming messages and their respective data.
     pub features: Features,
 }
 
@@ -101,9 +104,7 @@ impl ServerState {
     /// Init new shared server state.
     pub fn new(
         round_id: u32,
-        client_count: u64,
-        participants: u32,
-        rounds: u32,
+        round_params: RoundParams,
         rx: RequestReceiver,
         publisher: Publisher,
         global_model: Model,
@@ -111,9 +112,7 @@ impl ServerState {
     ) -> Self {
         ServerState {
             round_id,
-            client_count,
-            participants,
-            rounds,
+            round_params,
             rx,
             publisher,
             global_model,
@@ -131,10 +130,18 @@ impl ServerState {
     }
 }
 
-pub struct ClientState {
-    /// counts the number of client updates received.
-    pub count: u64,
-    pub model_length: usize,
+pub struct RoundParams {
+    pub training_rounds: u32,
+    pub per_round_participants: u32,
+}
+
+impl RoundParams {
+    pub fn new(training_rounds: u32, per_round_participants: u32) -> Self {
+        Self {
+            training_rounds,
+            per_round_participants,
+        }
+    }
 }
 
 pub struct Features {

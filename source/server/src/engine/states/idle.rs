@@ -21,7 +21,7 @@ impl State for StateCondition<Idle> {
     }
 
     async fn next(self) -> Option<Engine> {
-        if self.shared.round_id() > self.shared.rounds {
+        if self.shared.round_id() > self.shared.round_params.training_rounds {
             Some(StateCondition::<Shutdown>::new(self.shared).into())
         } else {
             Some(StateCondition::<Collect>::new(self.shared).into())

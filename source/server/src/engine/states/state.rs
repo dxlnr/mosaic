@@ -81,7 +81,7 @@ where
 {
     /// Processes requests.
     pub async fn process(&mut self) -> Result<(), Error> {
-        let mut counter = Counter::new(self.shared.participants);
+        let mut counter = Counter::new(self.shared.round_params.per_round_participants);
         loop {
             tokio::select! {
                 biased;
