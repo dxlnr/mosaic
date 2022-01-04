@@ -39,7 +39,7 @@ impl Communicator {
         Communicator { handler, fetcher }
     }
     /// Forwards the incoming request to the ['Engine'].
-    async fn handle_message(msg: Message, mut handler: MessageHandler) -> Result<(), Infallible> {
+    async fn handle_message(msg: Message, mut handler: MessageHandler) -> Result<(), Error> {
         let _ = handler.forward(msg).await.map_err(|e| {
             warn!("failed to handle message: {:?}", e);
         });
@@ -97,8 +97,6 @@ impl Communication for Communicator {
         let handle = self.handler.clone();
         let _res = Communicator::handle_message(req, handle).await;
 
-        // info!("{:?}", res.rx.recv().unwrap());
-
         let server_msg = mosaic::ServerMessage {
             msg: "success".to_string(),
         };
@@ -123,7 +121,7 @@ pub async fn start(
 }
 
 #[derive(Debug, Error)]
-/// Depict server error.
+/// Depicts server error.
 pub enum ServerError {
     #[error("invalid TLS configuration was provided")]
     InvalidTlsConfig,

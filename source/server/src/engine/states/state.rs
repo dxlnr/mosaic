@@ -48,9 +48,7 @@ where
 {
     /// Runs the current State to completion.
     pub async fn run_state(mut self) -> Option<Engine> {
-        let state = Self::NAME;
-        info!("Engine runs in state: {:?}", &state);
-
+        info!("Engine runs in state: {:?}", &Self::NAME);
         async move {
             if let Err(_err) = self.perform().await {
                 warn!("{:?}", "state error");

@@ -20,6 +20,8 @@ use crate::{
 };
 
 #[derive(From)]
+/// ['Engine'] functions as the state machine which handles the whole Federated Learning process
+/// on the server side.
 pub enum Engine {
     Idle(StateCondition<Idle>),
     Collect(StateCondition<Collect>),
@@ -44,6 +46,7 @@ impl Engine {
     }
 }
 
+/// Handles the ['Engine'] initialization.
 pub struct EngineInitializer {
     model_settings: ModelSettings,
     process_settings: ProcessSettings,
@@ -181,6 +184,7 @@ impl Features {
             .collect::<Vec<_>>()
             .to_vec();
     }
+    /// Averaging the summed global part of ['Features'].
     pub fn avg(&mut self, participants: &u32, round_id: &u32) {
         self.global = self
             .global

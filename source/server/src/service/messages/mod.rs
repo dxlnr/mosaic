@@ -1,4 +1,3 @@
-mod client;
 mod engine;
 
 use futures::future::poll_fn;
