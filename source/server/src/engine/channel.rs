@@ -11,16 +11,16 @@ use crate::message::Message;
 
 /// A handle to send requests to the [`Engine`].
 #[derive(Clone, From, Debug)]
-pub struct RequestSender(pub mpsc::UnboundedSender<Message>);
+pub struct RequestSender(pub mpsc::UnboundedSender<(Message, ResponseSender)>);
 
 impl RequestSender {
     pub fn new() -> (RequestReceiver, RequestSender) {
-        let (tx, rx) = mpsc::unbounded_channel::<Message>();
+        let (tx, rx) = mpsc::unbounded_channel::<(Message, ResponseSender)>();
         (RequestReceiver(rx), RequestSender(tx))
     }
     pub async fn send(&mut self, req: Message) -> Result<(), Error> {
-        let (_tx, rx) = oneshot::channel::<Result<(), Error>>();
-        self.0.send(req).map_err(|_| {
+        let (tx, rx) = oneshot::channel::<Result<(), Error>>();
+        self.0.send((req, tx)).map_err(|_| {
             Error::new(
                 ErrorKind::Other,
                 "failed to send request to the engine: engine shuts down.",
@@ -35,12 +35,14 @@ impl RequestSender {
     }
 }
 
+/// A handle to send a response upon the request receiver.
+pub type ResponseSender = oneshot::Sender<Result<(), Error>>;
 /// A handle to receive requests that the ['Engine'] makes use of.
 #[derive(From, Debug)]
-pub struct RequestReceiver(mpsc::UnboundedReceiver<Message>);
+pub struct RequestReceiver(mpsc::UnboundedReceiver<(Message, ResponseSender)>);
 
 impl Stream for RequestReceiver {
-    type Item = Message;
+    type Item = (Message, ResponseSender);
     fn poll_next(self: Pin<&mut Self>, cx: &mut Context) -> Poll<Option<Self::Item>> {
         Pin::new(&mut self.get_mut().0).poll_recv(cx)
     }
@@ -54,7 +56,7 @@ impl RequestReceiver {
     pub fn try_recv(&mut self) -> Option<()> {
         todo!()
     }
-    /// Closes the `Request` channel.
+    /// Closes the [`Request`] channel.
     pub fn close(&mut self) {
         self.0.close()
     }

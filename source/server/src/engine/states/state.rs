@@ -1,13 +1,12 @@
 use async_trait::async_trait;
 use derive_more::Display;
 use futures::StreamExt;
-use std::convert::Infallible;
 use std::io::{Error, ErrorKind};
 use tokio::signal;
 use tracing::{debug, info, warn};
 
 use crate::{
-    engine::{Engine, ServerState},
+    engine::{channel::ResponseSender, Engine, ServerState},
     message::Message,
 };
 
@@ -61,7 +60,7 @@ where
         .await
     }
     /// Receives the next [`Request`] from gRPC server.
-    pub async fn next_request(&mut self) -> Result<Message, Error> {
+    pub async fn next_request(&mut self) -> Result<(Message, ResponseSender), Error> {
         info!("Waiting for the next request");
         self.shared
             .rx
@@ -75,7 +74,7 @@ where
 #[async_trait]
 pub trait Handler {
     /// Handling a request.
-    async fn handle_request(&mut self, req: Message) -> Result<(), Infallible>;
+    async fn handle_request(&mut self, req: Message) -> Result<(), Error>;
 }
 
 impl<S> StateCondition<S>
@@ -93,8 +92,8 @@ where
                     break Ok(())
                 }
                 next = self.next_request() => {
-                    let req = next?;
-                    self.process_single(req, counter.as_mut()).await;
+                    let (req, tx) = next?;
+                    self.process_single(req, tx, counter.as_mut()).await;
                 }
             }
             if counter.is_reached() {
@@ -102,13 +101,14 @@ where
             }
         }
     }
-    async fn process_single(&mut self, req: Message, counter: &mut Counter) {
+    async fn process_single(&mut self, req: Message, tx: ResponseSender, counter: &mut Counter) {
         let response = self.handle_request(req).await;
         if response.is_ok() {
             counter.increment_accepted();
         } else {
             counter.increment_rejected();
         }
+        let _ = tx.send(response);
     }
 }
 

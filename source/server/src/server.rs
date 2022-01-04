@@ -95,9 +95,9 @@ impl Communication for Communicator {
         };
 
         let handle = self.handler.clone();
-        let res = Communicator::handle_message(req, handle).await;
+        let _res = Communicator::handle_message(req, handle).await;
 
-        info!("{:?}", res.unwrap());
+        // info!("{:?}", res.rx.recv().unwrap());
 
         let server_msg = mosaic::ServerMessage {
             msg: "success".to_string(),

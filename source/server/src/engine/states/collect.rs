@@ -1,7 +1,5 @@
 use async_trait::async_trait;
-use std::convert::Infallible;
 use std::io::Error;
-// use tracing::info;
 
 use crate::{
     engine::{
@@ -24,7 +22,6 @@ where
 
     async fn perform(&mut self) -> Result<(), Error> {
         self.process().await?;
-        // self.shared.rx.close();
         Ok(())
     }
 
@@ -42,14 +39,14 @@ impl StateCondition<Collect> {
         }
     }
     /// Add message to feature list.
-    fn add(&mut self, req: Message) -> Result<(), Infallible> {
+    fn add(&mut self, req: Message) -> Result<(), Error> {
         Ok(self.shared.features.msgs.push(req))
     }
 }
 
 #[async_trait]
 impl Handler for StateCondition<Collect> {
-    async fn handle_request(&mut self, req: Message) -> Result<(), Infallible> {
+    async fn handle_request(&mut self, req: Message) -> Result<(), Error> {
         self.add(req)
     }
 }

@@ -1,5 +1,4 @@
 use async_trait::async_trait;
-use std::convert::Infallible;
 use std::io::Error;
 use tracing::info;
 
@@ -61,7 +60,7 @@ impl StateCondition<Aggregate> {
 
 #[async_trait]
 impl Handler for StateCondition<Aggregate> {
-    async fn handle_request(&mut self, _req: Message) -> Result<(), Infallible> {
+    async fn handle_request(&mut self, _req: Message) -> Result<(), Error> {
         Ok(())
     }
 }
