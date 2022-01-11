@@ -24,4 +24,22 @@ impl Message {
             .collect::<Vec<_>>()
             .to_vec()
     }
+
+    pub fn from_bytes_array_test(bytes: &Vec<Vec<u8>>) -> Vec<Vec<f32>> {
+        bytes
+            .iter()
+            .map(|r| {
+                r.chunks(4)
+                    .map(|x| BigEndian::read_f32(&x))
+                    .collect::<Vec<_>>()
+                    .to_vec()
+            })
+            .collect::<Vec<_>>()
+            .to_vec()
+    }
 }
+
+// pub enum DataType {
+//     F64,
+//     F32,
+// }

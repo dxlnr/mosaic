@@ -2,14 +2,14 @@ syntax = "proto3";
 
 package mosaic;
 
-// service Communication {
-//   rpc Join(stream ClientMessage) returns (stream ServerMessage) {}
-// }
 service Communication {
   rpc GetGlobalModel(ClientMessage) returns (ServerModel);
   rpc Update(ClientUpdate) returns (ServerMessage);
-  // rpc SingleRound(stream ClientMessage) returns (ServerMessage);
 }
+
+// message Parameters {
+//   repeated Layer layer = 1;
+// }
 
 message Parameters {
   repeated bytes tensor = 1;
@@ -37,11 +37,7 @@ message ClientUpdate {
   uint32 id = 2;
 }
 
-
-message ClientDefault {
-  Parameters parameters = 1;
-}
-
-message ServerDefault {
-  Parameters parameters = 1;
+message Layer {
+  repeated bytes tensor = 1;
+  string data_type = 2;
 }

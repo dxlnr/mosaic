@@ -20,10 +20,7 @@ pub mod mosaic {
 
 use mosaic::communication_server::{Communication, CommunicationServer};
 #[allow(unused_imports)]
-use mosaic::{
-    ClientDefault, ClientMessage, ClientUpdate, Parameters, ServerDefault, ServerMessage,
-    ServerModel,
-};
+use mosaic::{ClientMessage, ClientUpdate, Parameters, ServerMessage, ServerModel};
 
 #[derive(Debug, Clone)]
 pub struct Communicator {
@@ -87,15 +84,25 @@ impl Communication for Communicator {
     ) -> Result<Response<ServerMessage>, Status> {
         info!(
             "Request received from client {}: Sending an update to engine.",
-            request.remote_addr().unwrap()
+            &request.remote_addr().unwrap()
         );
 
-        let req = Message {
-            data: Message::from_bytes_array(&request.into_inner().parameters.unwrap().tensor),
-        };
+        let test = request.into_inner().parameters.unwrap().tensor.clone();
 
-        let handle = self.handler.clone();
-        let _res = Communicator::handle_message(req, handle).await;
+        info!("received message: {:?}", &test);
+        // println!("{:?}", &test.len());
+
+        let floatings = Message::from_bytes_array_test(&test);
+
+        println!("{:?}", &floatings);
+        // println!("{:?}", &floatings.len());
+
+        // let req = Message {
+        //     data: Message::from_bytes_array(&request.into_inner().parameters.unwrap().tensor),
+        // };
+        //
+        // let handle = self.handler.clone();
+        // let _res = Communicator::handle_message(req, handle).await;
 
         let server_msg = mosaic::ServerMessage {
             msg: "success".to_string(),
