@@ -1,9 +1,13 @@
 use async_trait::async_trait;
 use std::io::Error;
 
+use tracing::info;
+
 use crate::{
     engine::{
+        model::Model,
         states::{Aggregate, Handler, State, StateCondition, StateName},
+        utils::features::Features,
         Engine, ServerState,
     },
     message::Message,
@@ -11,7 +15,10 @@ use crate::{
 
 /// The collect state.
 #[derive(Debug)]
-pub struct Collect;
+pub struct Collect {
+    /// Caches all the incoming messages and their respective data.
+    pub features: Features,
+}
 
 #[async_trait]
 impl State for StateCondition<Collect>
@@ -34,13 +41,18 @@ impl StateCondition<Collect> {
     /// Creates a new collect state.
     pub fn new(shared: ServerState) -> Self {
         Self {
-            private: Collect,
+            private: Collect {
+                features: Features::new(),
+            },
             shared,
         }
     }
     /// Add message to feature list.
     fn add(&mut self, req: Message) -> Result<(), Error> {
-        Ok(self.shared.features.msgs.push(req))
+        let mut local_model: Model = Default::default();
+        local_model.conversion(req.data, &self.shared.round_params.dtype);
+        // info!("model: {:?}", &local_model.0[5]);
+        Ok(self.private.features.locals.push(local_model))
     }
 }
 
@@ -50,3 +62,13 @@ impl Handler for StateCondition<Collect> {
         self.add(req)
     }
 }
+
+// #[macro_export]
+// macro_rules! from_bytes {
+//     ($msg:expr, $data_type:ty) => {
+//         // impl $crate::FromBytes for $data_type {
+//         //     from_bytes_array()
+//         // }
+//         $msg.from_bytes_array().collect::<Vec<Vec<$data_type>>>()
+//     };
+// }

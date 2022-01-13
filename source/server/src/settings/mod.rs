@@ -7,6 +7,7 @@ use serde::{
     Deserialize,
 };
 
+use crate::engine::model::DataType;
 use thiserror::Error;
 use tracing_subscriber::filter::EnvFilter;
 use validator::{Validate, ValidationErrors};
@@ -62,6 +63,7 @@ pub struct APISettings {
 #[derive(Debug, Deserialize, Clone)]
 pub struct ModelSettings {
     pub length: usize,
+    pub data_type: DataType,
 }
 
 #[derive(Debug, Deserialize, Clone)]

@@ -7,17 +7,12 @@ service Communication {
   rpc Update(ClientUpdate) returns (ServerMessage);
 }
 
-// message Parameters {
-//   repeated Layer layer = 1;
-// }
-
 message Parameters {
   repeated bytes tensor = 1;
   string data_type = 2;
 }
 
 message ServerMessage {
-  //map<string, uint32> msgs = 1;
   string msg = 1;
 }
 
@@ -27,17 +22,10 @@ message ServerModel {
 }
 
 message ClientMessage {
-  //map<string, uint32> msgs = 1;
-  //string msg = 1;
   uint32 id = 1;
 }
 
 message ClientUpdate {
   Parameters parameters = 1;
   uint32 id = 2;
-}
-
-message Layer {
-  repeated bytes tensor = 1;
-  string data_type = 2;
 }

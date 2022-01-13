@@ -2,7 +2,7 @@
 address = "127.0.0.1:8080"
 
 [model]
-data_type = "F64"
+data_type = "F32"
 length = 4
 
 [process]

@@ -15,8 +15,8 @@ impl State for StateCondition<Idle> {
     const NAME: StateName = StateName::Idle;
 
     async fn perform(&mut self) -> Result<(), Error> {
-        let global = self.shared.global_model.clone();
-        let _ = self.shared.publisher.broadcast_model(global);
+        // let global = self.shared.global_model.clone();
+        // let _ = self.shared.publisher.broadcast_model(global);
         Ok(())
     }
 

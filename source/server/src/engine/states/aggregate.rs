@@ -22,14 +22,14 @@ where
     const NAME: StateName = StateName::Aggregate;
 
     async fn perform(&mut self) -> Result<(), Error> {
-        self.aggregate();
-        info!(
-            "Global Model after round {:?}: {:?}",
-            &self.shared.round_id, &self.shared.global_model
-        );
-
-        let global = self.shared.global_model.clone();
-        self.shared.publisher.broadcast_model(global);
+        // self.aggregate();
+        // info!(
+        //     "Global Model after round {:?}: {:?}",
+        //     &self.shared.round_id, &self.shared.global_model
+        // );
+        //
+        // let global = self.shared.global_model.clone();
+        // self.shared.publisher.broadcast_model(global);
         Ok(())
     }
 
@@ -46,19 +46,19 @@ impl StateCondition<Aggregate> {
             shared,
         }
     }
-    /// Aggreates all the features from collect state into the global model.
-    pub fn aggregate(&mut self) {
-        self.shared.features.add();
-        self.shared.features.avg(
-            &self.shared.round_params.per_round_participants,
-            &self.shared.round_id,
-        );
-        self.shared.global_model.0 = self.shared.features.global.clone();
-        self.shared
-            .features
-            .increment(&self.shared.round_params.per_round_participants);
-        self.shared.features.flush();
-    }
+    // /// Aggreates all the features from collect state into the global model.
+    // pub fn aggregate(&mut self) {
+    //     self.shared.features.add();
+    //     self.shared.features.avg(
+    //         &self.shared.round_params.per_round_participants,
+    //         &self.shared.round_id,
+    //     );
+    //     self.shared.global_model.0 = self.shared.features.global.clone();
+    //     self.shared
+    //         .features
+    //         .increment(&self.shared.round_params.per_round_participants);
+    //     self.shared.features.flush();
+    // }
 }
 
 #[async_trait]

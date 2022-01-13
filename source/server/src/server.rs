@@ -8,8 +8,8 @@ use tracing::{info, warn};
 use tonic::{transport::Server, Request, Response, Status};
 
 use crate::{
-    engine::model::Model,
-    message::Message,
+    engine::model::{Model, ModelUpdate},
+    message::{DataType, Message},
     service::{fetch::Fetcher, messages::MessageHandler},
     settings::APISettings,
 };
@@ -43,7 +43,7 @@ impl Communicator {
         Ok(())
     }
     /// Handles the request for the latest global model from the ['Engine'].
-    async fn handle_model(mut fetcher: Fetcher) -> Result<Arc<Model>, Error> {
+    async fn handle_model(mut fetcher: Fetcher) -> Result<Arc<ModelUpdate>, Error> {
         fetcher
             .fetch()
             .await
@@ -62,9 +62,12 @@ impl Communication for Communicator {
             request.remote_addr().unwrap()
         );
 
-        let fetch = self.fetcher.clone();
-        let res = Communicator::handle_model(fetch).await.unwrap();
-        let tensor = Message::into_bytes_array(&res.0);
+        // let fetch = self.fetcher.clone();
+        // let res = Communicator::handle_model(fetch).await.unwrap();
+        // let tensor = Message::into_bytes_array(&res.0);
+
+        let single: u8 = 0;
+        let tensor = vec![vec![single; 8]; 4];
 
         let params = mosaic::Parameters {
             tensor: tensor.to_vec(),
@@ -87,22 +90,28 @@ impl Communication for Communicator {
             &request.remote_addr().unwrap()
         );
 
-        let test = request.into_inner().parameters.unwrap().tensor.clone();
+        // let test = request.into_inner().parameters.unwrap().tensor.clone();
 
-        info!("received message: {:?}", &test);
+        let req = request.into_inner().clone();
+
+        // info!("received message: {:?}", &test);
         // println!("{:?}", &test.len());
 
-        let floatings = Message::from_bytes_array_test(&test);
-
-        println!("{:?}", &floatings);
+        // let floatings = Message::from_bytes_array_test(&test);
+        //
+        // println!("{:?}", &floatings);
         // println!("{:?}", &floatings.len());
 
         // let req = Message {
         //     data: Message::from_bytes_array(&request.into_inner().parameters.unwrap().tensor),
         // };
-        //
-        // let handle = self.handler.clone();
-        // let _res = Communicator::handle_message(req, handle).await;
+        let msg = Message {
+            data: req.parameters.unwrap().tensor,
+            dtype: DataType::F32,
+        };
+
+        let handle = self.handler.clone();
+        let _res = Communicator::handle_message(msg, handle).await;
 
         let server_msg = mosaic::ServerMessage {
             msg: "success".to_string(),

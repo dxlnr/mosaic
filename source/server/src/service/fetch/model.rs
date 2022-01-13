@@ -8,7 +8,7 @@ use std::task::Poll;
 use tower::Service;
 
 use crate::{
-    engine::{model::Model, watch::Subscriber},
+    engine::{model::ModelUpdate, watch::Subscriber},
     service::fetch::ModelRequest,
 };
 
@@ -26,7 +26,7 @@ impl ModelService {
 }
 
 impl Service<ModelRequest> for ModelService {
-    type Response = Arc<Model>;
+    type Response = Arc<ModelUpdate>;
     type Error = Error;
     type Future = Ready<Result<Self::Response, Self::Error>>;
 
