@@ -62,7 +62,6 @@ impl Model {
     //         .to_vec();
     // }
     fn from_bytes_array_f32(&mut self, bytes: &Vec<Vec<u8>>) {
-        println!("{:?}", "I am in f32");
         self.0 = bytes
             .iter()
             .map(|r| {
@@ -75,7 +74,6 @@ impl Model {
             .to_vec()
     }
     fn from_bytes_array_f64(&mut self, bytes: &Vec<Vec<u8>>) {
-        println!("{:?}", "I am in f64");
         self.0 = bytes
             .iter()
             .map(|r| {
