@@ -5,6 +5,7 @@ use tracing::info;
 use crate::{
     engine::{
         states::{Handler, Idle, State, StateCondition, StateName},
+        utils::features::Features,
         Engine, ServerState,
     },
     message::Message,
@@ -12,7 +13,9 @@ use crate::{
 
 /// The Aggregate state.
 #[derive(Debug)]
-pub struct Aggregate;
+pub struct Aggregate {
+    features: Features,
+}
 
 #[async_trait]
 impl State for StateCondition<Aggregate>
@@ -22,11 +25,11 @@ where
     const NAME: StateName = StateName::Aggregate;
 
     async fn perform(&mut self) -> Result<(), Error> {
-        // self.aggregate();
-        // info!(
-        //     "Global Model after round {:?}: {:?}",
-        //     &self.shared.round_id, &self.shared.global_model
-        // );
+        self.aggregate();
+        info!(
+            "Global Model after round {:?}: {:?}",
+            &self.shared.round_id, &self.private.features.global.0[5]
+        );
         //
         // let global = self.shared.global_model.clone();
         // self.shared.publisher.broadcast_model(global);
@@ -40,25 +43,27 @@ where
 
 impl StateCondition<Aggregate> {
     /// Creates a new Aggregate state.
-    pub fn new(shared: ServerState) -> Self {
+    pub fn new(shared: ServerState, features: Features) -> Self {
         Self {
-            private: Aggregate,
+            private: Aggregate { features },
             shared,
         }
     }
-    // /// Aggreates all the features from collect state into the global model.
-    // pub fn aggregate(&mut self) {
-    //     self.shared.features.add();
-    //     self.shared.features.avg(
-    //         &self.shared.round_params.per_round_participants,
-    //         &self.shared.round_id,
-    //     );
-    //     self.shared.global_model.0 = self.shared.features.global.clone();
-    //     self.shared
-    //         .features
-    //         .increment(&self.shared.round_params.per_round_participants);
-    //     self.shared.features.flush();
-    // }
+    /// Aggreates all the features from collect state into the global model.
+    pub fn aggregate(&mut self) {
+        self.private.features.add();
+        self.private.features.avg();
+
+        // self.shared.features.avg(
+        //     &self.shared.round_params.per_round_participants,
+        //     &self.shared.round_id,
+        // );
+        // self.shared.global_model.0 = self.shared.features.global.clone();
+        // self.shared
+        //     .features
+        //     .increment(&self.shared.round_params.per_round_participants);
+        // self.shared.features.flush();
+    }
 }
 
 #[async_trait]

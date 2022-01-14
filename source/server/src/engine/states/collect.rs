@@ -1,7 +1,7 @@
 use async_trait::async_trait;
 use std::io::Error;
 
-use tracing::info;
+// use tracing::info;
 
 use crate::{
     engine::{
@@ -33,7 +33,7 @@ where
     }
 
     async fn next(self) -> Option<Engine> {
-        Some(StateCondition::<Aggregate>::new(self.shared).into())
+        Some(StateCondition::<Aggregate>::new(self.shared, self.private.features).into())
     }
 }
 
@@ -51,6 +51,7 @@ impl StateCondition<Collect> {
     fn add(&mut self, req: Message) -> Result<(), Error> {
         let mut local_model: Model = Default::default();
         local_model.conversion(req.data, &self.shared.round_params.dtype);
+        self.private.features.increment(&1);
         // info!("model: {:?}", &local_model.0[5]);
         Ok(self.private.features.locals.push(local_model))
     }

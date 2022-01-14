@@ -17,7 +17,6 @@ use crate::{
         states::{Aggregate, Collect, Idle, Shutdown, StateCondition},
         utils::features::Features,
     },
-    message::Message,
     settings::{ModelSettings, ProcessSettings},
 };
 

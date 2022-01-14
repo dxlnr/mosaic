@@ -1,13 +1,12 @@
 use crate::engine::model::Model;
-// use crate::message::Message;
-use std::ops::Add;
+use num::rational::Ratio;
+use std::ops::{Add, Div};
 
 #[derive(Debug)]
 pub struct Features {
     // /// keeps msgs in cache that have been received by the clients.
-    // pub msgs: Vec<Message>,
     pub locals: Vec<Model>,
-    /// keeps track of the number of msgs received by the clients.
+    /// keeps track of the number of model received by the clients by a weight factor.
     pub factor: u32,
     // /// Will store the overall averaged vector of all messages.
     pub global: Model,
@@ -23,33 +22,26 @@ impl Features {
         }
     }
     /// Increment the factor which holds the number of received messages from previous.
-    pub fn increment(&mut self, count: &u32) {
-        self.factor += count;
+    pub fn increment(&mut self, weight: &u32) {
+        self.factor += weight;
     }
-
-    /// Elementwise addition of (all) single msgs to the global field.
+    /// Elementwise adding of (all) single models to one global model for particular training round.
     pub fn add(&mut self) {
-        // if self.factor != 0 {
-        //     self.global.0 = self
-        //         .global
-        //         .0
-        //         .iter()
-        //         .map(|x| x * self.factor as f64)
-        //         .collect::<Vec<_>>()
-        //         .to_vec();
-        // }
+        self.global.0 = self.locals[0].0.clone();
+
         self.locals
             .iter()
-            .map(|r| {
+            .skip(1)
+            .map(|single| {
                 self.global.0 = self
                     .global
                     .0
                     .iter()
-                    .zip(&r.0)
+                    .zip(&single.0)
                     .map(|(l1, l2)| {
-                        l1.iter()
-                            .zip(l2)
-                            .map(|(x1, x2)| x1.add(x2))
+                        l2.iter()
+                            .zip(l1)
+                            .map(|(w1, w2)| w1.add(w2))
                             .collect::<Vec<_>>()
                             .to_vec()
                     })
@@ -58,40 +50,22 @@ impl Features {
             })
             .collect::<Vec<_>>()
             .to_vec();
-        // self.locals
-        //     .iter()
-        //     .map(|single_model| {
-        //         single_model
-        //             .0
-        //             .iter()
-        //             .map(|r| {
-        //                 self.global.0 = self
-        //                     .global
-        //                     .0
-        //                     .iter()
-        //                     .zip(r)
-        //                     .map(|(s, x)| *s.add(*x))
-        //                     .collect::<Vec<_>>()
-        //                     .to_vec()
-        //             })
-        //             .collect::<Vec<_>>()
-        //             .to_vec();
-        //     })
-        //     .collect::<Vec<_>>()
-        //     .to_vec();
     }
-    // /// Averaging the summed global part of ['Features'].
-    // pub fn avg(&mut self, participants: &u32, round_id: &u32) {
-    //     self.global = self
-    //         .global
-    //         .iter()
-    //         .map(|x| x / (*participants * *round_id) as f64)
-    //         .collect::<Vec<_>>()
-    //         .to_vec();
-    // }
-    //
-    // /// Removing all messages from previous training round.
-    // pub fn flush(&mut self) {
-    //     self.msgs.clear();
-    // }
+    /// Averaging the summed global part of ['Features'].
+    pub fn avg(&mut self) {
+        let avg_factor =
+            Ratio::from_float(self.factor as f32).unwrap_or(Ratio::from_float(1.0).unwrap());
+        self.global.0 = self
+            .global
+            .0
+            .iter()
+            .map(|l| {
+                l.iter()
+                    .map(|w| w.div(&avg_factor))
+                    .collect::<Vec<_>>()
+                    .to_vec()
+            })
+            .collect::<Vec<_>>()
+            .to_vec()
+    }
 }
