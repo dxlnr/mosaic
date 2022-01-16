@@ -50,7 +50,7 @@ impl StateCondition<Collect> {
     /// Add message to feature list.
     fn add(&mut self, req: Message) -> Result<(), Error> {
         let mut local_model: Model = Default::default();
-        local_model.conversion(req.data, &self.shared.round_params.dtype);
+        local_model.deserialize(req.data, &self.shared.round_params.dtype);
         self.private.features.increment(&1);
         // info!("model: {:?}", &local_model.0[5]);
         Ok(self.private.features.locals.push(local_model))

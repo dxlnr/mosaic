@@ -62,8 +62,9 @@ impl Communication for Communicator {
             request.remote_addr().unwrap()
         );
 
-        // let fetch = self.fetcher.clone();
-        // let res = Communicator::handle_model(fetch).await.unwrap();
+        let fetch = self.fetcher.clone();
+        let res = Communicator::handle_model(fetch).await.unwrap();
+        info!("{:?}", &res);
         // let tensor = Message::into_bytes_array(&res.0);
 
         let single: u8 = 0;
@@ -89,13 +90,7 @@ impl Communication for Communicator {
             "Request received from client {}: Sending an update to engine.",
             &request.remote_addr().unwrap()
         );
-
-        // let test = request.into_inner().parameters.unwrap().tensor.clone();
-
         let req = request.into_inner().clone();
-
-        // info!("received message: {:?}", &test);
-        // println!("{:?}", &test.len());
 
         // let floatings = Message::from_bytes_array_test(&test);
         //

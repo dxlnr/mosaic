@@ -1,9 +1,11 @@
 use async_trait::async_trait;
 use std::io::Error;
+use std::sync::Arc;
 use tracing::info;
 
 use crate::{
     engine::{
+        model::ModelUpdate,
         states::{Handler, Idle, State, StateCondition, StateName},
         utils::features::Features,
         Engine, ServerState,
@@ -26,13 +28,15 @@ where
 
     async fn perform(&mut self) -> Result<(), Error> {
         self.aggregate();
-        info!(
-            "Global Model after round {:?}: {:?}",
-            &self.shared.round_id, &self.private.features.global.0[5]
-        );
+        // info!(
+        //     "Global Model after round {:?}: {:?}",
+        //     &self.shared.round_id, &self.private.features.global.0
+        // );
         //
-        // let global = self.shared.global_model.clone();
-        // self.shared.publisher.broadcast_model(global);
+        let global = self.private.features.global.clone();
+        self.shared
+            .publisher
+            .broadcast_model(ModelUpdate::New(Arc::new(global)));
         Ok(())
     }
 
