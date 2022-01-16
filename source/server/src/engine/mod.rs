@@ -13,7 +13,7 @@ use derive_more::From;
 use crate::{
     engine::{
         channel::{RequestReceiver, RequestSender},
-        model::{DataType, ModelUpdate},
+        model::{DataType, Model},
         states::{Aggregate, Collect, Idle, Shutdown, StateCondition},
         utils::features::Features,
     },
@@ -64,7 +64,7 @@ impl EngineInitializer {
     /// Initializes the engine and the communication handler.
     pub async fn init(self) -> (Engine, RequestSender, Subscriber) {
         // let global = Model::new(self.model_settings.length);
-        let global = ModelUpdate::Invalidate;
+        let global = Default::default();
         let (publisher, subscriber) = Publisher::new(global);
         let (rx, tx) = RequestSender::new();
         let shared = ServerState::new(

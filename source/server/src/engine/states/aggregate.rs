@@ -36,7 +36,7 @@ where
         let global = self.private.features.global.clone();
         self.shared
             .publisher
-            .broadcast_model(ModelUpdate::New(Arc::new(global)));
+            .broadcast_model(global);
         Ok(())
     }
 

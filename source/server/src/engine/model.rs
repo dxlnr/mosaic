@@ -23,6 +23,13 @@ impl std::convert::AsRef<Model> for Model {
     }
 }
 
+// impl std::ops::Deref for Model {
+//     type Target = Self;
+//     fn deref(&self) -> &Self::Target {
+//         &self
+//     }
+// }
+
 impl Model {
     /// Returns the number of weights/parameters of a model.
     pub fn len(&self) -> usize {
@@ -59,7 +66,7 @@ impl Model {
         }
     }
 
-    fn into_bytes_array_32(&mut self) -> Vec<Vec<u8>> {
+    fn into_bytes_array_32(&self) -> Vec<Vec<u8>> {
         let res = self
             .0
             .iter()
@@ -83,7 +90,7 @@ impl Model {
             .to_vec();
         res
     }
-    fn into_bytes_array_64(&mut self) -> Vec<Vec<u8>> {
+    fn into_bytes_array_64(&self) -> Vec<Vec<u8>> {
         let res = self
             .0
             .iter()
@@ -108,7 +115,7 @@ impl Model {
         res
     }
 
-    pub fn serialize(&mut self, dtype: &DataType) -> Vec<Vec<u8>> {
+    pub fn serialize(&self, dtype: &DataType) -> Vec<Vec<u8>> {
         match dtype {
             DataType::F32 => self.into_bytes_array_32(),
             DataType::F64 => self.into_bytes_array_64(),
@@ -144,8 +151,8 @@ pub(crate) fn ratio_to_float<F: FloatCore>(ratio: &Ratio<BigInt>) -> Option<F> {
 }
 
 #[derive(Error, Debug)]
-#[error("Could not convert weight {weight} to primitive type {target}")]
-/// Errors related to model conversion into primitives.
+#[error("Could not convert weight {weight} to floating point number {target}")]
+/// Errors related to model converting Ratio to floats.
 pub struct CastingError {
     weight: Ratio<BigInt>,
     target: DataType,

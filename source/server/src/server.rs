@@ -8,8 +8,8 @@ use tracing::{info, warn};
 use tonic::{transport::Server, Request, Response, Status};
 
 use crate::{
-    engine::model::{Model, ModelUpdate},
-    message::{DataType, Message},
+    engine::model::{Model, DataType},
+    message::{Message},
     service::{fetch::Fetcher, messages::MessageHandler},
     settings::APISettings,
 };
@@ -43,7 +43,7 @@ impl Communicator {
         Ok(())
     }
     /// Handles the request for the latest global model from the ['Engine'].
-    async fn handle_model(mut fetcher: Fetcher) -> Result<Arc<ModelUpdate>, Error> {
+    async fn handle_model(mut fetcher: Fetcher) -> Result<Arc<Model>, Error> {
         fetcher
             .fetch()
             .await
@@ -64,15 +64,16 @@ impl Communication for Communicator {
 
         let fetch = self.fetcher.clone();
         let res = Communicator::handle_model(fetch).await.unwrap();
-        info!("{:?}", &res);
-        // let tensor = Message::into_bytes_array(&res.0);
 
-        let single: u8 = 0;
-        let tensor = vec![vec![single; 8]; 4];
+        // let model = res.clone();
+        let model = Model::serialize(&res.clone(), &DataType::F32);
+
+        // let single: u8 = 0;
+        // let tensor = vec![vec![single; 8]; 4];
 
         let params = mosaic::Parameters {
-            tensor: tensor.to_vec(),
-            data_type: "f64".to_string(),
+            tensor: model.to_vec(),
+            data_type: "f32".to_string(),
         };
 
         let server_msg = mosaic::ServerModel {

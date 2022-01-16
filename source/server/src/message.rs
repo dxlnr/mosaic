@@ -1,12 +1,14 @@
 /// Module for setting the messages that are exchanged between server and engine.
 use byteorder::{BigEndian, ByteOrder};
 
-#[derive(Debug, Clone)]
-/// Data type that defines how byte stream of model is converted.
-pub enum DataType {
-    F64,
-    F32,
-}
+use crate::engine::model::DataType;
+
+// #[derive(Debug, Clone)]
+// /// Data type that defines how byte stream of model is converted.
+// pub enum DataType {
+//     F64,
+//     F32,
+// }
 
 /// main message object
 #[derive(Debug, Clone)]

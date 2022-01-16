@@ -5,7 +5,7 @@ use std::sync::Arc;
 use tower::Service;
 
 use self::model::ModelService;
-use crate::engine::{model::ModelUpdate, watch::Subscriber};
+use crate::engine::{model::Model, watch::Subscriber};
 
 /// [`ModelService`]'s request type
 #[derive(Default, Clone, Eq, PartialEq, Debug)]
@@ -22,7 +22,7 @@ impl Fetcher {
             model_service: ModelService::new(rx),
         }
     }
-    pub async fn fetch(&mut self) -> Result<Arc<ModelUpdate>, Error> {
+    pub async fn fetch(&mut self) -> Result<Arc<Model>, Error> {
         poll_fn(|cx| self.model_service.poll_ready(cx)).await?;
         self.model_service.call(ModelRequest).await
     }
