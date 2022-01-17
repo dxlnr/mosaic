@@ -1,11 +1,8 @@
 use async_trait::async_trait;
 use std::io::Error;
-use std::sync::Arc;
-use tracing::info;
 
 use crate::{
     engine::{
-        model::ModelUpdate,
         states::{Handler, Idle, State, StateCondition, StateName},
         utils::features::Features,
         Engine, ServerState,
@@ -34,9 +31,7 @@ where
         // );
         //
         let global = self.private.features.global.clone();
-        self.shared
-            .publisher
-            .broadcast_model(global);
+        self.shared.publisher.broadcast_model(global);
         Ok(())
     }
 

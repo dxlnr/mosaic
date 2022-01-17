@@ -13,7 +13,7 @@ use derive_more::From;
 use crate::{
     engine::{
         channel::{RequestReceiver, RequestSender},
-        model::{DataType, Model},
+        model::DataType,
         states::{Aggregate, Collect, Idle, Shutdown, StateCondition},
         utils::features::Features,
     },
