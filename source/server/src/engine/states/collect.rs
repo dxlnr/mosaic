@@ -1,8 +1,6 @@
 use async_trait::async_trait;
 use std::io::Error;
 
-use tracing::info;
-
 use crate::{
     engine::{
         model::Model,
@@ -52,7 +50,7 @@ impl StateCondition<Collect> {
         let mut local_model: Model = Default::default();
         local_model.deserialize(req.data, &self.shared.round_params.dtype);
         self.private.features.increment(&1);
-        info!("model: {:?}", &local_model.0[5]);
+
         Ok(self.private.features.locals.push(local_model))
     }
 }
@@ -63,13 +61,3 @@ impl Handler for StateCondition<Collect> {
         self.add(req)
     }
 }
-
-// #[macro_export]
-// macro_rules! from_bytes {
-//     ($msg:expr, $data_type:ty) => {
-//         // impl $crate::FromBytes for $data_type {
-//         //     from_bytes_array()
-//         // }
-//         $msg.from_bytes_array().collect::<Vec<Vec<$data_type>>>()
-//     };
-// }

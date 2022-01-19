@@ -25,11 +25,7 @@ where
 
     async fn perform(&mut self) -> Result<(), Error> {
         self.aggregate();
-        // info!(
-        //     "Global Model after round {:?}: {:?}",
-        //     &self.shared.round_id, &self.private.features.global.0
-        // );
-        //
+
         let global = self.private.features.global.clone();
         self.shared.publisher.broadcast_model(global);
         Ok(())
@@ -52,12 +48,7 @@ impl StateCondition<Aggregate> {
     pub fn aggregate(&mut self) {
         self.private.features.add();
         self.private.features.avg();
-
-        // self.shared.features.avg(
-        //     &self.shared.round_params.per_round_participants,
-        //     &self.shared.round_id,
-        // );
-        // self.shared.global_model.0 = self.shared.features.global.clone();
+        
         // self.shared
         //     .features
         //     .increment(&self.shared.round_params.per_round_participants);

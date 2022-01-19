@@ -23,18 +23,12 @@ impl std::convert::AsRef<Model> for Model {
     }
 }
 
-// impl std::ops::Deref for Model {
-//     type Target = Self;
-//     fn deref(&self) -> &Self::Target {
-//         &self
-//     }
-// }
-
 impl Model {
     /// Returns the number of weights/parameters of a model.
     pub fn len(&self) -> usize {
         self.0.len()
     }
+    /// Conversion from bytes to Ratio for DataType F32
     fn from_bytes_array_f32(&mut self, bytes: &Vec<Vec<u8>>) {
         self.0 = bytes
             .iter()
@@ -47,6 +41,7 @@ impl Model {
             .collect::<Vec<_>>()
             .to_vec()
     }
+    /// Conversion from bytes to Ratio for DataType F64
     fn from_bytes_array_f64(&mut self, bytes: &Vec<Vec<u8>>) {
         self.0 = bytes
             .iter()
@@ -65,7 +60,7 @@ impl Model {
             DataType::F64 => self.from_bytes_array_f64(&bytes),
         }
     }
-
+    /// Conversion from Ratio to bytes for DataType F32
     fn into_bytes_array_32(&self) -> Vec<Vec<u8>> {
         let res = self
             .0
@@ -90,6 +85,7 @@ impl Model {
             .to_vec();
         res
     }
+    /// Conversion from Ratio to bytes for DataType F64
     fn into_bytes_array_64(&self) -> Vec<Vec<u8>> {
         let res = self
             .0

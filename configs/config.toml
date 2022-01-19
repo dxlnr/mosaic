@@ -6,7 +6,7 @@ data_type = "F32"
 length = 4
 
 [process]
-rounds = 3
+rounds = 5
 participants = 3
 
 [log]
