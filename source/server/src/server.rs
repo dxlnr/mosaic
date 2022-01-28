@@ -63,12 +63,12 @@ impl Communication for Communicator {
 
         let fetch = self.fetcher.clone();
         let res = Communicator::handle_model(fetch).await.unwrap();
-        let model = Model::serialize(&res.clone(), &DataType::F32);
+        let model = Model::serialize(&res, &DataType::F32);
 
         let params = mosaic::Parameters {
             tensor: model.to_vec(),
             data_type: "F32".to_string(),
-            model_version: 0,
+            model_version: 1,
         };
 
         let server_msg = mosaic::ServerModel {

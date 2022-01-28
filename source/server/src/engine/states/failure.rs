@@ -21,11 +21,6 @@ impl State for StateCondition<Failure> {
     }
 
     async fn next(self) -> Option<Engine> {
-        // if ERROR {
-        //     Some(StateCondition::<Shutdown>::new(self.shared).into())
-        // } else {
-        //     Some(StateCondition::<Idle>::new(self.shared).into())
-        // }
         Some(StateCondition::<Shutdown>::new(self.shared).into())
     }
 }

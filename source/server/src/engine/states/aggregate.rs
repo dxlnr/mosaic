@@ -3,7 +3,7 @@ use std::io::Error;
 
 use crate::{
     engine::{
-        states::{Handler, Idle, State, StateCondition, StateName},
+        states::{Handler, Collect, Shutdown, State, StateCondition, StateName},
         utils::features::Features,
         Engine, ServerState,
     },
@@ -33,7 +33,12 @@ where
     }
 
     async fn next(self) -> Option<Engine> {
-        Some(StateCondition::<Idle>::new(self.shared).into())
+        if self.shared.round_id() > self.shared.round_params.training_rounds {
+            Some(StateCondition::<Shutdown>::new(self.shared).into())
+        } else {
+            Some(StateCondition::<Collect>::new(self.shared).into())
+        }
+        // Some(StateCondition::<Idle>::new(self.shared).into())
     }
 }
 

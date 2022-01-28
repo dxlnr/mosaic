@@ -2,7 +2,7 @@ use async_trait::async_trait;
 use std::io::Error;
 
 use crate::engine::{
-    states::{Collect, Shutdown, State, StateCondition, StateName},
+    states::{Collect, State, StateCondition, StateName},
     Engine, ServerState,
 };
 
@@ -21,18 +21,18 @@ impl State for StateCondition<Idle> {
     }
 
     async fn next(self) -> Option<Engine> {
-        if self.shared.round_id() > self.shared.round_params.training_rounds {
-            Some(StateCondition::<Shutdown>::new(self.shared).into())
-        } else {
-            Some(StateCondition::<Collect>::new(self.shared).into())
-        }
+        // if self.shared.round_id() > self.shared.round_params.training_rounds {
+        //     Some(StateCondition::<Shutdown>::new(self.shared).into())
+        // } else {
+        //     Some(StateCondition::<Collect>::new(self.shared).into())
+        // }
+        Some(StateCondition::<Collect>::new(self.shared).into())
     }
 }
 
 impl StateCondition<Idle> {
     /// Creates a new idle state.
-    pub fn new(mut shared: ServerState) -> Self {
-        shared.set_round_id(shared.round_id() + 1);
+    pub fn new(shared: ServerState) -> Self {
         Self {
             private: Idle,
             shared,

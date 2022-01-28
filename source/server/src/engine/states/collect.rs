@@ -39,7 +39,8 @@ where
 
 impl StateCondition<Collect> {
     /// Creates a new collect state.
-    pub fn new(shared: ServerState) -> Self {
+    pub fn new(mut shared: ServerState) -> Self {
+        shared.set_round_id(shared.round_id() + 1);
         Self {
             private: Collect {
                 features: Features::new(),
@@ -53,7 +54,8 @@ impl StateCondition<Collect> {
         local_model.deserialize(req.data, &self.shared.round_params.dtype);
         self.private.features.increment(&1);
 
-        Ok(self.private.features.locals.push(local_model))
+        self.private.features.locals.push(local_model);
+        Ok(())
     }
 }
 
