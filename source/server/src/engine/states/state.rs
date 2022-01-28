@@ -146,7 +146,7 @@ impl Counter {
     fn increment_accepted(&mut self) {
         self.accepted += 1;
         info!(
-            "{} messages accepted -- at least {} participants required.",
+            "[{}/{}] messages accepted.",
             self.accepted, self.kp,
         );
     }

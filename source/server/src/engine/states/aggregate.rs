@@ -1,5 +1,6 @@
 use async_trait::async_trait;
 use std::io::Error;
+use std::{thread, time::Duration};
 
 use crate::{
     engine::{
@@ -34,11 +35,11 @@ where
 
     async fn next(self) -> Option<Engine> {
         if self.shared.round_id() > self.shared.round_params.training_rounds {
+            thread::sleep(Duration::from_secs(10));
             Some(StateCondition::<Shutdown>::new(self.shared).into())
         } else {
             Some(StateCondition::<Collect>::new(self.shared).into())
         }
-        // Some(StateCondition::<Idle>::new(self.shared).into())
     }
 }
 

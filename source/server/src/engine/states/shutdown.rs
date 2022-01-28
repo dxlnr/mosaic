@@ -1,7 +1,6 @@
 use async_trait::async_trait;
 use std::io::Error;
 use tracing::debug;
-use std::{thread, time::Duration};
 
 use crate::engine::{
     states::{State, StateCondition, StateName},
@@ -23,7 +22,6 @@ impl State for StateCondition<Shutdown> {
     }
 
     async fn next(self) -> Option<Engine> {
-        thread::sleep(Duration::from_secs(10));
         None
     }
 }

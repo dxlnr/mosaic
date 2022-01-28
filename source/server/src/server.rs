@@ -87,10 +87,13 @@ impl Communication for Communicator {
             &request.remote_addr().unwrap()
         );
         let handle = self.handler.clone();
-        let _res = Communicator::handle_message(request.into_inner().clone(), handle).await;
+        let res = Communicator::handle_message(request.into_inner().clone(), handle).await;
 
         let server_msg = mosaic::ServerMessage {
-            msg: "success".to_string(),
+            status: match res {
+                Ok(()) => 0,
+                _ => 1, 
+            },
         };
         Ok(Response::new(server_msg))
     }

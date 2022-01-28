@@ -14,7 +14,7 @@ message Parameters {
 }
 
 message ServerMessage {
-  string msg = 1;
+  uint32 status = 1;
 }
 
 message ServerModel {
