@@ -10,6 +10,7 @@ service Communication {
 message Parameters {
   repeated bytes tensor = 1;
   string data_type = 2;
+  uint32 model_version = 3;
 }
 
 message ServerMessage {
@@ -26,6 +27,6 @@ message ClientMessage {
 }
 
 message ClientUpdate {
-  Parameters parameters = 1;
-  uint32 id = 2;
+  uint32 id = 1;
+  Parameters parameters = 2;
 }

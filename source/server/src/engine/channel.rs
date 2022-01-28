@@ -7,7 +7,7 @@ use std::{
 };
 use tokio::sync::{mpsc, oneshot};
 
-use crate::message::Message;
+use crate::{service::error::ServiceError, message::Message};
 
 /// A handle to send requests to the [`Engine`].
 #[derive(Clone, From, Debug)]
@@ -18,25 +18,15 @@ impl RequestSender {
         let (tx, rx) = mpsc::unbounded_channel::<(Message, ResponseSender)>();
         (RequestReceiver(rx), RequestSender(tx))
     }
-    pub async fn send(&mut self, req: Message) -> Result<(), Error> {
-        let (tx, rx) = oneshot::channel::<Result<(), Error>>();
-        self.0.send((req, tx)).map_err(|_| {
-            Error::new(
-                ErrorKind::Other,
-                "failed to send request to the engine: engine shuts down.",
-            )
-        })?;
-        rx.await.map_err(|_| {
-            Error::new(
-                ErrorKind::Other,
-                "failed to receive response from the engine.",
-            )
-        })?
+    pub async fn send(&mut self, req: Message) -> Result<(), ServiceError> {
+        let (tx, rx) = oneshot::channel::<Result<(), ServiceError>>();
+        self.0.send((req, tx)).map_err(|_| ServiceError::RequestError)?;
+        rx.await.map_err(|_| ServiceError::RequestError)?
     }
 }
 
 /// A handle to send a response upon the request receiver.
-pub type ResponseSender = oneshot::Sender<Result<(), Error>>;
+pub type ResponseSender = oneshot::Sender<Result<(), ServiceError>>;
 /// A handle to receive requests that the ['Engine'] makes use of.
 #[derive(From, Debug)]
 pub struct RequestReceiver(mpsc::UnboundedReceiver<(Message, ResponseSender)>);

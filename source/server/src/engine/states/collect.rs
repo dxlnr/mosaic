@@ -7,8 +7,10 @@ use crate::{
         states::{Aggregate, Handler, State, StateCondition, StateName},
         utils::features::Features,
         Engine, ServerState,
+        
     },
     message::Message,
+    service::error::ServiceError,
 };
 
 /// The collect state.
@@ -46,7 +48,7 @@ impl StateCondition<Collect> {
         }
     }
     /// Add message to feature list.
-    fn add(&mut self, req: Message) -> Result<(), Error> {
+    fn add(&mut self, req: Message) -> Result<(), ServiceError> {
         let mut local_model: Model = Default::default();
         local_model.deserialize(req.data, &self.shared.round_params.dtype);
         self.private.features.increment(&1);
@@ -57,7 +59,7 @@ impl StateCondition<Collect> {
 
 #[async_trait]
 impl Handler for StateCondition<Collect> {
-    async fn handle_request(&mut self, req: Message) -> Result<(), Error> {
+    async fn handle_request(&mut self, req: Message) -> Result<(), ServiceError> {
         self.add(req)
     }
 }

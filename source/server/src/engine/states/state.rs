@@ -8,6 +8,7 @@ use tracing::{debug, info, warn};
 use crate::{
     engine::{channel::ResponseSender, Engine, ServerState},
     message::Message,
+    service::error::ServiceError,
 };
 
 /// The name of the current state.
@@ -19,6 +20,8 @@ pub enum StateName {
     Collect,
     #[display(fmt = "Aggregate")]
     Aggregate,
+    #[display(fmt = "Failure")]
+    Failure,
     #[display(fmt = "Shutdown")]
     Shutdown,
 }
@@ -72,7 +75,7 @@ where
 #[async_trait]
 pub trait Handler {
     /// Handling a request.
-    async fn handle_request(&mut self, req: Message) -> Result<(), Error>;
+    async fn handle_request(&mut self, req: Message) -> Result<(), ServiceError>;
 }
 
 impl<S> StateCondition<S>

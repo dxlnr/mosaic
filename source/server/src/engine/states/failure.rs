@@ -2,13 +2,15 @@ use async_trait::async_trait;
 use std::io::Error;
 
 use crate::engine::{
-    states::{Idle, Shutdown, State, StateCondition, StateName},
+    states::{error::StateError, Shutdown, State, StateCondition, StateName},
     Engine, ServerState,
 };
 
 /// The failure state.
 #[derive(Debug)]
-pub struct Failure;
+pub struct Failure {
+    pub(in crate::engine) error: StateError,
+}
 
 #[async_trait]
 impl State for StateCondition<Failure> {
@@ -30,10 +32,9 @@ impl State for StateCondition<Failure> {
 
 impl StateCondition<Failure> {
     /// Creates a new failure state.
-    pub fn new(mut shared: ServerState) -> Self {
-        shared.set_round_id(shared.round_id() + 1);
+    pub fn new(shared: ServerState, error: StateError) -> Self {
         Self {
-            private: Failure,
+            private: Failure { error },
             shared,
         }
     }

@@ -3,11 +3,7 @@ use std::io::Error;
 use std::task::Poll;
 use tower::Service;
 
-use crate::{engine::channel::RequestSender, message::Message};
-
-pub type BoxedServiceFuture<Response, Error> = std::pin::Pin<
-    Box<dyn futures::Future<Output = Result<Response, Error>> + 'static + Send + Sync>,
->;
+use crate::{engine::channel::RequestSender, message::Message, service::{error::ServiceError, messages::BoxedServiceFuture}};
 
 #[derive(Debug, Clone)]
 pub struct EngineService {
@@ -24,7 +20,7 @@ impl EngineService {
 
 impl Service<Message> for EngineService {
     type Response = ();
-    type Error = Error;
+    type Error = ServiceError;
     type Future = BoxedServiceFuture<Self::Response, Self::Error>;
 
     fn poll_ready(&mut self, _cx: &mut Context<'_>) -> Poll<Result<(), Self::Error>> {

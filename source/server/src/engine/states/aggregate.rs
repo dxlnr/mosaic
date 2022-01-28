@@ -8,6 +8,7 @@ use crate::{
         Engine, ServerState,
     },
     message::Message,
+    service::error::ServiceError,
 };
 
 /// The Aggregate state.
@@ -58,7 +59,7 @@ impl StateCondition<Aggregate> {
 
 #[async_trait]
 impl Handler for StateCondition<Aggregate> {
-    async fn handle_request(&mut self, _req: Message) -> Result<(), Error> {
+    async fn handle_request(&mut self, _req: Message) -> Result<(), ServiceError> {
         Ok(())
     }
 }

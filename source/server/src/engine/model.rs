@@ -2,8 +2,7 @@ use byteorder::{BigEndian, ByteOrder};
 use derive_more::Display;
 use num::{bigint::BigInt, rational::Ratio, traits::float::FloatCore};
 use serde::{Deserialize, Serialize};
-use std::io::ErrorKind;
-use std::sync::Arc;
+use std::{io::ErrorKind, sync::Arc, str::FromStr};
 use thiserror::Error;
 
 /// Global model update event.
@@ -110,7 +109,6 @@ impl Model {
             .to_vec();
         res
     }
-
     pub fn serialize(&self, dtype: &DataType) -> Vec<Vec<u8>> {
         match dtype {
             DataType::F32 => self.into_bytes_array_32(),
@@ -173,6 +171,19 @@ impl TryFrom<u8> for DataType {
         }
     }
 }
+
+impl FromStr for DataType {
+    type Err = ();
+    fn from_str(input: &str) -> Result<DataType, Self::Err> {
+        match input {
+            "F32"  => Ok(DataType::F32),
+            "F64"  => Ok(DataType::F64),
+            _      => Err(()),
+        }
+    }
+}
+
+// #TODO add DataType Error
 
 // #[macro_export]
 // macro_rules! from_bytes {

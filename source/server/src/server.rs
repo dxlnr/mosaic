@@ -9,8 +9,7 @@ use tonic::{transport::Server, Request, Response, Status};
 
 use crate::{
     engine::model::{DataType, Model},
-    message::Message,
-    service::{fetch::Fetcher, messages::MessageHandler},
+    service::{fetch::Fetcher, messages::MessageHandler, error::ServiceError},
     settings::APISettings,
 };
 
@@ -36,9 +35,9 @@ impl Communicator {
         Communicator { handler, fetcher }
     }
     /// Forwards the incoming request to the ['Engine'].
-    async fn handle_message(msg: Message, mut handler: MessageHandler) -> Result<(), Error> {
-        let _ = handler.forward(msg).await.map_err(|e| {
-            warn!("failed to handle message: {:?}", e);
+    async fn handle_message(req: ClientUpdate, mut handler: MessageHandler) -> Result<(), ServiceError> {
+        let _ = handler.handle(req).await.map_err(|e| {
+            warn!("failed to handle ClientRequest: {:?}", e);
         });
         Ok(())
     }
@@ -68,7 +67,8 @@ impl Communication for Communicator {
 
         let params = mosaic::Parameters {
             tensor: model.to_vec(),
-            data_type: "f32".to_string(),
+            data_type: "F32".to_string(),
+            model_version: 0,
         };
 
         let server_msg = mosaic::ServerModel {
@@ -86,15 +86,15 @@ impl Communication for Communicator {
             "Request received from client {}: Sending an update to engine.",
             &request.remote_addr().unwrap()
         );
-        let req = request.into_inner().clone();
+        // let req = request.into_inner().clone();
 
-        let msg = Message {
-            data: req.parameters.unwrap().tensor,
-            dtype: DataType::F32,
-        };
+        // let msg = Message {
+        //     data: req.parameters.unwrap().tensor,
+        //     dtype: DataType::F32,
+        // };
 
         let handle = self.handler.clone();
-        let _res = Communicator::handle_message(msg, handle).await;
+        let _res = Communicator::handle_message(request.into_inner().clone(), handle).await;
 
         let server_msg = mosaic::ServerMessage {
             msg: "success".to_string(),

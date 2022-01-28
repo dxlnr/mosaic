@@ -7,6 +7,7 @@ mod error;
 mod idle;
 mod shutdown;
 mod state;
+mod failure;
 
 pub use self::{
     aggregate::Aggregate,
