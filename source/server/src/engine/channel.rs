@@ -1,6 +1,5 @@
 use derive_more::From;
 use futures::Stream;
-use std::io::{Error, ErrorKind};
 use std::{
     pin::Pin,
     task::{Context, Poll},

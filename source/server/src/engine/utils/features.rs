@@ -2,7 +2,7 @@ use crate::engine::model::Model;
 use num::rational::Ratio;
 use std::ops::{Add, Div};
 
-#[derive(Debug)]
+#[derive(Debug, Default)]
 pub struct Features {
     // /// keeps msgs in cache that have been received by the clients.
     pub locals: Vec<Model>,
@@ -54,7 +54,7 @@ impl Features {
     /// Averaging the summed global part of ['Features'].
     pub fn avg(&mut self) {
         let avg_factor =
-            Ratio::from_float(self.factor as f32).unwrap_or(Ratio::from_float(1.0).unwrap());
+            Ratio::from_float(self.factor as f32).unwrap_or_else(||Ratio::from_float(1.0).unwrap());
         self.global.0 = self
             .global
             .0

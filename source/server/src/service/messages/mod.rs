@@ -2,11 +2,10 @@ mod engine;
 mod parsing;
 
 use futures::future::poll_fn;
-use std::io::Error;
 use tower::Service;
 
 use self::{engine::EngineService, parsing::MessageParser};
-use crate::{engine::channel::RequestSender, message::{Message, MessageBuffer}, service::error::ServiceError};
+use crate::{engine::channel::RequestSender, message::Message, service::error::ServiceError};
 use crate::server::mosaic::ClientUpdate;
 
 pub type BoxedServiceFuture<Response, Error> = std::pin::Pin<

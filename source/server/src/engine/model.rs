@@ -23,17 +23,17 @@ impl std::convert::AsRef<Model> for Model {
 }
 
 impl Model {
-    /// Returns the number of weights/parameters of a model.
-    pub fn len(&self) -> usize {
-        self.0.len()
-    }
+    // /// Returns the number of weights/parameters of a model.
+    // pub fn len(&self) -> usize {
+    //     self.0.len()
+    // }
     /// Conversion from bytes to Ratio for DataType F32
     fn from_bytes_array_f32(&mut self, bytes: &Vec<Vec<u8>>) {
         self.0 = bytes
             .iter()
             .map(|l| {
                 l.chunks(4)
-                    .map(|x| Ratio::from_float(BigEndian::read_f32(&x)).unwrap())
+                    .map(|x| Ratio::from_float(BigEndian::read_f32(x)).unwrap())
                     .collect::<Vec<_>>()
                     .to_vec()
             })
@@ -46,7 +46,7 @@ impl Model {
             .iter()
             .map(|l| {
                 l.chunks(8)
-                    .map(|x| Ratio::from_float(BigEndian::read_f64(&x)).unwrap())
+                    .map(|x| Ratio::from_float(BigEndian::read_f64(x)).unwrap())
                     .collect::<Vec<_>>()
                     .to_vec()
             })

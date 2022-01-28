@@ -86,13 +86,6 @@ impl Communication for Communicator {
             "Request received from client {}: Sending an update to engine.",
             &request.remote_addr().unwrap()
         );
-        // let req = request.into_inner().clone();
-
-        // let msg = Message {
-        //     data: req.parameters.unwrap().tensor,
-        //     dtype: DataType::F32,
-        // };
-
         let handle = self.handler.clone();
         let _res = Communicator::handle_message(request.into_inner().clone(), handle).await;
 

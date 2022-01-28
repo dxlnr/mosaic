@@ -1,5 +1,4 @@
 use futures::task::Context;
-use std::io::Error;
 use std::task::Poll;
 use tower::Service;
 
