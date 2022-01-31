@@ -5,6 +5,8 @@ use serde::{Deserialize, Serialize};
 use std::{io::ErrorKind, sync::Arc, str::FromStr};
 use thiserror::Error;
 
+use crate::service::error::ServiceError;
+
 /// Global model update event.
 #[derive(Debug, Clone, PartialEq)]
 pub enum ModelUpdate {
@@ -173,12 +175,12 @@ impl TryFrom<u8> for DataType {
 }
 
 impl FromStr for DataType {
-    type Err = ();
+    type Err = ServiceError;
     fn from_str(input: &str) -> Result<DataType, Self::Err> {
         match input {
             "F32"  => Ok(DataType::F32),
             "F64"  => Ok(DataType::F64),
-            _      => Err(()),
+            _      => Err(ServiceError::ParsingError),
         }
     }
 }

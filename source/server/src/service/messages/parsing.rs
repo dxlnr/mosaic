@@ -13,6 +13,12 @@ impl MessageParser {
     pub fn new() -> Self {
         Self 
     }
+
+    fn parse(req: ClientUpdate) -> Result<Message, ServiceError> {
+        let params = req.parameters.ok_or(ServiceError::ParsingError)?;
+        let dtype = DataType::from_str(&params.data_type)?;
+        Ok(Message::new(req.id, params.model_version, params.tensor, dtype))
+    }
 }
 
 impl Service<ClientUpdate> for MessageParser
@@ -26,17 +32,6 @@ impl Service<ClientUpdate> for MessageParser
     }
 
     fn call(&mut self, req: ClientUpdate) -> Self::Future {
-        let resp = req.parameters.ok_or( ServiceError::ParsingError);
-
-        let dtype = match &resp {
-            Ok(resp) => Ok(DataType::from_str(&resp.data_type).unwrap()),
-            _ => Err(ServiceError::ParsingError),
-        };
-
-        let params = resp.unwrap();
-        future::ready(match dtype {
-            Ok(dtype) => Ok(Message::new(req.id, params.model_version, params.tensor, dtype)),
-            _ => Err(ServiceError::ParsingError),
-        })
+        future::ready(MessageParser::parse(req))
     }
 }
