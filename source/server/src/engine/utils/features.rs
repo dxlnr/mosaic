@@ -1,6 +1,7 @@
 use crate::engine::model::Model;
 use num::rational::Ratio;
 use std::ops::{Add, Div};
+use rayon::prelude::*;
 
 #[derive(Debug, Default)]
 pub struct Features {
@@ -36,10 +37,10 @@ impl Features {
                 self.global.0 = self
                     .global
                     .0
-                    .iter()
+                    .par_iter()
                     .zip(&single.0)
                     .map(|(l1, l2)| {
-                        l2.iter()
+                        l2.par_iter()
                             .zip(l1)
                             .map(|(w1, w2)| w1.add(w2))
                             .collect::<Vec<_>>()
@@ -58,9 +59,9 @@ impl Features {
         self.global.0 = self
             .global
             .0
-            .iter()
+            .par_iter()
             .map(|l| {
-                l.iter()
+                l.par_iter()
                     .map(|w| w.div(&avg_factor))
                     .collect::<Vec<_>>()
                     .to_vec()

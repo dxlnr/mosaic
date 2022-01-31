@@ -21,7 +21,7 @@ validator = { version = "0.14.0", features = ["derive"] }
 tokio = { version = "1.0.0",features = ["full", "tracing"] }
 tokio-util = { version = "0.6.3", features = ["full"] }
 tokio-stream = "0.1"
-console-subscriber = { git = "https://github.com/tokio-rs/console" }
+
 tonic = "0.6.2"
 tower = {version = "0.4"}
 hyper = {version = "0.14", features = ["full"]}
@@ -33,6 +33,7 @@ tracing-subscriber = { version = "0.3.2", features = ["env-filter"] }
 futures = { version = "0.3.0", features = ["thread-pool"]}
 futures-core = "0.3"
 
+rayon = "1.5.1"
 warp = "0.3.1"
 
 [build-dependencies]

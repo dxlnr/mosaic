@@ -1,5 +1,5 @@
 /// Module for setting the messages that are exchanged between server and engine.
-/// 
+///
 use crate::engine::model::DataType;
 
 // /// message buffer object
@@ -11,8 +11,8 @@ use crate::engine::model::DataType;
 #[derive(Debug, Clone)]
 pub struct Message {
     /// client key to check if message is authorized.
-    pub ckey: u32,
-    /// version of the model (training round) that was sent. 
+    pub key: u32,
+    /// version of the model (training round) that was sent.
     pub model_version: u32,
     /// actual model data.
     pub data: Vec<Vec<u8>>,
@@ -22,7 +22,8 @@ pub struct Message {
 }
 
 impl Message {
-    pub fn new(ckey: u32, model_version: u32, data: Vec<Vec<u8>>, dtype: DataType) -> Self {
-        Message { ckey, model_version, data, dtype }
+    pub fn new(key: u32, model_version: u32, data: Vec<Vec<u8>>, dtype: DataType) -> Self {
+        Message {key, model_version, data, dtype
+        }
     }
 }

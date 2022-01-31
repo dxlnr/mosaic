@@ -4,6 +4,7 @@ use num::{bigint::BigInt, rational::Ratio, traits::float::FloatCore};
 use serde::{Deserialize, Serialize};
 use std::{io::ErrorKind, sync::Arc, str::FromStr};
 use thiserror::Error;
+use rayon::prelude::*;
 
 use crate::service::error::ServiceError;
 
@@ -65,11 +66,11 @@ impl Model {
     fn into_bytes_array_32(&self) -> Vec<Vec<u8>> {
         let res = self
             .0
-            .iter()
+            .par_iter()
             .map(|l| {
-                l.iter()
+                l.par_iter()
                     .map(|x| {
-                        ratio_to_float::<f32>(&x)
+                        ratio_to_float::<f32>(x)
                             .ok_or(CastingError {
                                 weight: x.clone(),
                                 target: DataType::F32,
@@ -90,11 +91,11 @@ impl Model {
     fn into_bytes_array_64(&self) -> Vec<Vec<u8>> {
         let res = self
             .0
-            .iter()
+            .par_iter()
             .map(|l| {
-                l.iter()
+                l.par_iter()
                     .map(|x| {
-                        ratio_to_float::<f64>(&x)
+                        ratio_to_float::<f64>(x)
                             .ok_or(CastingError {
                                 weight: x.clone(),
                                 target: DataType::F64,
