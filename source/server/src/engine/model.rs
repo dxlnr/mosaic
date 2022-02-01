@@ -31,7 +31,7 @@ impl Model {
     //     self.0.len()
     // }
     /// Conversion from bytes to Ratio for DataType F32
-    fn from_bytes_array_f32(&mut self, bytes: &Vec<Vec<u8>>) {
+    fn from_bytes_array_f32(&mut self, bytes: Vec<Vec<u8>>) {
         self.0 = bytes
             .iter()
             .map(|l| {
@@ -44,7 +44,7 @@ impl Model {
             .to_vec()
     }
     /// Conversion from bytes to Ratio for DataType F64
-    fn from_bytes_array_f64(&mut self, bytes: &Vec<Vec<u8>>) {
+    fn from_bytes_array_f64(&mut self, bytes: Vec<Vec<u8>>) {
         self.0 = bytes
             .iter()
             .map(|l| {
@@ -58,8 +58,8 @@ impl Model {
     }
     pub fn deserialize(&mut self, bytes: Vec<Vec<u8>>, dtype: &DataType) {
         match dtype {
-            DataType::F32 => self.from_bytes_array_f32(&bytes),
-            DataType::F64 => self.from_bytes_array_f64(&bytes),
+            DataType::F32 => self.from_bytes_array_f32(bytes),
+            DataType::F64 => self.from_bytes_array_f64(bytes),
         }
     }
     /// Conversion from Ratio to bytes for DataType F32

@@ -6,11 +6,12 @@ use serde::{
     de::{self, Deserializer, Visitor},
     Deserialize,
 };
-
-use crate::engine::model::DataType;
+use s3::region::Region;
 use thiserror::Error;
 use tracing_subscriber::filter::EnvFilter;
 use validator::{Validate, ValidationErrors};
+
+use crate::engine::model::DataType;
 
 #[derive(Debug, Display, Error)]
 /// An error related to loading and validation of settings.
@@ -23,11 +24,11 @@ pub enum SettingsError {
 
 #[derive(Debug, Validate, Deserialize)]
 pub struct Settings {
-    //pub log: LoggingSettings,
     pub api: APISettings,
     pub model: ModelSettings,
     pub process: ProcessSettings,
     pub log: LogSettings,
+    pub s3: S3Settings,
 }
 
 impl Settings {
@@ -74,6 +75,16 @@ pub struct ProcessSettings {
     pub participants: u32,
 }
 
+
+#[derive(Debug, Deserialize, Clone)]
+pub struct S3Settings {
+    pub access_key: String,
+    pub secret_access_key: String,
+    #[serde(deserialize_with = "deserialize_s3_region")]
+    pub region: Region,
+}
+
+// https://serde.rs/impl-deserialize.html
 fn deserialize_env_filter<'de, D>(deserializer: D) -> Result<EnvFilter, D::Error>
 where
     D: Deserializer<'de>,
@@ -82,7 +93,7 @@ where
     impl<'de> Visitor<'de> for EnvFilterVisitor {
         type Value = EnvFilter;
         fn expecting(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
-            write!(formatter, "tokio tracing")
+            write!(formatter, "check for valid tracing filter: https://docs.rs/tracing-subscriber/0.2.6/tracing_subscriber/filter/struct.EnvFilter.html#directives")
         }
         fn visit_str<E>(self, value: &str) -> Result<Self::Value, E>
         where
@@ -93,4 +104,62 @@ where
         }
     }
     deserializer.deserialize_str(EnvFilterVisitor)
+}
+
+fn deserialize_s3_region<'de, D>(deserializer: D) -> Result<Region, D::Error>
+where
+    D: Deserializer<'de>,
+{
+    struct S3Visitor;
+    impl <'de> Visitor<'de> for S3Visitor {
+        type Value = Region;
+
+        fn expecting(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
+            write!(formatter, "[\"minio\", \"http://localhost:9000\"]")
+        }
+        
+        fn visit_str<E>(self, value: &str) -> Result<Self::Value, E>
+        where
+            E: de::Error,
+        {
+            let mut seq = value.split_whitespace();
+
+            let region: &str = seq
+                .next()
+                .ok_or_else(|| de::Error::custom("No region specified."))?;
+            let endpoint: Option<&str> = seq.next();
+
+            match (region, endpoint) {
+                (region, Some(endpoint)) => Ok(Region::Custom {
+                    region: region.to_string(),
+                    endpoint: endpoint.to_string(),
+                }),
+                (region, None) => region.parse().map_err(de::Error::custom),
+            }
+        }
+
+        fn visit_seq<A>(self, mut seq: A) -> Result<Self::Value, A::Error>
+        where
+            A: de::SeqAccess<'de>,
+        {   
+            let mut values: Vec<String> = Vec::new();
+
+            loop {
+                match seq.next_element() {
+                    Ok(Some(x)) => values.push(x),
+                    Ok(None) => break,
+                    Err(e) => {
+                        if !e.to_string().starts_with("missing field") {
+                            return Err(e);
+                        }
+                    }
+                }
+            }
+            Ok(Region::Custom {
+                region: values[0].to_string(),
+                endpoint: values[1].to_string(),
+            })
+        }
+    }
+    deserializer.deserialize_any(S3Visitor)
 }

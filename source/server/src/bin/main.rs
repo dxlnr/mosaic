@@ -16,6 +16,7 @@ use tracing_subscriber::*;
 
 #[derive(Debug, StructOpt)]
 struct Config {
+    #[structopt(short, parse(from_os_str))]
     config_path: PathBuf,
 }
 
@@ -24,7 +25,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let cfg = Config::from_args();
 
     let settings = Settings::new(cfg.config_path).unwrap_or_else(|error| {
-        eprintln!("{}", error);
+        eprintln!("Hallo {}", error);
         process::exit(1);
     });
 
@@ -33,6 +34,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         model: model_settings,
         process: process_settings,
         log: logging,
+        s3: s3_settings
     } = settings;
     init_logging(logging);
 
