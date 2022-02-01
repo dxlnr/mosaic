@@ -6,7 +6,7 @@ use std::{
 };
 use tokio::sync::{mpsc, oneshot};
 
-use crate::{service::error::ServiceError, message::Message};
+use crate::{message::Message, service::error::ServiceError};
 
 /// A handle to send requests to the [`Engine`].
 #[derive(Clone, From, Debug)]
@@ -19,7 +19,9 @@ impl RequestSender {
     }
     pub async fn send(&mut self, req: Message) -> Result<(), ServiceError> {
         let (tx, rx) = oneshot::channel::<Result<(), ServiceError>>();
-        self.0.send((req, tx)).map_err(|_| ServiceError::RequestError)?;
+        self.0
+            .send((req, tx))
+            .map_err(|_| ServiceError::RequestError)?;
         rx.await.map_err(|_| ServiceError::RequestError)?
     }
 }

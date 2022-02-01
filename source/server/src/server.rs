@@ -9,7 +9,7 @@ use tonic::{transport::Server, Request, Response, Status};
 
 use crate::{
     engine::model::{DataType, Model},
-    service::{fetch::Fetcher, messages::MessageHandler, error::ServiceError},
+    service::{error::ServiceError, fetch::Fetcher, messages::MessageHandler},
     settings::APISettings,
 };
 
@@ -35,7 +35,10 @@ impl Communicator {
         Communicator { handler, fetcher }
     }
     /// Forwards the incoming request to the ['Engine'].
-    async fn handle_message(req: ClientUpdate, mut handler: MessageHandler) -> Result<(), ServiceError> {
+    async fn handle_message(
+        req: ClientUpdate,
+        mut handler: MessageHandler,
+    ) -> Result<(), ServiceError> {
         let _ = handler.handle(req).await.map_err(|e| {
             warn!("failed to handle ClientRequest: {:?}", e);
         });
@@ -92,7 +95,7 @@ impl Communication for Communicator {
         let server_msg = mosaic::ServerMessage {
             status: match res {
                 Ok(()) => 0,
-                _ => 1, 
+                _ => 1,
             },
         };
         Ok(Response::new(server_msg))

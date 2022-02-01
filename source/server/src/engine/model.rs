@@ -1,10 +1,10 @@
 use byteorder::{BigEndian, ByteOrder};
 use derive_more::Display;
 use num::{bigint::BigInt, rational::Ratio, traits::float::FloatCore};
-use serde::{Deserialize, Serialize};
-use std::{io::ErrorKind, sync::Arc, str::FromStr};
-use thiserror::Error;
 use rayon::prelude::*;
+use serde::{Deserialize, Serialize};
+use std::{io::ErrorKind, str::FromStr, sync::Arc};
+use thiserror::Error;
 
 use crate::service::error::ServiceError;
 
@@ -179,9 +179,9 @@ impl FromStr for DataType {
     type Err = ServiceError;
     fn from_str(input: &str) -> Result<DataType, Self::Err> {
         match input {
-            "F32"  => Ok(DataType::F32),
-            "F64"  => Ok(DataType::F64),
-            _      => Err(ServiceError::ParsingError),
+            "F32" => Ok(DataType::F32),
+            "F64" => Ok(DataType::F64),
+            _ => Err(ServiceError::ParsingError),
         }
     }
 }

@@ -2,11 +2,11 @@ use std::{fmt, path::Path};
 
 use config::{Config, ConfigError};
 use displaydoc::Display;
+use s3::region::Region;
 use serde::{
     de::{self, Deserializer, Visitor},
     Deserialize,
 };
-use s3::region::Region;
 use thiserror::Error;
 use tracing_subscriber::filter::EnvFilter;
 use validator::{Validate, ValidationErrors};
@@ -83,9 +83,9 @@ pub struct S3Settings {
     pub secret_access_key: String,
     /// The Regional AWS endpoint.
     /// The region is specified using the [Region code](https://docs.aws.amazon.com/general/latest/gr/rande.html#regional-endpoints)
-    /// 
+    ///
     /// For MinIO this has to be specified in a custom manner.
-    /// 
+    ///
     /// # Examples
     ///
     /// **TOML**
@@ -126,13 +126,16 @@ where
     D: Deserializer<'de>,
 {
     struct S3Visitor;
-    impl <'de> Visitor<'de> for S3Visitor {
+    impl<'de> Visitor<'de> for S3Visitor {
         type Value = Region;
 
         fn expecting(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
-            write!(formatter, "[<region>, <endpoint>] -> [\"minio\", \"http://localhost:9000\"]")
+            write!(
+                formatter,
+                "[<region>, <endpoint>] -> [\"minio\", \"http://localhost:9000\"]"
+            )
         }
-        
+
         fn visit_str<E>(self, value: &str) -> Result<Self::Value, E>
         where
             E: de::Error,
@@ -156,14 +159,18 @@ where
         fn visit_seq<A>(self, mut seq: A) -> Result<Self::Value, A::Error>
         where
             A: de::SeqAccess<'de>,
-        {   
-            let region: String = seq
-                .next_element()?
-                .ok_or_else(|| de::Error::custom("No region in [s3].region specified. region = [<region>, <endpoint>]"))?;
+        {
+            let region: String = seq.next_element()?.ok_or_else(|| {
+                de::Error::custom(
+                    "No region in [s3].region specified. region = [<region>, <endpoint>]",
+                )
+            })?;
 
-            let endpoint: String = seq
-                .next_element()?
-                .ok_or_else(|| de::Error::custom("No endpoint in [s3].region specified. region = [<region>, <endpoint>]"))?;
+            let endpoint: String = seq.next_element()?.ok_or_else(|| {
+                de::Error::custom(
+                    "No endpoint in [s3].region specified. region = [<region>, <endpoint>]",
+                )
+            })?;
 
             Ok(Region::Custom { region, endpoint })
         }

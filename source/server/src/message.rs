@@ -23,7 +23,11 @@ pub struct Message {
 
 impl Message {
     pub fn new(key: u32, model_version: u32, data: Vec<Vec<u8>>, dtype: DataType) -> Self {
-        Message {key, model_version, data, dtype
+        Message {
+            key,
+            model_version,
+            data,
+            dtype,
         }
     }
 }

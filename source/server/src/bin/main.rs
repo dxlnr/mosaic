@@ -34,13 +34,14 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         model: model_settings,
         process: process_settings,
         log: logging,
-        s3: s3_settings
+        s3: s3_settings,
     } = settings;
     init_logging(logging);
 
-    let (engine, tx, subscriber) = EngineInitializer::new(model_settings, process_settings, s3_settings)
-        .init()
-        .await;
+    let (engine, tx, subscriber) =
+        EngineInitializer::new(model_settings, process_settings, s3_settings)
+            .init()
+            .await;
     let message_handler = MessageHandler::new(tx);
     let fetcher = Fetcher::new(subscriber);
 

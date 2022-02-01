@@ -1,7 +1,7 @@
 //! S3 connection for storing.
 
-use std::sync::Arc;
 use displaydoc::Display;
+use std::sync::Arc;
 use thiserror::Error;
 
 use s3::{bucket::Bucket, creds::Credentials};
@@ -22,21 +22,23 @@ pub struct Client {
 }
 
 impl Client {
-    /// Creates a new S3 client. The client creates and maintains buckets for storing all 
+    /// Creates a new S3 client. The client creates and maintains buckets for storing all
     /// the data created during the process.
     ///
-    pub async fn new(s3_settings: S3Settings) -> ClientResult<Self>  {
-        let credentials = Credentials::new(Some(&s3_settings.access_key), 
-            Some(&s3_settings.secret_access_key), 
-         None, 
-        None, 
-            None
+    pub async fn new(s3_settings: S3Settings) -> ClientResult<Self> {
+        let credentials = Credentials::new(
+            Some(&s3_settings.access_key),
+            Some(&s3_settings.secret_access_key),
+            None,
+            None,
+            None,
         )
         .map_err(|_| StorageError::CreateBucket(s3_settings.bucket.to_string()))?;
 
-        let bucket = Bucket::new(&s3_settings.bucket.to_string(), 
-            s3_settings.region, 
-            credentials
+        let bucket = Bucket::new(
+            &s3_settings.bucket.to_string(),
+            s3_settings.region,
+            credentials,
         )
         .map_err(|_| StorageError::CreateBucket(s3_settings.bucket.to_string()))?;
 

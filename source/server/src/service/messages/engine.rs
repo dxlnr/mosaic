@@ -2,7 +2,11 @@ use futures::task::Context;
 use std::task::Poll;
 use tower::Service;
 
-use crate::{engine::channel::RequestSender, message::Message, service::{error::ServiceError, messages::BoxedServiceFuture}};
+use crate::{
+    engine::channel::RequestSender,
+    message::Message,
+    service::{error::ServiceError, messages::BoxedServiceFuture},
+};
 
 #[derive(Debug, Clone)]
 pub struct EngineService {
@@ -28,7 +32,11 @@ impl Service<Message> for EngineService {
 
     fn call(&mut self, req: Message) -> Self::Future {
         let mut handle = self.handle.clone();
-        Box::pin(async move { handle.send(req).await.map_err(|_| { ServiceError::RequestError })})
+        Box::pin(async move {
+            handle
+                .send(req)
+                .await
+                .map_err(|_| ServiceError::RequestError)
+        })
     }
 }
-
