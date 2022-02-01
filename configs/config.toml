@@ -16,4 +16,5 @@ filter = "mosaic=debug,info"
 access_key = "minio"
 secret_access_key = "minio123"
 region = ["minio", "http://localhost:9000"]
+bucket = "globals"
 

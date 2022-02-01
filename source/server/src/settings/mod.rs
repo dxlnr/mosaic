@@ -75,13 +75,28 @@ pub struct ProcessSettings {
     pub participants: u32,
 }
 
-
 #[derive(Debug, Deserialize, Clone)]
 pub struct S3Settings {
+    /// Defines the user (access) key.
     pub access_key: String,
+    /// Defines the user secret key (password)
     pub secret_access_key: String,
+    /// The Regional AWS endpoint.
+    /// The region is specified using the [Region code](https://docs.aws.amazon.com/general/latest/gr/rande.html#regional-endpoints)
+    /// 
+    /// For MinIO this has to be specified in a custom manner.
+    /// 
+    /// # Examples
+    ///
+    /// **TOML**
+    /// ```text
+    /// [s3]
+    /// region = ["minio", "http://localhost:9001"]
+    /// ```
     #[serde(deserialize_with = "deserialize_s3_region")]
     pub region: Region,
+    /// Bucket name that should be targeted.
+    pub bucket: String,
 }
 
 // https://serde.rs/impl-deserialize.html

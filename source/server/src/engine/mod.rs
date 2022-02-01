@@ -17,7 +17,7 @@ use crate::{
         states::{Aggregate, Collect, Idle, Shutdown, StateCondition},
         utils::features::Features,
     },
-    settings::{ModelSettings, ProcessSettings},
+    settings::{ModelSettings, ProcessSettings, S3Settings},
 };
 
 #[derive(From)]
@@ -51,14 +51,16 @@ impl Engine {
 pub struct EngineInitializer {
     model_settings: ModelSettings,
     process_settings: ProcessSettings,
+    s3_settings: S3Settings,
 }
 
 impl EngineInitializer {
     /// Creates a new [`EngineInitializer`] which sets up the engine running the aggregation algorithm.
-    pub fn new(model_settings: ModelSettings, process_settings: ProcessSettings) -> Self {
+    pub fn new(model_settings: ModelSettings, process_settings: ProcessSettings, s3_settings: S3Settings) -> Self {
         EngineInitializer {
             model_settings,
             process_settings,
+            s3_settings,
         }
     }
     /// Initializes the engine and the communication handler.
@@ -100,6 +102,8 @@ pub struct ServerState {
     // pub global_model: ModelUpdate,
     /// Caches all the incoming messages and their respective data.
     pub features: Features,
+    // /// Shared storage state.
+    // pub storage: Storage
 }
 
 impl ServerState {

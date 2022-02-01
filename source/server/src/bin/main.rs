@@ -38,7 +38,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     } = settings;
     init_logging(logging);
 
-    let (engine, tx, subscriber) = EngineInitializer::new(model_settings, process_settings)
+    let (engine, tx, subscriber) = EngineInitializer::new(model_settings, process_settings, s3_settings)
         .init()
         .await;
     let message_handler = MessageHandler::new(tx);
