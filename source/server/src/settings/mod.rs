@@ -16,7 +16,7 @@ use crate::engine::model::DataType;
 #[derive(Debug, Display, Error)]
 /// An error related to loading and validation of settings.
 pub enum SettingsError {
-    /// Configuration loading failed: {0}.
+    /// Loading configuration file failed: {0}.
     Loading(#[from] ConfigError),
     /// Validation failed: {0}.
     Validation(#[from] ValidationErrors),
@@ -115,7 +115,7 @@ where
         type Value = Region;
 
         fn expecting(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
-            write!(formatter, "[\"minio\", \"http://localhost:9000\"]")
+            write!(formatter, "[<region>, <endpoint>] -> [\"minio\", \"http://localhost:9000\"]")
         }
         
         fn visit_str<E>(self, value: &str) -> Result<Self::Value, E>
@@ -142,23 +142,15 @@ where
         where
             A: de::SeqAccess<'de>,
         {   
-            let mut values: Vec<String> = Vec::new();
+            let region: String = seq
+                .next_element()?
+                .ok_or_else(|| de::Error::custom("No region in [s3].region specified. region = [<region>, <endpoint>]"))?;
 
-            loop {
-                match seq.next_element() {
-                    Ok(Some(x)) => values.push(x),
-                    Ok(None) => break,
-                    Err(e) => {
-                        if !e.to_string().starts_with("missing field") {
-                            return Err(e);
-                        }
-                    }
-                }
-            }
-            Ok(Region::Custom {
-                region: values[0].to_string(),
-                endpoint: values[1].to_string(),
-            })
+            let endpoint: String = seq
+                .next_element()?
+                .ok_or_else(|| de::Error::custom("No endpoint in [s3].region specified. region = [<region>, <endpoint>]"))?;
+
+            Ok(Region::Custom { region, endpoint })
         }
     }
     deserializer.deserialize_any(S3Visitor)

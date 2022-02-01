@@ -25,7 +25,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let cfg = Config::from_args();
 
     let settings = Settings::new(cfg.config_path).unwrap_or_else(|error| {
-        eprintln!("Hallo {}", error);
+        eprintln!("{}", error);
         process::exit(1);
     });
 
