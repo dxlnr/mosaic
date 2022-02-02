@@ -41,7 +41,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let (engine, tx, subscriber) =
         EngineInitializer::new(model_settings, process_settings, s3_settings)
             .init()
-            .await;
+            .await?;
     let message_handler = MessageHandler::new(tx);
     let fetcher = Fetcher::new(subscriber);
 

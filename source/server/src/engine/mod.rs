@@ -9,8 +9,14 @@ pub mod watch;
 
 use self::watch::{Publisher, Subscriber};
 use derive_more::From;
+use displaydoc::Display;
+use thiserror::Error;
 
 use crate::{
+    db::{
+        s3::{Client, StorageError},
+        storage::Storage,
+    },
     engine::{
         channel::{RequestReceiver, RequestSender},
         model::DataType,
@@ -18,7 +24,6 @@ use crate::{
         utils::features::Features,
     },
     settings::{ModelSettings, ProcessSettings, S3Settings},
-    db::storage::Storage,
 };
 
 #[derive(From)]
@@ -48,6 +53,13 @@ impl Engine {
     }
 }
 
+/// Errors occuring during the initialization process and the [`Engine`].
+#[derive(Debug, Display, Error)]
+pub enum InitError {
+    /// Initialization of storage connection faild: {0}
+    StorageInit(StorageError),
+}
+
 /// Handles the ['Engine'] initialization.
 pub struct EngineInitializer {
     model_settings: ModelSettings,
@@ -57,7 +69,11 @@ pub struct EngineInitializer {
 
 impl EngineInitializer {
     /// Creates a new [`EngineInitializer`] which sets up the engine running the aggregation algorithm.
-    pub fn new(model_settings: ModelSettings, process_settings: ProcessSettings, s3_settings: S3Settings) -> Self {
+    pub fn new(
+        model_settings: ModelSettings,
+        process_settings: ProcessSettings,
+        s3_settings: S3Settings,
+    ) -> Self {
         EngineInitializer {
             model_settings,
             process_settings,
@@ -65,11 +81,15 @@ impl EngineInitializer {
         }
     }
     /// Initializes the engine and the communication handler.
-    pub async fn init(self) -> (Engine, RequestSender, Subscriber) {
+    pub async fn init(self) -> Result<(Engine, RequestSender, Subscriber), InitError> {
         // let global = Model::new(self.model_settings.length);
         let global = Default::default();
         let (publisher, subscriber) = Publisher::new(global);
         let (rx, tx) = RequestSender::new();
+        let store = Storage::init_storage(self.s3_settings)
+            .await
+            .map_err(InitError::StorageInit)?;
+
         let shared = ServerState::new(
             0,
             RoundParams::new(
@@ -80,13 +100,13 @@ impl EngineInitializer {
             rx,
             publisher,
             Features::new(),
+            store,
         );
-        Storage::init_storage(self.s3_settings).await;
-        (
+        Ok((
             Engine::Idle(StateCondition::<Idle>::new(shared)),
             tx,
             subscriber,
-        )
+        ))
     }
 }
 
@@ -104,8 +124,8 @@ pub struct ServerState {
     // pub global_model: ModelUpdate,
     /// Caches all the incoming messages and their respective data.
     pub features: Features,
-    // /// Shared storage state.
-    // pub storage: Storage
+    /// Shared storage state. For now it is a s3 Client which holds the storage bucket.
+    pub store: Client,
 }
 
 impl ServerState {
@@ -116,6 +136,7 @@ impl ServerState {
         rx: RequestReceiver,
         publisher: Publisher,
         features: Features,
+        store: Client,
     ) -> Self {
         ServerState {
             round_id,
@@ -123,6 +144,7 @@ impl ServerState {
             rx,
             publisher,
             features,
+            store,
         }
     }
     /// Sets the round ID to the given value.

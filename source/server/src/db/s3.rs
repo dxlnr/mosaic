@@ -1,10 +1,10 @@
 //! S3 connection for storing.
-
+//
 use displaydoc::Display;
 use std::sync::Arc;
 use thiserror::Error;
 
-use s3::{bucket::Bucket, BucketConfiguration, creds::Credentials};
+use s3::{bucket::Bucket, creds::Credentials, BucketConfiguration};
 
 use crate::settings::S3Settings;
 
@@ -22,7 +22,7 @@ pub struct Client {
 }
 
 impl Client {
-    /// Creates a new S3 client. The client creates and maintains buckets for storing all
+    /// Creates a new S3 client. The client instantiates, creates and maintains buckets for storing all
     /// the data created during the process.
     ///
     pub async fn new(s3_settings: S3Settings) -> ClientResult<Self> {
@@ -59,9 +59,23 @@ impl Client {
 
     // Creates a new bucket with the given bucket name.
     pub async fn create_bucket(self) -> ClientResult<()> {
-        let (_, code) = self.bucket.head_object("/").await.map_err(|_| StorageError::CreateBucket(self.bucket.name()))?;
+        let (_, _code) = self
+            .bucket
+            .head_object("/")
+            .await
+            .map_err(|_| StorageError::CreateBucket(self.bucket.name()))?;
 
-        Bucket::create_with_path_style(&self.bucket.name(), self.bucket.region(), self.bucket.credentials().clone(),BucketConfiguration::default()).await.map_err(|_| StorageError::CreateBucket(self.bucket.name()))?;
+        Bucket::create_with_path_style(
+            &self.bucket.name(),
+            self.bucket.region(),
+            self.bucket.credentials().clone(),
+            BucketConfiguration::default(),
+        )
+        .await
+        .map_err(|_| StorageError::CreateBucket(self.bucket.name()))?;
         Ok(())
     }
 }
+
+#[derive(Clone)]
+pub struct Noop;
