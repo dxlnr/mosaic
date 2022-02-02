@@ -13,8 +13,8 @@ participants = 3
 filter = "mosaic=debug,info"
 
 [s3]
-access_key = "minio"
-secret_access_key = "minio123"
+access_key = "AKIAIOSFODNN7EXAMPLE"
+secret_access_key = "wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY"
 region = ["minio", "http://localhost:9000"]
 bucket = "globals"
 

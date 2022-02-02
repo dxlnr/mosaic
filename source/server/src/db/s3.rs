@@ -4,7 +4,7 @@ use displaydoc::Display;
 use std::sync::Arc;
 use thiserror::Error;
 
-use s3::{bucket::Bucket, creds::Credentials};
+use s3::{bucket::Bucket, BucketConfiguration, creds::Credentials};
 
 use crate::settings::S3Settings;
 
@@ -35,7 +35,7 @@ impl Client {
         )
         .map_err(|_| StorageError::CreateBucket(s3_settings.bucket.to_string()))?;
 
-        let bucket = Bucket::new(
+        let bucket = Bucket::new_with_path_style(
             &s3_settings.bucket.to_string(),
             s3_settings.region,
             credentials,
@@ -48,7 +48,7 @@ impl Client {
     }
 
     // Downloads the content of a requested object.
-    async fn download_object_body() {
+    async fn download_object() {
         todo!()
     }
 
@@ -58,7 +58,10 @@ impl Client {
     }
 
     // Creates a new bucket with the given bucket name.
-    async fn create_bucket() {
-        todo!()
+    pub async fn create_bucket(self) -> ClientResult<()> {
+        let (_, code) = self.bucket.head_object("/").await.map_err(|_| StorageError::CreateBucket(self.bucket.name()))?;
+
+        Bucket::create_with_path_style(&self.bucket.name(), self.bucket.region(), self.bucket.credentials().clone(),BucketConfiguration::default()).await.map_err(|_| StorageError::CreateBucket(self.bucket.name()))?;
+        Ok(())
     }
 }

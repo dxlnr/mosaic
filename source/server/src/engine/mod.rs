@@ -18,6 +18,7 @@ use crate::{
         utils::features::Features,
     },
     settings::{ModelSettings, ProcessSettings, S3Settings},
+    db::storage::Storage,
 };
 
 #[derive(From)]
@@ -80,6 +81,7 @@ impl EngineInitializer {
             publisher,
             Features::new(),
         );
+        Storage::init_storage(self.s3_settings).await;
         (
             Engine::Idle(StateCondition::<Idle>::new(shared)),
             tx,
