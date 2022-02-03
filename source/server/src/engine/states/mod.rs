@@ -4,10 +4,10 @@
 mod aggregate;
 mod collect;
 mod error;
+mod failure;
 mod idle;
 mod shutdown;
 mod state;
-mod failure;
 
 pub use self::{
     aggregate::Aggregate,

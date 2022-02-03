@@ -15,7 +15,6 @@ use thiserror::Error;
 use crate::{
     db::{
         s3::{Client, StorageError},
-        storage::Storage,
     },
     engine::{
         channel::{RequestReceiver, RequestSender},

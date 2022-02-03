@@ -6,7 +6,6 @@ use crate::{
         states::{error::StateError, Aggregate, Handler, State, StateCondition, StateName},
         utils::features::Features,
         Engine, ServerState,
-        
     },
     message::Message,
     service::error::ServiceError,

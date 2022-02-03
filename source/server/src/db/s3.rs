@@ -8,7 +8,11 @@ use tracing::info;
 
 use s3::{bucket::Bucket, creds::Credentials, BucketConfiguration};
 
-use crate::{db::traits::{ModelStorage, StorageResult}, engine::model::Model, settings::S3Settings};
+use crate::{
+    db::traits::{ModelStorage, StorageResult},
+    engine::model::Model,
+    settings::S3Settings,
+};
 
 use crate::engine::model::DataType;
 
@@ -55,18 +59,26 @@ impl Client {
 
     // Downloads the content of a requested object.
     async fn download_object(&self, key: &str) -> ClientResult<Vec<u8>> {
-        let (data, _) = self.bucket.get_object(key).await.map_err(StorageError::DownloadData)?;
+        let (data, _) = self
+            .bucket
+            .get_object(key)
+            .await
+            .map_err(StorageError::DownloadData)?;
         Ok(data)
     }
 
     // Uploads an object with the given key to the given bucket.
-    async fn upload_object() {
-        todo!()
-    }
+    // async fn upload_object() {
+    //     todo!()
+    // }
 
     // Creates a new bucket with the given bucket name.
     pub async fn create_bucket(self) -> ClientResult<()> {
-        info!("Instantiating S3 Bucket ['{}'] on {}", &self.bucket.name(), &self.bucket.region());
+        info!(
+            "Instantiating S3 Bucket ['{}'] on {}",
+            &self.bucket.name(),
+            &self.bucket.region()
+        );
         let (_, _code) = self
             .bucket
             .head_object("/")

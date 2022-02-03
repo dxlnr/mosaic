@@ -16,10 +16,8 @@ impl State for StateCondition<Idle> {
     const NAME: StateName = StateName::Idle;
 
     async fn perform(&mut self) -> Result<(), StateError> {
-        let global = self.shared.store.get_global_model("global_model").await.map_err(|e| StateError::IdleError(e))?;
-        // info!("global: {:?}", &global.as_ref().unwrap());
-        // let global = self.shared.global_model.clone();
-        // let _ = self.shared.publisher.broadcast_model(global.unwrap());
+        let global = self.shared.store.get_global_model("global_model").await.map_err(StateError::IdleError)?;
+        let _ = self.shared.publisher.broadcast_model(global.unwrap());
         Ok(())
     }
 

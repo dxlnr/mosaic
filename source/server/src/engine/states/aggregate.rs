@@ -3,7 +3,7 @@ use std::{thread, time::Duration};
 
 use crate::{
     engine::{
-        states::{error::StateError, Handler, Collect, Shutdown, State, StateCondition, StateName},
+        states::{error::StateError, Collect, Handler, Shutdown, State, StateCondition, StateName},
         utils::features::Features,
         Engine, ServerState,
     },
@@ -54,7 +54,7 @@ impl StateCondition<Aggregate> {
     pub fn aggregate(&mut self) {
         self.private.features.add();
         self.private.features.avg();
-        
+
         // self.shared
         //     .features
         //     .increment(&self.shared.round_params.per_round_participants);

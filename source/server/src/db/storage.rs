@@ -1,6 +1,9 @@
 use async_trait::async_trait;
 
-use crate::{db::{traits::{ModelStorage, StorageResult}}, engine::model::Model};
+use crate::{
+    db::traits::{ModelStorage, StorageResult},
+    engine::model::Model,
+};
 
 // pub struct Storage {
 //     pub s3: Client,
