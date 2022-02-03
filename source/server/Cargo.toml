@@ -4,6 +4,7 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
+anyhow = "1.0.53"
 byteorder = { version = "1", default-features = false }
 async-trait = "0.1.51"
 derive_more = { version = "0.99.16", default-features = false, features = [

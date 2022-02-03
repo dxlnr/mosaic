@@ -1,5 +1,4 @@
 use async_trait::async_trait;
-use std::io::Error;
 
 use crate::engine::{
     states::{error::StateError, Shutdown, State, StateCondition, StateName},
@@ -16,7 +15,7 @@ pub struct Failure {
 impl State for StateCondition<Failure> {
     const NAME: StateName = StateName::Failure;
 
-    async fn perform(&mut self) -> Result<(), Error> {
+    async fn perform(&mut self) -> Result<(), StateError> {
         Ok(())
     }
 

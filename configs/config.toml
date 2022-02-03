@@ -13,8 +13,8 @@ participants = 3
 filter = "mosaic=debug,info"
 
 [s3]
-access_key = "AKIAIOSFODNN7EXAMPLE"
-secret_access_key = "wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY"
+access_key = "modalic"
+secret_access_key = "12345678"
 region = ["minio", "http://localhost:9000"]
 bucket = "globals"
 

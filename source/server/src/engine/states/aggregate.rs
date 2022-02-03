@@ -1,10 +1,9 @@
 use async_trait::async_trait;
-use std::io::Error;
 use std::{thread, time::Duration};
 
 use crate::{
     engine::{
-        states::{Handler, Collect, Shutdown, State, StateCondition, StateName},
+        states::{error::StateError, Handler, Collect, Shutdown, State, StateCondition, StateName},
         utils::features::Features,
         Engine, ServerState,
     },
@@ -25,7 +24,7 @@ where
 {
     const NAME: StateName = StateName::Aggregate;
 
-    async fn perform(&mut self) -> Result<(), Error> {
+    async fn perform(&mut self) -> Result<(), StateError> {
         self.aggregate();
 
         let global = self.private.features.global.clone();

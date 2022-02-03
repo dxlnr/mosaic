@@ -1,10 +1,11 @@
 use async_trait::async_trait;
-use std::io::Error;
-
 use crate::engine::{
-    states::{Collect, State, StateCondition, StateName},
+    states::{error::StateError, Collect, State, StateCondition, StateName},
     Engine, ServerState,
 };
+
+use crate::db::traits::ModelStorage;
+// use tracing::info;
 
 /// The idle state.
 #[derive(Debug)]
@@ -14,9 +15,11 @@ pub struct Idle;
 impl State for StateCondition<Idle> {
     const NAME: StateName = StateName::Idle;
 
-    async fn perform(&mut self) -> Result<(), Error> {
+    async fn perform(&mut self) -> Result<(), StateError> {
+        let global = self.shared.store.get_global_model("global_model").await.map_err(|e| StateError::IdleError(e))?;
+        // info!("global: {:?}", &global.as_ref().unwrap());
         // let global = self.shared.global_model.clone();
-        // let _ = self.shared.publisher.broadcast_model(global);
+        // let _ = self.shared.publisher.broadcast_model(global.unwrap());
         Ok(())
     }
 

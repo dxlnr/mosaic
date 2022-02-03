@@ -15,14 +15,14 @@ pub struct Message {
     /// version of the model (training round) that was sent.
     pub model_version: u32,
     /// actual model data.
-    pub data: Vec<Vec<u8>>,
+    pub data: Vec<u8>,
     /// data type of the model (F64 || F32)
     pub dtype: DataType,
     // pub params: Params,
 }
 
 impl Message {
-    pub fn new(key: u32, model_version: u32, data: Vec<Vec<u8>>, dtype: DataType) -> Self {
+    pub fn new(key: u32, model_version: u32, data: Vec<u8>, dtype: DataType) -> Self {
         Message {
             key,
             model_version,

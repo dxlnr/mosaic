@@ -6,7 +6,7 @@ use tokio::signal;
 use tracing::{debug, info, warn};
 
 use crate::{
-    engine::{channel::ResponseSender, Engine, ServerState},
+    engine::{channel::ResponseSender, states::error::StateError, Engine, ServerState},
     message::Message,
     service::error::ServiceError,
 };
@@ -33,7 +33,7 @@ pub trait State {
     const NAME: StateName;
 
     /// Performs the tasks of this state.
-    async fn perform(&mut self) -> Result<(), Error>;
+    async fn perform(&mut self) -> Result<(), StateError>;
 
     /// Moves from the current to the next state.
     async fn next(self) -> Option<Engine>;
@@ -61,13 +61,13 @@ where
         .await
     }
     /// Receives the next [`Request`] from gRPC server.
-    pub async fn next_request(&mut self) -> Result<(Message, ResponseSender), Error> {
+    pub async fn next_request(&mut self) -> Result<(Message, ResponseSender), StateError> {
         info!("Waiting for the next request");
         self.shared
             .rx
             .next()
             .await
-            .ok_or_else(|| Error::new(ErrorKind::Other, "Error when receiving next request."))
+            .ok_or(StateError::RequestChannel("error when receiving next request."))
     }
 }
 
@@ -83,7 +83,7 @@ where
     Self: State + Handler,
 {
     /// Processes requests.
-    pub async fn process(&mut self) -> Result<(), Error> {
+    pub async fn process(&mut self) -> Result<(), StateError> {
         let mut counter = Counter::new(self.shared.round_params.per_round_participants);
         loop {
             tokio::select! {

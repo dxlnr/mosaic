@@ -1,10 +1,9 @@
 use async_trait::async_trait;
-use std::io::Error;
 
 use crate::{
     engine::{
         model::Model,
-        states::{Aggregate, Handler, State, StateCondition, StateName},
+        states::{error::StateError, Aggregate, Handler, State, StateCondition, StateName},
         utils::features::Features,
         Engine, ServerState,
         
@@ -27,7 +26,7 @@ where
 {
     const NAME: StateName = StateName::Collect;
 
-    async fn perform(&mut self) -> Result<(), Error> {
+    async fn perform(&mut self) -> Result<(), StateError> {
         self.process().await?;
         Ok(())
     }

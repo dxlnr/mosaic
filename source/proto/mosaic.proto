@@ -8,7 +8,7 @@ service Communication {
 }
 
 message Parameters {
-  repeated bytes tensor = 1;
+  bytes tensor = 1;
   string data_type = 2;
   uint32 model_version = 3;
 }

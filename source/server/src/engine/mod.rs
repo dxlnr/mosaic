@@ -56,7 +56,7 @@ impl Engine {
 /// Errors occuring during the initialization process and the [`Engine`].
 #[derive(Debug, Display, Error)]
 pub enum InitError {
-    /// Initialization of storage connection faild: {0}
+    /// Initialization of storage connection failed: {0}
     StorageInit(StorageError),
 }
 
@@ -86,7 +86,7 @@ impl EngineInitializer {
         let global = Default::default();
         let (publisher, subscriber) = Publisher::new(global);
         let (rx, tx) = RequestSender::new();
-        let store = Storage::init_storage(self.s3_settings)
+        let store = self.init_storage(self.s3_settings.clone())
             .await
             .map_err(InitError::StorageInit)?;
 
@@ -107,6 +107,11 @@ impl EngineInitializer {
             tx,
             subscriber,
         ))
+    }
+    pub async fn init_storage(&self, s3_settings: S3Settings) -> Result<Client, StorageError> {
+        let s3 = Client::new(s3_settings).await?;
+        s3.clone().create_bucket().await?;
+        Ok(s3)
     }
 }
 

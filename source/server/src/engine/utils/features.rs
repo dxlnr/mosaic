@@ -26,6 +26,32 @@ impl Features {
     pub fn increment(&mut self, weight: &u32) {
         self.factor += weight;
     }
+    // /// Elementwise adding of (all) single models to one global model for particular training round.
+    // pub fn add(&mut self) {
+    //     self.global.0 = self.locals[0].0.clone();
+
+    //     self.locals
+    //         .iter()
+    //         .skip(1)
+    //         .map(|single| {
+    //             self.global.0 = self
+    //                 .global
+    //                 .0
+    //                 .par_iter()
+    //                 .zip(&single.0)
+    //                 .map(|(l1, l2)| {
+    //                     l2.par_iter()
+    //                         .zip(l1)
+    //                         .map(|(w1, w2)| w1.add(w2))
+    //                         .collect::<Vec<_>>()
+    //                         .to_vec()
+    //                 })
+    //                 .collect::<Vec<_>>()
+    //                 .to_vec()
+    //         })
+    //         .collect::<Vec<_>>()
+    //         .to_vec();
+    // }
     /// Elementwise adding of (all) single models to one global model for particular training round.
     pub fn add(&mut self) {
         self.global.0 = self.locals[0].0.clone();
@@ -39,19 +65,30 @@ impl Features {
                     .0
                     .par_iter()
                     .zip(&single.0)
-                    .map(|(l1, l2)| {
-                        l2.par_iter()
-                            .zip(l1)
                             .map(|(w1, w2)| w1.add(w2))
                             .collect::<Vec<_>>()
                             .to_vec()
                     })
                     .collect::<Vec<_>>()
-                    .to_vec()
-            })
-            .collect::<Vec<_>>()
-            .to_vec();
+                    .to_vec();
     }
+    // /// Averaging the summed global part of ['Features'].
+    // pub fn avg(&mut self) {
+    //     let avg_factor = Ratio::from_float(self.factor as f32)
+    //         .unwrap_or_else(|| Ratio::from_float(1.0).unwrap());
+    //     self.global.0 = self
+    //         .global
+    //         .0
+    //         .par_iter()
+    //         .map(|l| {
+    //             l.par_iter()
+    //                 .map(|w| w.div(&avg_factor))
+    //                 .collect::<Vec<_>>()
+    //                 .to_vec()
+    //         })
+    //         .collect::<Vec<_>>()
+    //         .to_vec()
+    // }
     /// Averaging the summed global part of ['Features'].
     pub fn avg(&mut self) {
         let avg_factor = Ratio::from_float(self.factor as f32)
@@ -60,13 +97,8 @@ impl Features {
             .global
             .0
             .par_iter()
-            .map(|l| {
-                l.par_iter()
                     .map(|w| w.div(&avg_factor))
                     .collect::<Vec<_>>()
-                    .to_vec()
-            })
-            .collect::<Vec<_>>()
-            .to_vec()
+                    .to_vec();
     }
 }

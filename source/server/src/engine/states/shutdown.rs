@@ -1,9 +1,8 @@
 use async_trait::async_trait;
-use std::io::Error;
 use tracing::debug;
 
 use crate::engine::{
-    states::{State, StateCondition, StateName},
+    states::{error::StateError, State, StateCondition, StateName},
     Engine, ServerState,
 };
 
@@ -15,7 +14,7 @@ pub struct Shutdown;
 impl State for StateCondition<Shutdown> {
     const NAME: StateName = StateName::Shutdown;
 
-    async fn perform(&mut self) -> Result<(), Error> {
+    async fn perform(&mut self) -> Result<(), StateError> {
         debug!("Closing request channel.");
         self.shared.rx.close();
         Ok(())
