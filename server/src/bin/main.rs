@@ -1,6 +1,8 @@
-//! mosaic server.
+//! Mosaic Server.
 //!
 //! This binary serves as entry point for the server implementation and executes it.
+//! Every single instance is designed for performing an individual training process and terminates when finished.
+
 use std::{path::PathBuf, process};
 
 use server::{

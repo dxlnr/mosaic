@@ -1,4 +1,4 @@
-source/target
-source/server/target
-source/Cargo.lock
-source/server/src/console-subscriber
+target
+server/target
+Cargo.lock
+server/src/console-subscriber
