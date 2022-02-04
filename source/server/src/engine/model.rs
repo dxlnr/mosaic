@@ -31,7 +31,7 @@ impl Model {
         self.0.len()
     }
     pub fn is_empty(&self) -> bool {
-        todo!()
+        self.0.is_empty()
     }
     /// Conversion from bytes to Ratio for DataType F32
     fn from_bytes_array_f32(&mut self, bytes: Vec<u8>) {

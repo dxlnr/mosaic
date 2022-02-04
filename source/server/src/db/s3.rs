@@ -101,9 +101,10 @@ impl Client {
 impl ModelStorage for Client {
     async fn get_global_model(&mut self, key: &str) -> StorageResult<Option<Model>> {
         let data = self.download_object(key).await?;
-        println!("{:?}", &data.len());
+
         let mut model: Model = Default::default();
         model.deserialize(data, &DataType::F32);
+        
         Ok(Some(model))
     }
 }
