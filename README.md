@@ -4,6 +4,7 @@
 
 Mosaic Server which is the backbone of modalic MLOps platform designed for the automotive industry enabling Federated Learning. 
 All the aggregation converges at Mosaic which aims for safety, reliance and performance.
+It currently implements the basic FedAvg algorithm proposed in McMahan **et al.** [Communication-Efficient Learning of Deep Networks from Decentralized Data](https://arxiv.org/abs/1602.05629).
 
 ## Installation
 ```sh
@@ -14,7 +15,7 @@ $ curl --proto '=https' --tlsv1.2 https://sh.rustup.rs -sSf | sh
 ## Running the Server
 ```shell
 # First time running takes a while to download and compile
-cd source/ && cargo run -p server -- -c configs/config.toml
+cargo run -p server -- -c configs/config.toml
 ```
 
 ## Running MinIO

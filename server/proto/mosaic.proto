@@ -19,7 +19,6 @@ message ServerMessage {
 
 message ServerModel {
   Parameters parameters = 1;
-  uint32 id = 2;
 }
 
 message ClientMessage {

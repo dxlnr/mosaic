@@ -1,8 +1,9 @@
 use async_trait::async_trait;
 use std::{thread, time::Duration};
+use tracing::info;
 
 use crate::{
-    core::aggregator::features::Features,
+    core::{aggregator::features::Features, model::ModelWrapper},
     engine::{
         states::{error::StateError, Collect, Handler, Shutdown, State, StateCondition, StateName},
         Engine, ServerState,
@@ -28,7 +29,14 @@ where
         self.aggregate();
 
         let global = self.private.features.global.clone();
-        self.shared.publisher.broadcast_model(global);
+        let model_wrapper =
+            ModelWrapper::new(global, self.shared.round_params.dtype, self.shared.round_id);
+        self.shared.publisher.broadcast_model(model_wrapper);
+
+        info!(
+            "updated global model in round {} was published.",
+            &self.shared.round_id
+        );
         Ok(())
     }
 

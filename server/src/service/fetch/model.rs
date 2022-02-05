@@ -3,11 +3,10 @@ use futures::{
     task::Context,
 };
 use std::io::Error;
-use std::sync::Arc;
 use std::task::Poll;
 use tower::Service;
 
-use crate::{core::model::Model, engine::watch::Subscriber, service::fetch::ModelRequest};
+use crate::{core::model::ModelUpdate, engine::watch::Subscriber, service::fetch::ModelRequest};
 
 #[derive(Debug, Clone)]
 pub struct ModelService {
@@ -23,7 +22,7 @@ impl ModelService {
 }
 
 impl Service<ModelRequest> for ModelService {
-    type Response = Arc<Model>;
+    type Response = ModelUpdate;
     type Error = Error;
     type Future = Ready<Result<Self::Response, Self::Error>>;
 

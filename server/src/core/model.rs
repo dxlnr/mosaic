@@ -6,13 +6,39 @@ use serde::{Deserialize, Serialize};
 use std::{io::ErrorKind, str::FromStr, sync::Arc};
 use thiserror::Error;
 
-use crate::service::error::ServiceError;
+use crate::{proxy::server::mosaic::Parameters, service::error::ServiceError};
 
 /// Global model update event.
+pub type ModelUpdate = Option<ModelWrapper>;
+
+/// Model wrapper for passing metadata alongside the actual model data.
 #[derive(Debug, Clone, PartialEq)]
-pub enum ModelUpdate {
-    Invalidate,
-    New(Arc<Model>),
+pub struct ModelWrapper {
+    /// actual ['Model'] content.
+    pub model: Arc<Model>,
+    /// associated DataType
+    pub dtype: DataType,
+    /// model version which returns the round_id in which the model was aggregated.
+    pub model_version: u32,
+}
+
+impl ModelWrapper {
+    pub fn new(model: Model, dtype: DataType, model_version: u32) -> Option<Self> {
+        Some(Self {
+            model: Arc::new(model),
+            dtype,
+            model_version,
+        })
+    }
+    pub fn wrapper_to_params(self) -> Parameters {
+        let model = Model::serialize(&self.model.clone(), &DataType::F32);
+
+        Parameters {
+            tensor: model,
+            data_type: self.dtype.to_string(),
+            model_version: self.model_version,
+        }
+    }
 }
 
 #[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]

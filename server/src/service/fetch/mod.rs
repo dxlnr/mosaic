@@ -1,11 +1,10 @@
 mod model;
 use futures::future::poll_fn;
 use std::io::Error;
-use std::sync::Arc;
 use tower::Service;
 
 use self::model::ModelService;
-use crate::{core::model::Model, engine::watch::Subscriber};
+use crate::{core::model::ModelUpdate, engine::watch::Subscriber};
 
 /// [`ModelService`]'s request type
 #[derive(Default, Clone, Eq, PartialEq, Debug)]
@@ -22,7 +21,7 @@ impl Fetcher {
             model_service: ModelService::new(rx),
         }
     }
-    pub async fn fetch(&mut self) -> Result<Arc<Model>, Error> {
+    pub async fn fetch(&mut self) -> Result<ModelUpdate, Error> {
         poll_fn(|cx| self.model_service.poll_ready(cx)).await?;
         self.model_service.call(ModelRequest).await
     }

@@ -66,7 +66,9 @@ where
             .rx
             .next()
             .await
-            .ok_or(StateError::RequestChannel("error when receiving next request."))
+            .ok_or(StateError::RequestChannel(
+                "error when receiving next request.",
+            ))
     }
 }
 
@@ -144,10 +146,7 @@ impl Counter {
     /// Increments the counter for accepted messages.
     fn increment_accepted(&mut self) {
         self.accepted += 1;
-        info!(
-            "[{}/{}] messages accepted.",
-            self.accepted, self.kp,
-        );
+        info!("[{}/{}] messages accepted.", self.accepted, self.kp,);
     }
     /// Increments the counter for rejected messages.
     fn increment_rejected(&mut self) {

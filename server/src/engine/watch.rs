@@ -1,9 +1,8 @@
 //! Module for handling and processing certain changes and updates that are produced by the engine
 //! to the clients.
-use std::sync::Arc;
 use tokio::sync::watch;
 
-use crate::core::model::Model;
+use crate::core::model::ModelUpdate;
 
 #[derive(Debug)]
 pub struct Publisher {
@@ -11,8 +10,8 @@ pub struct Publisher {
 }
 
 impl Publisher {
-    pub fn new(model: Model) -> (Publisher, Subscriber) {
-        let (model_tx, model_rx) = watch::channel::<Arc<Model>>(Arc::new(model));
+    pub fn new(model: ModelUpdate) -> (Publisher, Subscriber) {
+        let (model_tx, model_rx) = watch::channel::<ModelUpdate>(model);
         let publisher = Publisher {
             tx: Broadcast(model_tx),
         };
@@ -23,8 +22,8 @@ impl Publisher {
     }
 
     /// broadcasting the updated global model.
-    pub fn broadcast_model(&mut self, model: Model) {
-        let _ = self.tx.0.send(Arc::new(model));
+    pub fn broadcast_model(&mut self, model: ModelUpdate) {
+        let _ = self.tx.0.send(model);
     }
 }
 
@@ -35,20 +34,20 @@ pub struct Subscriber {
 
 /// A watch channel to send events to clients.
 #[derive(Debug)]
-pub struct Broadcast(watch::Sender<Arc<Model>>);
+pub struct Broadcast(watch::Sender<ModelUpdate>);
 
 /// A watch channel that functions as a listener.
 #[derive(Debug, Clone)]
-pub struct Listener(watch::Receiver<Arc<Model>>);
+pub struct Listener(watch::Receiver<ModelUpdate>);
 
-impl From<watch::Receiver<Arc<Model>>> for Listener {
-    fn from(receiver: watch::Receiver<Arc<Model>>) -> Self {
+impl From<watch::Receiver<ModelUpdate>> for Listener {
+    fn from(receiver: watch::Receiver<ModelUpdate>) -> Self {
         Listener(receiver)
     }
 }
 
 impl Listener {
-    pub fn recv(&self) -> Arc<Model> {
+    pub fn recv(&self) -> ModelUpdate {
         self.0.borrow().clone()
     }
 }

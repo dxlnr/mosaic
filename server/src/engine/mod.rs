@@ -11,7 +11,10 @@ use displaydoc::Display;
 use thiserror::Error;
 
 use crate::{
-    core::{aggregator::features::Features, model::DataType},
+    core::{
+        aggregator::features::Features,
+        model::{DataType, ModelUpdate},
+    },
     db::s3::{Client, StorageError},
     engine::{
         channel::{RequestReceiver, RequestSender},
@@ -76,9 +79,7 @@ impl EngineInitializer {
     }
     /// Initializes the engine and the communication handler.
     pub async fn init(self) -> Result<(Engine, RequestSender, Subscriber), InitError> {
-        // let global = Model::new(self.model_settings.length);
-        let global = Default::default();
-        let (publisher, subscriber) = Publisher::new(global);
+        let (publisher, subscriber) = Publisher::new(ModelUpdate::None);
         let (rx, tx) = RequestSender::new();
         let store = self
             .init_storage(self.s3_settings.clone())

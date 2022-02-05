@@ -1,8 +1,11 @@
-use async_trait::async_trait;
-use crate::engine::{
-    states::{error::StateError, Collect, State, StateCondition, StateName},
-    Engine, ServerState,
+use crate::{
+    core::model::ModelWrapper,
+    engine::{
+        states::{error::StateError, Collect, State, StateCondition, StateName},
+        Engine, ServerState,
+    },
 };
+use async_trait::async_trait;
 
 use crate::db::traits::ModelStorage;
 // use tracing::info;
@@ -16,8 +19,19 @@ impl State for StateCondition<Idle> {
     const NAME: StateName = StateName::Idle;
 
     async fn perform(&mut self) -> Result<(), StateError> {
-        let global = self.shared.store.get_global_model("global_model").await.map_err(StateError::IdleError)?;
-        let _ = self.shared.publisher.broadcast_model(global.unwrap());
+        let global = self
+            .shared
+            .store
+            .get_global_model("global_model")
+            .await
+            .map_err(StateError::IdleError)?;
+
+        let model_wrapper = ModelWrapper::new(
+            global.unwrap(),
+            self.shared.round_params.dtype,
+            self.shared.round_id,
+        );
+        self.shared.publisher.broadcast_model(model_wrapper);
         Ok(())
     }
 
