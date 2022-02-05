@@ -35,17 +35,19 @@ impl Model {
     }
     /// Conversion from bytes to Ratio for DataType F32
     fn from_bytes_array_f32(&mut self, bytes: Vec<u8>) {
-        self.0 = bytes.par_chunks(4)
-                    .map(|x| Ratio::from_float(BigEndian::read_f32(x)).unwrap())
-                    .collect::<Vec<_>>()
-                    .to_vec()
+        self.0 = bytes
+            .par_chunks(4)
+            .map(|x| Ratio::from_float(BigEndian::read_f32(x)).unwrap())
+            .collect::<Vec<_>>()
+            .to_vec()
     }
     /// Conversion from bytes to Ratio for DataType F64
     fn from_bytes_array_f64(&mut self, bytes: Vec<u8>) {
-        self.0 = bytes.par_chunks(8)
-                    .map(|x| Ratio::from_float(BigEndian::read_f64(x)).unwrap())
-                    .collect::<Vec<_>>()
-                    .to_vec()
+        self.0 = bytes
+            .par_chunks(8)
+            .map(|x| Ratio::from_float(BigEndian::read_f64(x)).unwrap())
+            .collect::<Vec<_>>()
+            .to_vec()
     }
     pub fn deserialize(&mut self, bytes: Vec<u8>, dtype: &DataType) {
         match dtype {
@@ -54,23 +56,23 @@ impl Model {
         }
     }
     /// Conversion from Ratio to bytes for DataType F32
-    fn into_bytes_array_32(&self) -> Vec<u8>{
+    fn into_bytes_array_32(&self) -> Vec<u8> {
         let res = self
             .0
             .par_iter()
             .map(|x| {
-                        ratio_to_float::<f32>(x)
-                            .ok_or(CastingError {
-                                weight: x.clone(),
-                                target: DataType::F32,
-                            })
-                            .unwrap()
-                            .to_be_bytes()
-                            .to_vec()
+                ratio_to_float::<f32>(x)
+                    .ok_or(CastingError {
+                        weight: x.clone(),
+                        target: DataType::F32,
                     })
-                    .flatten()
-                    .collect::<Vec<_>>()
-                    .to_vec();
+                    .unwrap()
+                    .to_be_bytes()
+                    .to_vec()
+            })
+            .flatten()
+            .collect::<Vec<_>>()
+            .to_vec();
         res
     }
     /// Conversion from Ratio to bytes for DataType F64
@@ -79,18 +81,18 @@ impl Model {
             .0
             .par_iter()
             .map(|x| {
-                        ratio_to_float::<f64>(x)
-                            .ok_or(CastingError {
-                                weight: x.clone(),
-                                target: DataType::F64,
-                            })
-                            .unwrap()
-                            .to_be_bytes()
-                            .to_vec()
+                ratio_to_float::<f64>(x)
+                    .ok_or(CastingError {
+                        weight: x.clone(),
+                        target: DataType::F64,
                     })
-                    .flatten()
-                    .collect::<Vec<_>>()
-                    .to_vec();
+                    .unwrap()
+                    .to_be_bytes()
+                    .to_vec()
+            })
+            .flatten()
+            .collect::<Vec<_>>()
+            .to_vec();
         res
     }
     pub fn serialize(&self, dtype: &DataType) -> Vec<u8> {

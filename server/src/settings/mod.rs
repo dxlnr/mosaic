@@ -11,7 +11,7 @@ use thiserror::Error;
 use tracing_subscriber::filter::EnvFilter;
 use validator::{Validate, ValidationErrors};
 
-use crate::engine::model::DataType;
+use crate::core::model::DataType;
 
 #[derive(Debug, Display, Error)]
 /// An error related to loading and validation of settings.

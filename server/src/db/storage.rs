@@ -1,8 +1,8 @@
 use async_trait::async_trait;
 
 use crate::{
+    core::model::Model,
     db::traits::{ModelStorage, StorageResult},
-    engine::model::Model,
 };
 
 // pub struct Storage {

@@ -9,12 +9,10 @@ use tracing::info;
 use s3::{bucket::Bucket, creds::Credentials, BucketConfiguration};
 
 use crate::{
+    core::model::{DataType, Model},
     db::traits::{ModelStorage, StorageResult},
-    engine::model::Model,
     settings::S3Settings,
 };
-
-use crate::engine::model::DataType;
 
 #[derive(Debug, Display, Error)]
 pub enum StorageError {
@@ -104,7 +102,7 @@ impl ModelStorage for Client {
 
         let mut model: Model = Default::default();
         model.deserialize(data, &DataType::F32);
-        
+
         Ok(Some(model))
     }
 }

@@ -8,7 +8,7 @@ use tracing::{info, warn};
 use tonic::{transport::Server, Request, Response, Status};
 
 use crate::{
-    engine::model::{DataType, Model},
+    core::model::{DataType, Model},
     service::{error::ServiceError, fetch::Fetcher, messages::MessageHandler},
     settings::APISettings,
 };

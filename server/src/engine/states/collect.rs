@@ -1,10 +1,9 @@
 use async_trait::async_trait;
 
 use crate::{
+    core::{aggregator::features::Features, model::Model},
     engine::{
-        model::Model,
         states::{error::StateError, Aggregate, Handler, State, StateCondition, StateName},
-        utils::features::Features,
         Engine, ServerState,
     },
     message::Message,

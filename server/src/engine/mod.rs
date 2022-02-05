@@ -2,9 +2,7 @@
 /// Aggregation of the global model, keeping track of the training state, publishing protocol events
 /// and handling protocol errors.
 pub mod channel;
-pub mod model;
 pub mod states;
-pub mod utils;
 pub mod watch;
 
 use self::watch::{Publisher, Subscriber};
@@ -13,14 +11,11 @@ use displaydoc::Display;
 use thiserror::Error;
 
 use crate::{
-    db::{
-        s3::{Client, StorageError},
-    },
+    core::{aggregator::features::Features, model::DataType},
+    db::s3::{Client, StorageError},
     engine::{
         channel::{RequestReceiver, RequestSender},
-        model::DataType,
         states::{Aggregate, Collect, Idle, Shutdown, StateCondition},
-        utils::features::Features,
     },
     settings::{ModelSettings, ProcessSettings, S3Settings},
 };
@@ -85,7 +80,8 @@ impl EngineInitializer {
         let global = Default::default();
         let (publisher, subscriber) = Publisher::new(global);
         let (rx, tx) = RequestSender::new();
-        let store = self.init_storage(self.s3_settings.clone())
+        let store = self
+            .init_storage(self.s3_settings.clone())
             .await
             .map_err(InitError::StorageInit)?;
 

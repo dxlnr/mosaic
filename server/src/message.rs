@@ -1,6 +1,6 @@
 /// Module for setting the messages that are exchanged between server and engine.
 ///
-use crate::engine::model::DataType;
+use crate::core::model::DataType;
 
 // /// message buffer object
 // pub struct MessageBuffer<T> {

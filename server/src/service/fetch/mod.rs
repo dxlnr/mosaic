@@ -5,7 +5,7 @@ use std::sync::Arc;
 use tower::Service;
 
 use self::model::ModelService;
-use crate::engine::{model::Model, watch::Subscriber};
+use crate::{core::model::Model, engine::watch::Subscriber};
 
 /// [`ModelService`]'s request type
 #[derive(Default, Clone, Eq, PartialEq, Debug)]

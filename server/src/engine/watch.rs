@@ -3,7 +3,7 @@
 use std::sync::Arc;
 use tokio::sync::watch;
 
-use crate::engine::model::Model;
+use crate::core::model::Model;
 
 #[derive(Debug)]
 pub struct Publisher {

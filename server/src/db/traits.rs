@@ -2,7 +2,7 @@
 //!
 use async_trait::async_trait;
 
-use crate::{db::s3::StorageError, engine::model::Model};
+use crate::{core::model::Model, db::s3::StorageError};
 
 /// The result of the storage operation.
 pub type StorageResult<T> = Result<T, StorageError>;

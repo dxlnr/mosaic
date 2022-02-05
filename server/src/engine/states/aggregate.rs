@@ -2,9 +2,9 @@ use async_trait::async_trait;
 use std::{thread, time::Duration};
 
 use crate::{
+    core::aggregator::features::Features,
     engine::{
         states::{error::StateError, Collect, Handler, Shutdown, State, StateCondition, StateName},
-        utils::features::Features,
         Engine, ServerState,
     },
     message::Message,

@@ -7,10 +7,7 @@ use std::sync::Arc;
 use std::task::Poll;
 use tower::Service;
 
-use crate::{
-    engine::{model::Model, watch::Subscriber},
-    service::fetch::ModelRequest,
-};
+use crate::{core::model::Model, engine::watch::Subscriber, service::fetch::ModelRequest};
 
 #[derive(Debug, Clone)]
 pub struct ModelService {
