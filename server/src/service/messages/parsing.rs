@@ -1,9 +1,9 @@
 use futures::{future, task::Context};
-use std::task::Poll;
+use std::{str::FromStr, task::Poll};
 use tower::Service;
 
 use crate::{
-    core::model::DataType, message::Message, server::mosaic::ClientUpdate,
+    core::model::DataType, proxy::message::Message, proxy::server::mosaic::ClientUpdate,
     service::error::ServiceError,
 };
 

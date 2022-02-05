@@ -4,7 +4,7 @@ use tower::Service;
 
 use crate::{
     engine::channel::RequestSender,
-    message::Message,
+    proxy::message::Message,
     service::{error::ServiceError, messages::BoxedServiceFuture},
 };
 

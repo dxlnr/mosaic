@@ -5,8 +5,10 @@ use futures::future::poll_fn;
 use tower::Service;
 
 use self::{engine::EngineService, parsing::MessageParser};
-use crate::server::mosaic::ClientUpdate;
-use crate::{engine::channel::RequestSender, message::Message, service::error::ServiceError};
+use crate::{
+    engine::channel::RequestSender, proxy::message::Message, proxy::server::mosaic::ClientUpdate,
+    service::error::ServiceError,
+};
 
 pub type BoxedServiceFuture<Response, Error> = std::pin::Pin<
     Box<dyn futures::Future<Output = Result<Response, Error>> + 'static + Send + Sync>,

@@ -6,7 +6,7 @@ use tracing::{debug, info, warn};
 
 use crate::{
     engine::{channel::ResponseSender, states::error::StateError, Engine, ServerState},
-    message::Message,
+    proxy::message::Message,
     service::error::ServiceError,
 };
 

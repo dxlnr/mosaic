@@ -6,7 +6,7 @@ use std::{
 };
 use tokio::sync::{mpsc, oneshot};
 
-use crate::{message::Message, service::error::ServiceError};
+use crate::{proxy::message::Message, service::error::ServiceError};
 
 /// A handle to send requests to the [`Engine`].
 #[derive(Clone, From, Debug)]

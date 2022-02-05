@@ -7,7 +7,7 @@ use crate::{
         states::{error::StateError, Collect, Handler, Shutdown, State, StateCondition, StateName},
         Engine, ServerState,
     },
-    message::Message,
+    proxy::message::Message,
     service::error::ServiceError,
 };
 

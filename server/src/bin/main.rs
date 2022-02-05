@@ -7,7 +7,7 @@ use std::{path::PathBuf, process};
 
 use server::{
     engine::EngineInitializer,
-    server::start,
+    proxy::server::start,
     service::{fetch::Fetcher, messages::MessageHandler},
     settings::{LogSettings, Settings},
 };

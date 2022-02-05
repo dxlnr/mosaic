@@ -2,7 +2,6 @@
 pub mod core;
 pub mod db;
 pub mod engine;
-pub mod message;
-pub mod server;
+pub mod proxy;
 pub mod service;
 pub mod settings;
