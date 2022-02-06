@@ -2,11 +2,10 @@ use futures::{
     future::{self, Ready},
     task::Context,
 };
-use std::io::Error;
 use std::task::Poll;
 use tower::Service;
 
-use crate::{core::model::ModelUpdate, engine::watch::Subscriber, service::fetch::ModelRequest};
+use crate::{core::model::ModelUpdate, engine::watch::Subscriber, service::{error::ServiceError, fetch::ModelRequest}};
 
 #[derive(Debug, Clone)]
 pub struct ModelService {
@@ -23,7 +22,7 @@ impl ModelService {
 
 impl Service<ModelRequest> for ModelService {
     type Response = ModelUpdate;
-    type Error = Error;
+    type Error = ServiceError;
     type Future = Ready<Result<Self::Response, Self::Error>>;
 
     fn poll_ready(&mut self, _cx: &mut Context<'_>) -> Poll<Result<(), Self::Error>> {

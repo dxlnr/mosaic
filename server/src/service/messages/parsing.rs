@@ -18,7 +18,7 @@ impl MessageParser {
     }
 
     fn parse(req: ClientUpdate) -> Result<Message, ServiceError> {
-        let params = req.parameters.ok_or(ServiceError::ParsingError)?;
+        let params = req.parameters.ok_or(ServiceError::ParamsError)?;
         let dtype = DataType::from_str(&params.data_type)?;
         Ok(Message::new(
             req.id,

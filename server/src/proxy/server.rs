@@ -49,11 +49,7 @@ impl Communicator {
         //     .fetch()
         //     .await
         //     .map_err(|_| Error::new(ErrorKind::Other, "failed to fetch model."))
-        let update = fetcher
-            .fetch()
-            .await
-            .map_err(|e| warn!("failed to fetch the lastest global model ({:?})", e));
-        Ok(update.unwrap())
+        Ok(fetcher.fetch().await?)
     }
 }
 
@@ -73,7 +69,7 @@ impl Communication for Communicator {
             .map_err(|e| Status::new(Code::Internal, e.to_string()))?;
 
         let server_msg = mosaic::ServerModel {
-            parameters: Some(res.unwrap().wrapper_to_params()),
+            parameters: res.map(|r| r.wrapper_to_params()),
         };
         Ok(Response::new(server_msg))
     }

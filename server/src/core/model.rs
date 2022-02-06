@@ -31,7 +31,7 @@ impl ModelWrapper {
         })
     }
     pub fn wrapper_to_params(self) -> Parameters {
-        let model = Model::serialize(&self.model.clone(), &DataType::F32);
+        let model = Model::serialize(&self.model, &DataType::F32);
 
         Parameters {
             tensor: model,
@@ -190,7 +190,7 @@ impl FromStr for DataType {
         match input {
             "F32" => Ok(DataType::F32),
             "F64" => Ok(DataType::F64),
-            _ => Err(ServiceError::ParsingError),
+            _ => Err(ServiceError::ParsingError(format!("failed to parse from unknown data type {}", input))),
         }
     }
 }
