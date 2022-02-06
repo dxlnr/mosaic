@@ -1,10 +1,10 @@
 //! Sets up a gRPC server.
 use std::convert::Infallible;
-use std::io::{Error, ErrorKind};
+// use std::io::{Error, ErrorKind};
 use thiserror::Error;
 use tracing::{info, warn};
 
-use tonic::{transport::Server, Request, Response, Status};
+use tonic::{transport::Server, Code, Request, Response, Status};
 
 use crate::{
     core::model::ModelUpdate,
@@ -44,11 +44,16 @@ impl Communicator {
         Ok(())
     }
     /// Handles the request for the latest global model from the ['Engine'].
-    async fn handle_model(mut fetcher: Fetcher) -> Result<ModelUpdate, Error> {
-        fetcher
+    async fn handle_model(mut fetcher: Fetcher) -> Result<ModelUpdate, ServiceError> {
+        // fetcher
+        //     .fetch()
+        //     .await
+        //     .map_err(|_| Error::new(ErrorKind::Other, "failed to fetch model."))
+        let update = fetcher
             .fetch()
             .await
-            .map_err(|_| Error::new(ErrorKind::Other, "failed to fetch model."))
+            .map_err(|e| warn!("failed to fetch the lastest global model ({:?})", e));
+        Ok(update.unwrap())
     }
 }
 
@@ -63,7 +68,9 @@ impl Communication for Communicator {
             request.remote_addr().unwrap()
         );
         let fetch = self.fetcher.clone();
-        let res = Communicator::handle_model(fetch).await?;
+        let res = Communicator::handle_model(fetch)
+            .await
+            .map_err(|e| Status::new(Code::Internal, e.to_string()))?;
 
         let server_msg = mosaic::ServerModel {
             parameters: Some(res.unwrap().wrapper_to_params()),
