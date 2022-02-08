@@ -4,7 +4,7 @@ use async_trait::async_trait;
 use displaydoc::Display;
 use std::sync::Arc;
 use thiserror::Error;
-use tracing::info;
+use tracing::{info, warn};
 
 use s3::{bucket::Bucket, creds::Credentials, BucketConfiguration};
 
@@ -56,14 +56,22 @@ impl Client {
     }
 
     // Downloads the content of a requested object.
-    async fn download_object(&self, key: &str) -> ClientResult<Vec<u8>> {
-        let (data, _) = self
+    async fn download_object(&self, key: &str) -> ClientResult<Option<Vec<u8>>> {
+        let (data, code) = self
             .bucket
             .get_object(key)
             .await
             .map_err(StorageError::DownloadData)?;
-        Ok(data)
+
+        match code {
+            200 => Ok(Some(data)),
+            _ => Ok(None)
+        }
     }
+
+    // async fn handle_object(&self){
+    //     todo!()
+    // }
 
     // Uploads an object with the given key to the given bucket.
     // async fn upload_object() {
@@ -101,8 +109,11 @@ impl ModelStorage for Client {
         let data = self.download_object(key).await?;
 
         let mut model: Model = Default::default();
-        model.deserialize(data, &DataType::F32);
+        if let Some(b) = data { model.deserialize(b, &DataType::F32) };
 
+        if model.is_empty() {
+            warn!("No pretrained model found in S3 Bucket ['{}'].", &self.bucket.name());
+        }
         Ok(Some(model))
     }
 }

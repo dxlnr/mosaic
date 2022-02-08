@@ -1,14 +1,13 @@
+use async_trait::async_trait;
+
 use crate::{
     core::model::ModelWrapper,
     engine::{
         states::{error::StateError, Collect, State, StateCondition, StateName},
         Engine, ServerState,
     },
+    db::traits::ModelStorage,
 };
-use async_trait::async_trait;
-
-use crate::db::traits::ModelStorage;
-// use tracing::info;
 
 /// The idle state.
 #[derive(Debug)]

@@ -15,3 +15,13 @@ where
 {
     async fn get_global_model(&mut self, key: &str) -> StorageResult<Option<Model>>;
 }
+
+
+// #[async_trait]
+// /// An HTTP response code handler.
+// pub trait HTTPCode
+// where
+//     Self: Clone + Send + Sync + 'static,
+// {
+//     async fn get_global_model(&mut self, key: &str) -> StorageResult<Option<Model>>;
+// }
