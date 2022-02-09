@@ -3,13 +3,14 @@ use std::{thread, time::Duration};
 use tracing::info;
 
 use crate::{
-    core::{aggregator::features::Features, model::ModelWrapper},
+    core::{aggregator::features::Features, model::{DataType, Model, ModelWrapper}},
     engine::{
         states::{error::StateError, Collect, Handler, Shutdown, State, StateCondition, StateName},
         Engine, ServerState,
     },
     proxy::message::Message,
     service::error::ServiceError,
+    db::traits::ModelStorage,
 };
 
 /// The Aggregate state.
@@ -37,6 +38,10 @@ where
             "updated global model in round {} was published.",
             &self.shared.round_id
         );
+
+        self.shared.store.set_global_model(&Model::serialize(&self.private.features.global.clone(), &DataType::F32))
+            .await
+            .map_err(StateError::IdleError)?;
         Ok(())
     }
 

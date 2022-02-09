@@ -24,6 +24,19 @@ pub enum StorageError {
     ConnectionError(&'static str),
     /// Initialization of Client failed: {0}.
     InitClient(String),
+    /// Failed to upload data: {0}.
+    UploadError(anyhow::Error),
+}
+
+#[derive(Clone)]
+pub struct SettingsParams {
+    pub global_model_name: String,
+}
+
+impl SettingsParams {
+    pub fn new(global_model_name: &str) -> Self {
+        Self { global_model_name: global_model_name.to_string() }
+    }
 }
 
 type ClientResult<T> = Result<T, StorageError>;
@@ -31,6 +44,7 @@ type ClientResult<T> = Result<T, StorageError>;
 #[derive(Clone)]
 pub struct Client {
     bucket: Arc<Bucket>,
+    params: SettingsParams,
 }
 
 impl Client {
@@ -61,6 +75,7 @@ impl Client {
 
         Ok(Self {
             bucket: Arc::new(bucket),
+            params: SettingsParams::new(&s3_settings.global_model),
         })
     }
 
@@ -79,9 +94,10 @@ impl Client {
     }
 
     // Uploads an object with the given key to the given bucket.
-    // async fn upload_object() {
-    //     todo!()
-    // }
+    async fn upload_object(&self, key: &str, data: &[u8]) -> ClientResult<()> {
+        let (_, _code) = self.bucket.put_object(key, data).await.map_err(StorageError::UploadError)?;
+        Ok(())
+    }
 
     pub async fn check_conn(&self) -> ClientResult<()> {
         self.bucket.head_object("/").await.map_err(|_| {
@@ -96,7 +112,7 @@ impl Client {
     // Creates a new bucket with the given bucket name.
     pub async fn create_bucket(self) -> ClientResult<()> {
         info!(
-            "Instantiating S3 Bucket {} on {}",
+            "Instantiating S3 Bucket ['{}'] on {}",
             &self.bucket.name(),
             &self.bucket.region()
         );
@@ -109,14 +125,15 @@ impl Client {
         )
         .await
         .map_err(|_| StorageError::CreateBucket(self.bucket.name()))?;
+
         Ok(())
     }
 }
 
 #[async_trait]
 impl ModelStorage for Client {
-    async fn get_global_model(&mut self, key: &str) -> StorageResult<Option<Model>> {
-        let data = self.download_object(key).await?;
+    async fn get_global_model(&mut self) -> StorageResult<Option<Model>> {
+        let data = self.download_object(&self.params.global_model_name).await?;
 
         let mut model: Model = Default::default();
         if let Some(b) = data {
@@ -130,6 +147,10 @@ impl ModelStorage for Client {
             );
         }
         Ok(Some(model))
+    }
+    async fn set_global_model(&mut self, data: &[u8]) -> StorageResult<()> {
+        self.upload_object(&self.params.global_model_name, data).await?;
+        Ok(())
     }
 }
 

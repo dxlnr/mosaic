@@ -21,7 +21,7 @@ impl State for StateCondition<Idle> {
         let global = self
             .shared
             .store
-            .get_global_model("global_model")
+            .get_global_model()
             .await
             .map_err(StateError::IdleError)?;
 

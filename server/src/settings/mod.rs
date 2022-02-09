@@ -58,12 +58,31 @@ pub struct LogSettings {
 
 #[derive(Debug, Deserialize, Clone)]
 pub struct APISettings {
+    /// Defines the static IP address for the server.
+    /// 
+    /// # Example
+    ///
+    /// **TOML**
+    /// ```text
+    /// [api]
+    /// address = "127.0.0.1:8081"
+    /// ```
     pub address: std::net::SocketAddr,
 }
 
 #[derive(Debug, Deserialize, Clone)]
 pub struct ModelSettings {
     pub length: usize,
+    /// The DataType the model is encoded with.
+    /// 
+    /// Options that are available: F64 & F32
+    /// # Example
+    ///
+    /// **TOML**
+    /// ```text
+    /// [model]
+    /// data_type = "F32"
+    /// ```
     pub data_type: DataType,
 }
 
@@ -86,17 +105,36 @@ pub struct S3Settings {
     ///
     /// For MinIO this has to be specified in a custom manner.
     ///
-    /// # Examples
+    /// # Example
     ///
     /// **TOML**
     /// ```text
     /// [s3]
-    /// region = ["minio", "http://localhost:9001"]
+    /// region = ["minio", "http://localhost:9000"]
     /// ```
     #[serde(deserialize_with = "deserialize_s3_region")]
     pub region: Region,
     /// Bucket name that should be targeted.
+    ///  
+    /// # Example
+    ///
+    /// **TOML**
+    /// ```text
+    /// [s3]
+    /// bucket = "mnist-cnn-testing"
+    /// ```
     pub bucket: String,
+    /// Name of the overall global model.
+    /// 
+    /// # Example
+    ///
+    /// **TOML**
+    /// ```text
+    /// [s3]
+    /// global_model = "cnn_global"
+    /// ```
+    pub global_model: String,
+    
 }
 
 // https://serde.rs/impl-deserialize.html

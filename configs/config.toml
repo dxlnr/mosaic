@@ -16,5 +16,6 @@ filter = "mosaic=debug,info"
 access_key = "modalic"
 secret_access_key = "12345678"
 region = ["minio", "http://localhost:9000"]
-bucket = "globals"
+bucket = "mnist-cnn-testing"
+global_model = "cnn_global"
 
