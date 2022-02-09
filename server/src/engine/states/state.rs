@@ -52,8 +52,8 @@ where
     pub async fn run_state(mut self) -> Option<Engine> {
         info!("Engine runs in state: {:?}", &Self::NAME);
         async move {
-            if let Err(_err) = self.perform().await {
-                warn!("{:?}", "state error");
+            if let Err(err) = self.perform().await {
+                warn!("{:?}", err);
             }
             self.next().await
         }
@@ -146,7 +146,7 @@ impl Counter {
     /// Increments the counter for accepted messages.
     fn increment_accepted(&mut self) {
         self.accepted += 1;
-        info!("[{}/{}] messages accepted.", self.accepted, self.kp,);
+        info!("[{}/{}] messages accepted.", self.accepted, self.kp);
     }
     /// Increments the counter for rejected messages.
     fn increment_rejected(&mut self) {

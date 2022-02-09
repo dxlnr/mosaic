@@ -9,6 +9,7 @@ use self::watch::{Publisher, Subscriber};
 use derive_more::From;
 use displaydoc::Display;
 use thiserror::Error;
+use tracing::log::warn;
 
 use crate::{
     core::{
@@ -106,7 +107,10 @@ impl EngineInitializer {
     }
     pub async fn init_storage(&self, s3_settings: S3Settings) -> Result<Client, StorageError> {
         let s3 = Client::new(s3_settings).await?;
-        s3.clone().create_bucket().await?;
+        match s3.check_conn().await {
+            Ok(()) => s3.clone().create_bucket().await?,
+            Err(e) => warn!("{}", e),
+        }
         Ok(s3)
     }
 }

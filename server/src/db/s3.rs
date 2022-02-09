@@ -18,8 +18,12 @@ use crate::{
 pub enum StorageError {
     /// Failed to create bucket: {0}.
     CreateBucket(String),
-    /// Failed to download some data: {0}.
+    /// Failed to download data: {0}.
     DownloadData(anyhow::Error),
+    /// Connection to MinIO failed: {0}.
+    ConnectionError(&'static str),
+    /// Initialization of Client failed: {0}.
+    InitClient(String),
 }
 
 type ClientResult<T> = Result<T, StorageError>;
@@ -41,14 +45,19 @@ impl Client {
             None,
             None,
         )
-        .map_err(|_| StorageError::CreateBucket(s3_settings.bucket.to_string()))?;
+        .map_err(|_| StorageError::InitClient("Setting credentials failed".to_string()))?;
 
         let bucket = Bucket::new_with_path_style(
             &s3_settings.bucket.to_string(),
             s3_settings.region,
             credentials,
         )
-        .map_err(|_| StorageError::CreateBucket(s3_settings.bucket.to_string()))?;
+        .map_err(|_| {
+            StorageError::InitClient(format!(
+                "Unable to instantiate bucket {}.",
+                s3_settings.bucket
+            ))
+        })?;
 
         Ok(Self {
             bucket: Arc::new(bucket),
@@ -65,31 +74,32 @@ impl Client {
 
         match code {
             200 => Ok(Some(data)),
-            _ => Ok(None)
+            _ => Ok(None),
         }
     }
-
-    // async fn handle_object(&self){
-    //     todo!()
-    // }
 
     // Uploads an object with the given key to the given bucket.
     // async fn upload_object() {
     //     todo!()
     // }
 
+    pub async fn check_conn(&self) -> ClientResult<()> {
+        self.bucket.head_object("/").await.map_err(|_| {
+            StorageError::ConnectionError(
+                "Unable to establish connection to MinIO. Learning proceeds without storage",
+            )
+        })?;
+
+        Ok(())
+    }
+
     // Creates a new bucket with the given bucket name.
     pub async fn create_bucket(self) -> ClientResult<()> {
         info!(
-            "Instantiating S3 Bucket ['{}'] on {}",
+            "Instantiating S3 Bucket {} on {}",
             &self.bucket.name(),
             &self.bucket.region()
         );
-        let (_, _code) = self
-            .bucket
-            .head_object("/")
-            .await
-            .map_err(|_| StorageError::CreateBucket(self.bucket.name()))?;
 
         Bucket::create_with_path_style(
             &self.bucket.name(),
@@ -109,10 +119,15 @@ impl ModelStorage for Client {
         let data = self.download_object(key).await?;
 
         let mut model: Model = Default::default();
-        if let Some(b) = data { model.deserialize(b, &DataType::F32) };
+        if let Some(b) = data {
+            model.deserialize(b, &DataType::F32)
+        };
 
         if model.is_empty() {
-            warn!("No pretrained model found in S3 Bucket ['{}'].", &self.bucket.name());
+            warn!(
+                "No pretrained global model found in S3 Bucket ['{}'].",
+                &self.bucket.name()
+            );
         }
         Ok(Some(model))
     }
