@@ -1,6 +1,10 @@
 use byteorder::{BigEndian, ByteOrder};
 use derive_more::Display;
-use num::{bigint::BigInt, rational::Ratio, traits::float::FloatCore};
+use num::{
+    bigint::BigInt,
+    rational::Ratio,
+    traits::{float::FloatCore, Zero},
+};
 use rayon::prelude::*;
 use serde::{Deserialize, Serialize};
 use std::{io::ErrorKind, str::FromStr, sync::Arc};
@@ -63,7 +67,9 @@ impl Model {
     fn from_bytes_array_f32(&mut self, bytes: Vec<u8>) {
         self.0 = bytes
             .par_chunks(4)
-            .map(|x| Ratio::from_float(BigEndian::read_f32(x)).unwrap())
+            .map(|x| {
+                Ratio::from_float(BigEndian::read_f32(x)).unwrap_or_else(Ratio::<BigInt>::zero)
+            })
             .collect::<Vec<_>>()
             .to_vec()
     }
@@ -71,7 +77,9 @@ impl Model {
     fn from_bytes_array_f64(&mut self, bytes: Vec<u8>) {
         self.0 = bytes
             .par_chunks(8)
-            .map(|x| Ratio::from_float(BigEndian::read_f64(x)).unwrap())
+            .map(|x| {
+                Ratio::from_float(BigEndian::read_f64(x)).unwrap_or_else(Ratio::<BigInt>::zero)
+            })
             .collect::<Vec<_>>()
             .to_vec()
     }
@@ -82,49 +90,37 @@ impl Model {
         }
     }
     /// Conversion from Ratio to bytes for DataType F32
-    fn into_bytes_array_32(&self) -> Vec<u8> {
-        let res = self
-            .0
+    fn primitive_to_bytes_32(&self) -> Vec<u8> {
+        self.0
             .par_iter()
             .map(|x| {
                 ratio_to_float::<f32>(x)
-                    .ok_or(CastingError {
-                        weight: x.clone(),
-                        target: DataType::F32,
-                    })
-                    .unwrap()
+                    .unwrap_or_else(Zero::zero)
                     .to_be_bytes()
                     .to_vec()
             })
             .flatten()
             .collect::<Vec<_>>()
-            .to_vec();
-        res
+            .to_vec()
     }
     /// Conversion from Ratio to bytes for DataType F64
-    fn into_bytes_array_64(&self) -> Vec<u8> {
-        let res = self
-            .0
+    fn primitive_to_bytes_64(&self) -> Vec<u8> {
+        self.0
             .par_iter()
             .map(|x| {
                 ratio_to_float::<f64>(x)
-                    .ok_or(CastingError {
-                        weight: x.clone(),
-                        target: DataType::F64,
-                    })
-                    .unwrap()
+                    .unwrap_or_else(Zero::zero)
                     .to_be_bytes()
                     .to_vec()
             })
             .flatten()
             .collect::<Vec<_>>()
-            .to_vec();
-        res
+            .to_vec()
     }
     pub fn serialize(&self, dtype: &DataType) -> Vec<u8> {
         match dtype {
-            DataType::F32 => self.into_bytes_array_32(),
-            DataType::F64 => self.into_bytes_array_64(),
+            DataType::F32 => self.primitive_to_bytes_32(),
+            DataType::F64 => self.primitive_to_bytes_64(),
         }
     }
 }
@@ -190,7 +186,10 @@ impl FromStr for DataType {
         match input {
             "F32" => Ok(DataType::F32),
             "F64" => Ok(DataType::F64),
-            _ => Err(ServiceError::ParsingError(format!("failed to parse from unknown data type {}", input))),
+            _ => Err(ServiceError::ParsingError(format!(
+                "failed to parse from unknown data type {}",
+                input
+            ))),
         }
     }
 }

@@ -3,14 +3,17 @@ use std::{thread, time::Duration};
 use tracing::info;
 
 use crate::{
-    core::{aggregator::features::Features, model::{DataType, Model, ModelWrapper}},
+    core::{
+        aggregator::features::Features,
+        model::{DataType, Model, ModelWrapper},
+    },
+    db::traits::ModelStorage,
     engine::{
         states::{error::StateError, Collect, Handler, Shutdown, State, StateCondition, StateName},
         Engine, ServerState,
     },
     proxy::message::Message,
     service::error::ServiceError,
-    db::traits::ModelStorage,
 };
 
 /// The Aggregate state.
@@ -39,7 +42,12 @@ where
             &self.shared.round_id
         );
 
-        self.shared.store.set_global_model(&Model::serialize(&self.private.features.global.clone(), &DataType::F32))
+        self.shared
+            .store
+            .set_global_model(&Model::serialize(
+                &self.private.features.global,
+                &DataType::F32,
+            ))
             .await
             .map_err(StateError::IdleError)?;
         Ok(())

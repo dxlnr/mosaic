@@ -4,7 +4,7 @@
 mod aggregate;
 mod collect;
 mod error;
-mod failure;
+// mod failure;
 mod idle;
 mod shutdown;
 mod state;
