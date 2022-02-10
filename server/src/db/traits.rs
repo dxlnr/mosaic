@@ -16,13 +16,3 @@ where
     async fn get_global_model(&mut self) -> StorageResult<Option<Model>>;
     async fn set_global_model(&mut self, data: &[u8]) -> StorageResult<()>;
 }
-
-
-// #[async_trait]
-// /// An HTTP response code handler.
-// pub trait HTTPCode
-// where
-//     Self: Clone + Send + Sync + 'static,
-// {
-//     async fn get_global_model(&mut self, key: &str) -> StorageResult<Option<Model>>;
-// }

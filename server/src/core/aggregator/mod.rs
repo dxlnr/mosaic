@@ -1,4 +1,8 @@
 pub mod features;
+pub mod traits;
+
+use self::traits::FedAdam;
+use crate::core::model::Model;
 
 pub enum Scheme {
     FedAvg,
@@ -38,5 +42,18 @@ impl Default for AggregationParams {
     }
 }
 
-pub struct Aggregator;
+#[derive(Debug, Clone)]
+pub struct Aggregator<S> {
+    pub strategy: S,
+}
+
+
+impl<S> FedAdam for Aggregator<S> 
+where 
+    S: FedAdam,
+{
+    fn adapt(&mut self) -> Model {
+        todo!()
+    }
+}
 
