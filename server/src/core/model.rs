@@ -63,6 +63,10 @@ impl Model {
     pub fn is_empty(&self) -> bool {
         self.0.is_empty()
     }
+    /// Returns model with all zeros given a fixed length.
+    pub fn zeros(length: &usize) -> Self {
+        Model(vec![Ratio::<BigInt>::zero(); *length])
+    }
     /// Conversion from bytes to Ratio for DataType F32
     fn from_bytes_array_f32(&mut self, bytes: Vec<u8>) {
         self.0 = bytes
