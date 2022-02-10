@@ -36,6 +36,8 @@ message ClientUpdate {
   uint32 id = 1;
   // Parameters that contain the model and some metadata from the client.
   Parameters parameters = 2;
+  // Weight factor: number of samples the current local model was trained on.
+  uint32 stake = 3;
 }
 
 // message Status {

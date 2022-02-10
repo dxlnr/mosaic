@@ -25,6 +25,7 @@ impl MessageParser {
             params.model_version,
             params.tensor,
             dtype,
+            req.stake,
         ))
     }
 }
