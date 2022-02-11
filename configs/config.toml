@@ -8,6 +8,7 @@ length = 4
 [process]
 rounds = 5
 participants = 3
+strategy = "FedAvg"
 
 [log]
 filter = "mosaic=debug,info"

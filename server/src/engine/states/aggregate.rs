@@ -1,10 +1,9 @@
 use async_trait::async_trait;
-use std::{thread, time::Duration};
 use tracing::info;
 
 use crate::{
     core::{
-        aggregator::features::Features,
+        aggregator::{Aggregator, features::Features},
         model::{DataType, Model, ModelWrapper},
     },
     db::traits::ModelStorage,
@@ -55,7 +54,6 @@ where
 
     async fn next(self) -> Option<Engine> {
         if self.shared.round_id() > self.shared.round_params.training_rounds {
-            thread::sleep(Duration::from_secs(10));
             Some(StateCondition::<Shutdown>::new(self.shared).into())
         } else {
             Some(StateCondition::<Collect>::new(self.shared).into())
@@ -73,8 +71,9 @@ impl StateCondition<Aggregate> {
     }
     /// Aggreates all the features from collect state into the global model.
     pub fn aggregate(&mut self) {
-        self.private.features.add();
-        self.private.features.avg();
+        // self.private.features.add();
+        // let test = &self.private.features.aggregator;
+        self.private.features.global = self.private.features.aggregator.avg();
 
         // self.shared
         //     .features

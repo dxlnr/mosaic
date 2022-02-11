@@ -6,7 +6,7 @@ use num::{bigint::BigInt, rational::Ratio};
 use rayon::prelude::*;
 use std::ops::{Add, Div, Mul};
 
-use self::traits::FedAdam;
+use self::traits::{FedAdam, FedAvg, FedYogi, FedAdaGrad};
 use crate::core::model::Model;
 
 pub enum Scheme {
@@ -53,14 +53,31 @@ impl Default for AggregationParams {
 }
 
 #[derive(Debug, Clone)]
-pub struct Aggregator<S> {
+pub struct Aggregation<A> {
     /// Generic strategy that sits on top of FedAvg
-    pub strategy: S,
+    pub strategy: A,
+    // /// Aggregation params needed for performing certain algorithms.
+    // pub params: AggregationParams,
 }
 
-impl<S> Aggregator<S> {
+impl FedAvg for Aggregator {
+    fn aggregate(&mut self) -> Model {
+        todo!()
+    }
+}
+
+#[derive(Debug, Clone, Default)]
+pub struct Aggregator;
+
+impl Aggregator {
+    // /// Creates a new [`Aggregator`] with FedAvg.
+    // pub fn new(strategy: A) -> Self {
+    //     Self {
+    //         strategy,
+    //     }
+    // }
     /// Performs FedAvg and returns an aggregated model.
-    fn avg(features: Vec<Model>, stakes: Vec<Ratio<BigInt>>, feat_len: Ratio<BigInt>) -> Model {
+    pub fn avg(self, features: Vec<Model>, stakes: Vec<Ratio<BigInt>>, feat_len: Ratio<BigInt>) -> Model {
         let mut res = Model::zeros(&features[0].len());
 
         features
@@ -85,10 +102,7 @@ impl<S> Aggregator<S> {
     }
 }
 
-impl<S> FedAdam for Aggregator<S>
-where
-    S: FedAdam,
-{
+impl FedAdam for Aggregator {
     fn adapt(&mut self) -> Model {
         todo!()
     }
@@ -126,7 +140,8 @@ mod tests {
         ];
         let feat_len = Features::number_of_local_feat(3);
 
-        let new_m = Aggregator::<String>::avg(model_list, stakes, feat_len);
+        let agg_object = Aggregator;
+        let new_m = agg_object.avg(model_list, stakes, feat_len);
         assert_eq!(
             new_m,
             Model(vec![

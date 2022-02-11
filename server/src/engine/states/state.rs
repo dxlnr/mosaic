@@ -27,7 +27,10 @@ pub enum StateName {
 
 /// A trait that must be implemented by a state in order to perform its tasks and to move to a next state.
 #[async_trait]
-pub trait State {
+pub trait State
+// where
+//     A: Strategy,
+{
     /// The name of the current state.
     const NAME: StateName;
 
