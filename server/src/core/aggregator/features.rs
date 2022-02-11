@@ -1,5 +1,6 @@
 use crate::core::model::Model;
-use num::rational::Ratio;
+use num::{bigint::BigInt, rational::Ratio};
+use num_bigint::ToBigInt;
 use rayon::prelude::*;
 use std::ops::{Add, Div};
 
@@ -25,6 +26,9 @@ impl Features {
     /// Increment the factor which holds the number of received messages from previous.
     pub fn increment(&mut self, weight: &u32) {
         self.factor += weight;
+    }
+    pub fn number_of_local_feat(length: u32) -> Ratio<BigInt> {
+        Ratio::from_integer(length.to_bigint().unwrap())
     }
     /// Elementwise adding of (all) single models to one global model for particular training round.
     pub fn add(&mut self) {

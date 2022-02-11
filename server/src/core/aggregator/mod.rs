@@ -1,10 +1,10 @@
 pub mod features;
 pub mod traits;
 
-use num::rational::Ratio;
-use num_bigint::ToBigInt;
+use num::{bigint::BigInt, rational::Ratio};
+// use num_bigint::ToBigInt;
 use rayon::prelude::*;
-use std::ops::{Add, Div};
+use std::ops::{Add, Div, Mul};
 
 use self::traits::FedAdam;
 use crate::core::model::Model;
@@ -59,7 +59,8 @@ pub struct Aggregator<S> {
 }
 
 impl<S> Aggregator<S> {
-    fn add(features: Vec<Model>) -> (Model, usize) {
+    /// Performs FedAvg and returns an aggregated model.
+    fn avg(features: Vec<Model>, stakes: Vec<Ratio<BigInt>>, feat_len: Ratio<BigInt>) -> Model {
         let mut res = Model::zeros(&features[0].len());
 
         features
@@ -69,27 +70,17 @@ impl<S> Aggregator<S> {
                     .0
                     .par_iter()
                     .zip(&single.0)
-                    .map(|(w1, w2)| w1.add(w2))
+                    .zip(&stakes)
+                    .map(|((w1, w2), s)| w1.add((w2.mul(s)).div(&feat_len)))
                     .collect::<Vec<_>>()
                     .to_vec()
             })
             .collect::<Vec<_>>()
             .to_vec();
-        (res, features.len())
+        res
     }
 
-    fn avg(mut model: Model, stakes: Vec<u32>, feat_len: u32) -> Model {
-        let avg_factor = Ratio::from_integer(feat_len.to_bigint().unwrap());
-        model.0 = model
-            .0
-            .par_iter()
-            .map(|w| w.div(&avg_factor))
-            .collect::<Vec<_>>()
-            .to_vec();
-        model
-    }
-
-    pub fn aggregate(features: Vec<Model>) -> Model {
+    pub fn aggregate(_features: Vec<Model>) -> Model {
         todo!()
     }
 }
@@ -107,6 +98,7 @@ where
 mod tests {
     use super::*;
     use num::{bigint::BigInt, rational::Ratio, traits::One};
+    use self::features::Features;
 
     #[test]
     fn test_add() {
@@ -125,15 +117,25 @@ mod tests {
             Ratio::<BigInt>::one(),
             Ratio::<BigInt>::one(),
         ]);
-        let model_list = vec![m1, m2, m3];
 
-        let (new_m, _) = Aggregator::<String>::add(model_list);
+        let model_list = vec![m1, m2, m3];
+        let stakes = vec![
+            Ratio::<BigInt>::one(),
+            Ratio::<BigInt>::one(),
+            Ratio::<BigInt>::one(),
+        ];
+        let feat_len = Features::number_of_local_feat(3);
+
+        let new_m = Aggregator::<String>::avg(model_list, stakes, feat_len);
         assert_eq!(
             new_m,
             Model(vec![
-                Ratio::from_float(3.0_f32).unwrap(),
-                Ratio::from_float(3.0_f32).unwrap(),
-                Ratio::from_float(3.0_f32).unwrap()
+                // Ratio::from_float(3.0_f32).unwrap(),
+                // Ratio::from_float(3.0_f32).unwrap(),
+                // Ratio::from_float(3.0_f32).unwrap()
+                Ratio::<BigInt>::one(),
+                Ratio::<BigInt>::one(),
+                Ratio::<BigInt>::one(),
             ])
         )
     }
