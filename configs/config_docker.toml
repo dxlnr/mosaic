@@ -1,0 +1,20 @@
+[api]
+address = "127.0.0.1:8080"
+
+[model]
+data_type = "F32"
+length = 4
+
+[process]
+rounds = 5
+participants = 3
+
+[log]
+filter = "mosaic=debug,info"
+
+[s3]
+access_key = "modalic"
+secret_access_key = "12345678"
+region = ["minio", "http://minio:9000"]
+bucket = "globals"
+
