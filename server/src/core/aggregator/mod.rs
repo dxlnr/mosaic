@@ -81,13 +81,13 @@ impl Aggregator {
 
         features
             .iter()
-            .map(|single| {
+            .zip(&stakes)
+            .map(|(single, s)| {
                 res.0 = res
                     .0
                     .par_iter()
                     .zip(&single.0)
-                    .zip(&stakes)
-                    .map(|((w1, w2), s)| w1.add(w2.mul(s)))
+                    .map(|(w1, w2)| w1.add(w2.mul(s)))
                     .collect::<Vec<_>>()
                     .to_vec()
             })
@@ -109,13 +109,14 @@ impl FedAdam for Aggregator {
 
 #[cfg(test)]
 mod tests {
+    use self::features::Features;
     use super::*;
     use num::{bigint::BigInt, rational::Ratio, traits::One};
-    use self::features::Features;
 
     #[test]
     fn test_add() {
         let m1 = Model(vec![
+            Ratio::<BigInt>::one(),
             Ratio::<BigInt>::one(),
             Ratio::<BigInt>::one(),
             Ratio::<BigInt>::one(),
@@ -124,8 +125,10 @@ mod tests {
             Ratio::<BigInt>::one(),
             Ratio::<BigInt>::one(),
             Ratio::<BigInt>::one(),
+            Ratio::<BigInt>::one(),
         ]);
         let m3 = Model(vec![
+            Ratio::<BigInt>::one(),
             Ratio::<BigInt>::one(),
             Ratio::<BigInt>::one(),
             Ratio::<BigInt>::one(),
@@ -134,10 +137,11 @@ mod tests {
             Ratio::<BigInt>::one(),
             Ratio::<BigInt>::one(),
             Ratio::<BigInt>::one(),
+            Ratio::<BigInt>::one(),
         ]);
 
         let model_list = vec![m1, m2, m3, m4];
-        let stakes= vec![1, 1, 1, 1];
+        let stakes = vec![1, 1, 1, 1];
 
         let feats = Features::new(model_list, stakes);
 
@@ -149,6 +153,7 @@ mod tests {
                 // Ratio::from_float(3.0_f32).unwrap(),
                 // Ratio::from_float(3.0_f32).unwrap(),
                 // Ratio::from_float(3.0_f32).unwrap()
+                Ratio::<BigInt>::one(),
                 Ratio::<BigInt>::one(),
                 Ratio::<BigInt>::one(),
                 Ratio::<BigInt>::one(),

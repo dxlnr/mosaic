@@ -197,14 +197,3 @@ impl FromStr for DataType {
         }
     }
 }
-
-// #TODO add DataType Error
-
-// #[macro_export]
-// macro_rules! from_bytes {
-//     ($model:expr, $msg:expr, $data_type:ty) => {
-//         impl $crate::FromBytes for $data_type {
-//             $model.from_bytes_array($msg)
-//         }
-//     };
-// }

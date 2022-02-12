@@ -34,5 +34,3 @@ where
 {
     fn adapt(&mut self) -> Model;
 }
-
-// pub trait Strategy: FedAvg + FedAdam + FedAdaGrad + FedYogi {}

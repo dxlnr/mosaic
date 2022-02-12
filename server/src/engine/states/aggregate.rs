@@ -71,14 +71,10 @@ impl StateCondition<Aggregate> {
     }
     /// Aggreates all the features from collect state into the global model.
     pub fn aggregate(&mut self) {
-        // self.private.features.add();
-        // let test = &self.private.features.aggregator;
-        self.private.features.global = self.private.features.aggregator.avg(self.private.features.locals.clone(), self.private.features.prep_stakes());
-
-        // self.shared
-        //     .features
-        //     .increment(&self.shared.round_params.per_round_participants);
-        // self.shared.features.flush();
+        self.private.features.global = self.private.features.aggregator.avg(
+            self.private.features.locals.clone(),
+            self.private.features.prep_stakes(),
+        );
     }
 }
 

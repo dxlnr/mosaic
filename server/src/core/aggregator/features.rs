@@ -3,7 +3,7 @@ use num::{bigint::BigInt, rational::Ratio, traits::Zero};
 use num_bigint::ToBigInt;
 use rayon::prelude::*;
 
-use super::{Aggregator};
+use super::Aggregator;
 
 #[derive(Debug)]
 pub struct Features {
@@ -46,7 +46,12 @@ impl Features {
     /// Computed by the number of samples it is trained on.
     pub fn prep_stakes(&self) -> Vec<Ratio<BigInt>> {
         let all = self.sum_stakes();
-        self.stakes.par_iter().map(|s| Ratio::from_float(*s as f32 / all as f32).unwrap_or_else(Ratio::<BigInt>::zero)).collect::<Vec<_>>()
+        self.stakes
+            .par_iter()
+            .map(|s| {
+                Ratio::from_float(*s as f32 / all as f32).unwrap_or_else(Ratio::<BigInt>::zero)
+            })
+            .collect::<Vec<_>>()
     }
     /// Returns the sum of all elements in stakes.
     fn sum_stakes(&self) -> u32 {

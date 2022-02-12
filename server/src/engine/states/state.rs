@@ -27,8 +27,7 @@ pub enum StateName {
 
 /// A trait that must be implemented by a state in order to perform its tasks and to move to a next state.
 #[async_trait]
-pub trait State
-// where
+pub trait State // where
 //     A: Strategy,
 {
     /// The name of the current state.
@@ -40,6 +39,7 @@ pub trait State
     /// Moves from the current to the next state.
     async fn next(self) -> Option<Engine>;
 }
+
 #[allow(dead_code)]
 pub struct StateCondition<S> {
     pub(in crate::engine) private: S,
