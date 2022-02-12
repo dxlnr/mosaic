@@ -40,7 +40,7 @@ impl StateCondition<Collect> {
         shared.set_round_id(shared.round_id() + 1);
         Self {
             private: Collect {
-                features: Features::new(),
+                features: Features::default(),
             },
             shared,
         }

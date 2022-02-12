@@ -96,7 +96,7 @@ impl EngineInitializer {
             ),
             rx,
             publisher,
-            Features::new(),
+            Features::default(),
             store,
         );
         Ok((

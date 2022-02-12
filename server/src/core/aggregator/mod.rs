@@ -2,11 +2,10 @@ pub mod features;
 pub mod traits;
 
 use num::{bigint::BigInt, rational::Ratio};
-// use num_bigint::ToBigInt;
 use rayon::prelude::*;
-use std::ops::{Add, Div, Mul};
+use std::ops::{Add, Mul};
 
-use self::traits::{FedAdam, FedAvg, FedYogi, FedAdaGrad};
+use self::traits::{FedAdam, FedAvg};
 use crate::core::model::Model;
 
 pub enum Scheme {
@@ -66,7 +65,7 @@ impl FedAvg for Aggregator {
     }
 }
 
-#[derive(Debug, Clone, Default)]
+#[derive(Debug, Clone, Default, Copy)]
 pub struct Aggregator;
 
 impl Aggregator {
@@ -77,7 +76,7 @@ impl Aggregator {
     //     }
     // }
     /// Performs FedAvg and returns an aggregated model.
-    pub fn avg(self, features: Vec<Model>, stakes: Vec<Ratio<BigInt>>, feat_len: Ratio<BigInt>) -> Model {
+    pub fn avg(self, features: Vec<Model>, stakes: Vec<Ratio<BigInt>>) -> Model {
         let mut res = Model::zeros(&features[0].len());
 
         features
@@ -88,7 +87,7 @@ impl Aggregator {
                     .par_iter()
                     .zip(&single.0)
                     .zip(&stakes)
-                    .map(|((w1, w2), s)| w1.add((w2.mul(s)).div(&feat_len)))
+                    .map(|((w1, w2), s)| w1.add(w2.mul(s)))
                     .collect::<Vec<_>>()
                     .to_vec()
             })
@@ -131,17 +130,19 @@ mod tests {
             Ratio::<BigInt>::one(),
             Ratio::<BigInt>::one(),
         ]);
+        let m4 = Model(vec![
+            Ratio::<BigInt>::one(),
+            Ratio::<BigInt>::one(),
+            Ratio::<BigInt>::one(),
+        ]);
 
-        let model_list = vec![m1, m2, m3];
-        let stakes = vec![
-            Ratio::<BigInt>::one(),
-            Ratio::<BigInt>::one(),
-            Ratio::<BigInt>::one(),
-        ];
-        let feat_len = Features::number_of_local_feat(3);
+        let model_list = vec![m1, m2, m3, m4];
+        let stakes= vec![1, 1, 1, 1];
+
+        let feats = Features::new(model_list, stakes);
 
         let agg_object = Aggregator;
-        let new_m = agg_object.avg(model_list, stakes, feat_len);
+        let new_m = agg_object.avg(feats.locals.clone(), feats.prep_stakes());
         assert_eq!(
             new_m,
             Model(vec![
