@@ -3,7 +3,7 @@ use tracing::info;
 
 use crate::{
     core::{
-        aggregator::features::Features,
+        aggregator::{features::Features, traits::FedAvg},
         model::{DataType, Model, ModelWrapper},
     },
     db::traits::ModelStorage,
@@ -71,7 +71,7 @@ impl StateCondition<Aggregate> {
     }
     /// Aggreates all the features from collect state into the global model.
     pub fn aggregate(&mut self) {
-        self.private.features.global = self.private.features.aggregator.avg(
+        self.private.features.global = self.private.features.aggregator.aggregate(
             self.private.features.locals.clone(),
             self.private.features.prep_stakes(),
         );

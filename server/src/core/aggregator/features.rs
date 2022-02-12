@@ -5,7 +5,7 @@ use rayon::prelude::*;
 
 use super::Aggregator;
 
-#[derive(Debug)]
+#[derive(Debug, Default)]
 pub struct Features {
     /// keeps msgs in cache that have been received by the clients.
     pub locals: Vec<Model>,
@@ -17,17 +17,6 @@ pub struct Features {
     pub aggregator: Aggregator,
 }
 
-impl Default for Features {
-    fn default() -> Self {
-        Self {
-            locals: Vec::new(),
-            stakes: Vec::new(),
-            global: Default::default(),
-            aggregator: Aggregator,
-        }
-    }
-}
-
 impl Features {
     /// Instantiates new ['Features'] object.
     pub fn new(locals: Vec<Model>, stakes: Vec<u32>) -> Self {
@@ -35,7 +24,7 @@ impl Features {
             locals,
             stakes,
             global: Default::default(),
-            aggregator: Aggregator,
+            aggregator: Aggregator::default(),
         }
     }
     /// Returns number of overall local models as Ratio<BigInt>

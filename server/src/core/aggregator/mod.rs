@@ -14,7 +14,7 @@ pub enum Scheme {
 }
 
 /// Parameters that fascilitate the aggregation schema.
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Copy)]
 pub struct AggregationParams {
     // pub delta_t: f64,
     // pub m_t: f64,
@@ -54,27 +54,21 @@ impl Default for AggregationParams {
 #[derive(Debug, Clone)]
 pub struct Aggregation<A> {
     /// Generic strategy that sits on top of FedAvg
-    pub strategy: A,
+    pub aggregator: A,
     // /// Aggregation params needed for performing certain algorithms.
     // pub params: AggregationParams,
 }
 
-impl FedAvg for Aggregator {
-    fn aggregate(&mut self) -> Model {
-        todo!()
-    }
+#[derive(Debug, Clone, Default, Copy)]
+pub struct Aggregator {
+    pub params: AggregationParams,
 }
 
-#[derive(Debug, Clone, Default, Copy)]
-pub struct Aggregator;
-
 impl Aggregator {
-    // /// Creates a new [`Aggregator`] with FedAvg.
-    // pub fn new(strategy: A) -> Self {
-    //     Self {
-    //         strategy,
-    //     }
-    // }
+    // /// Creates a new [`Aggregator`].
+    pub fn new(params: AggregationParams) -> Self {
+        Self { params }
+    }
     /// Performs FedAvg and returns an aggregated model.
     pub fn avg(self, features: Vec<Model>, stakes: Vec<Ratio<BigInt>>) -> Model {
         let mut res = Model::zeros(&features[0].len());
@@ -95,9 +89,14 @@ impl Aggregator {
             .to_vec();
         res
     }
+    // pub fn aggregate(_features: Vec<Model>) -> Model {
+    //     todo!()
+    // }
+}
 
-    pub fn aggregate(_features: Vec<Model>) -> Model {
-        todo!()
+impl FedAvg for Aggregator {
+    fn aggregate(&mut self, features: Vec<Model>, stakes: Vec<Ratio<BigInt>>) -> Model {
+        self.avg(features, stakes)
     }
 }
 
@@ -145,7 +144,7 @@ mod tests {
 
         let feats = Features::new(model_list, stakes);
 
-        let agg_object = Aggregator;
+        let agg_object = Aggregator::default();
         let new_m = agg_object.avg(feats.locals.clone(), feats.prep_stakes());
         assert_eq!(
             new_m,
