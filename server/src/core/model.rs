@@ -7,7 +7,7 @@ use num::{
 };
 use rayon::prelude::*;
 use serde::{Deserialize, Serialize};
-use std::{io::ErrorKind, str::FromStr, sync::Arc};
+use std::{io::ErrorKind, str::FromStr, sync::Arc, slice::{Iter, IterMut}};
 use thiserror::Error;
 
 use crate::{proxy::server::mosaic::Parameters, service::error::ServiceError};
@@ -66,6 +66,14 @@ impl Model {
     /// Returns model with all zeros given a fixed length.
     pub fn zeros(length: &usize) -> Self {
         Model(vec![Ratio::<BigInt>::zero(); *length])
+    }
+    /// Creates an iterator that yields references to the weights/parameters of this model.
+    pub fn iter(&self) -> Iter<Ratio<BigInt>> {
+        self.0.iter()
+    }
+    /// Creates an iterator that yields mutable references to the weights/parameters of this model.
+    pub fn iter_mut(&mut self) -> IterMut<Ratio<BigInt>> {
+        self.0.iter_mut()
     }
     /// Conversion from bytes to Ratio for DataType F32
     fn from_bytes_array_f32(&mut self, bytes: Vec<u8>) {

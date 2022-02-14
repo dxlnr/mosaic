@@ -93,6 +93,7 @@ impl EngineInitializer {
                 self.process_settings.rounds,
                 self.process_settings.participants,
                 self.model_settings.data_type,
+                self.process_settings.strategy,
             ),
             rx,
             publisher,
@@ -176,14 +177,16 @@ pub struct RoundParams {
     pub training_rounds: u32,
     pub per_round_participants: u32,
     pub dtype: DataType,
+    pub strategy: String,
 }
 
 impl RoundParams {
-    pub fn new(training_rounds: u32, per_round_participants: u32, dtype: DataType) -> Self {
+    pub fn new(training_rounds: u32, per_round_participants: u32, dtype: DataType, strategy: String) -> Self {
         Self {
             training_rounds,
             per_round_participants,
             dtype,
+            strategy,
         }
     }
 }

@@ -17,9 +17,6 @@ use crate::{
 
 /// The Aggregate state.
 #[derive(Debug)]
-// pub struct Aggregate {
-//     features: Features,
-// }
 pub struct Aggregate{
     aggregation: Aggregation,
 }
@@ -34,7 +31,6 @@ where
     async fn perform(&mut self) -> Result<(), StateError> {
         self.aggregate();
 
-        // let global = self.private.features.global.clone();
         let global = self.shared.global_model.clone();
         let model_wrapper =
             ModelWrapper::new(global, self.shared.round_params.dtype, self.shared.round_id);
@@ -44,16 +40,6 @@ where
             "updated global model in round {} was published.",
             &self.shared.round_id
         );
-
-        // self.shared
-        //     .store
-        //     .set_global_model(&Model::serialize(
-        //         &self.private.features.global,
-        //         &DataType::F32,
-        //     ))
-        //     .await
-        //     .map_err(StateError::IdleError)?;
-        // Ok(())
         self.shared
             .store
             .set_global_model(&Model::serialize(
@@ -77,6 +63,8 @@ where
 impl StateCondition<Aggregate> {
     /// Creates a new Aggregate state.
     pub fn new(shared: ServerState, features: Features) -> Self {
+        println!("How many features are there? {:?}", &features.locals.len());
+        println!("The model? {:?}", &features.global.len());
         Self {
             private: Aggregate { aggregation: Aggregation::FedAvg(Aggregator::<FedAvg>::new(features)) },
             shared,
@@ -84,10 +72,6 @@ impl StateCondition<Aggregate> {
     }
     /// Aggreates all the features from collect state into the global model.
     pub fn aggregate(&mut self) {
-        // self.private.features.global = self.private.features.aggregator.aggregate(
-        //     self.private.features.locals.clone(),
-        //     self.private.features.prep_stakes(),
-        // );
         self.shared.global_model = self.private.aggregation.aggregate();
     }
 }

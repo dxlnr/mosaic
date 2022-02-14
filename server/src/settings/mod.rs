@@ -92,6 +92,8 @@ pub struct ProcessSettings {
     pub rounds: u32,
     /// Sets the number of participants.
     pub participants: u32,
+    /// Aggregation algorithm
+    pub strategy: String,
 }
 
 #[derive(Debug, Deserialize, Clone)]

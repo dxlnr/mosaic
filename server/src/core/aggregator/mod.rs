@@ -69,15 +69,6 @@ impl Default for AggregationParams {
     }
 }
 
-// #[derive(Debug, Clone)]
-// pub struct Aggregation<A> {
-//     /// Generic strategy that sits on top of FedAvg
-//     pub Baseline: Baseline,
-//     pub strategy: Scheme,
-//     // /// Aggregation params needed for performing certain algorithms.
-//     // pub params: AggregationParams,
-// }
-
 #[derive(Debug, Clone, Default, Copy)]
 pub struct Baseline {
     pub params: AggregationParams,

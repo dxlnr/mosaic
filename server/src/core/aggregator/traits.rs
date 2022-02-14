@@ -1,5 +1,6 @@
 // use num::{bigint::BigInt, rational::Ratio};
 use derive_more::Display;
+use std::ops::Sub;
 
 use crate::core::{aggregator::{features::Features, Baseline}, model::Model};
 
@@ -56,16 +57,47 @@ impl Aggregator<FedAvg> {
             features,
         }
     }
-
-
 }
 
-// impl FedAdam for Baseline {
-//     fn adapt(&mut self) -> Model {
-//         todo!()
-//     }
-// }
+/// FedAdam algorithm based on Reddi et al. ADAPTIVE FEDERATED OPTIMIZATION
+/// (https://arxiv.org/pdf/2003.00295.pdf)
+#[derive(Debug, Default)]
+pub struct FedAdam;
 
+impl Strategy for Aggregator<FedAdam> {
+    const NAME: Scheme = Scheme::FedAdam;
+
+    fn aggregate(&mut self) -> Model {
+        self.base.avg(self.features.locals.clone(), self.features.prep_stakes())
+    }
+
+    fn set_feat(&mut self, features: Features) {
+        self.features = features;
+    }
+}
+impl Aggregator<FedAdam> {
+    /// Creates a new idle state.
+    pub fn new(base: Baseline, features: Features) -> Self {
+        Self {
+            private: FedAdam,
+            base,
+            features,
+        }
+    }
+
+    fn _delta_t(self) -> Model {
+        let upd_model = self.base.avg(self.features.locals.clone(), self.features.prep_stakes());
+
+        let delta = upd_model
+            .iter()
+            .zip(self.features.global.iter())
+            .map(|(x1, x2)| { x1.sub(x2)
+            })
+            .collect::<Vec<_>>();
+        Model(delta)
+    }
+
+}
 
 // pub trait FedAvg
 // where
