@@ -13,8 +13,8 @@ use tracing::log::warn;
 
 use crate::{
     core::{
-        aggregator::features::Features,
-        model::{DataType, ModelUpdate},
+        // aggregator::{features::Features, Aggregation, traits::{Aggregator, FedAvg}},
+        model::{DataType, Model, ModelUpdate},
     },
     db::s3::{Client, StorageError},
     engine::{
@@ -96,7 +96,9 @@ impl EngineInitializer {
             ),
             rx,
             publisher,
-            Features::default(),
+            Model::default(),
+            // Features::default(),
+            // Aggregation::FedAvg(Aggregator::<FedAvg>::default()),
             store,
         );
         Ok((
@@ -115,6 +117,7 @@ impl EngineInitializer {
     }
 }
 
+
 /// Shared ['ServerState']
 pub struct ServerState {
     /// Keeps the actual training round updated and in cache.
@@ -125,10 +128,12 @@ pub struct ServerState {
     pub rx: RequestReceiver,
     /// Server publishes latest updates.
     pub publisher: Publisher,
-    // // /// Holds the actual global model updated after each completed training round.
-    // pub global_model: ModelUpdate,
-    /// Caches all the incoming messages and their respective data.
-    pub features: Features,
+    // /// Holds the actual global model updated after each completed training round.
+    pub global_model: Model,
+    // /// Caches all the incoming messages and their respective data.
+    // pub features: Features,
+    // /// Facilitates the aggregation process.
+    // pub aggregation: Aggregation,
     /// Shared storage state. For now it is a s3 Client which holds the storage bucket.
     pub store: Client,
 }
@@ -140,7 +145,9 @@ impl ServerState {
         round_params: RoundParams,
         rx: RequestReceiver,
         publisher: Publisher,
-        features: Features,
+        global_model: Model,
+        // aggregation: Aggregation,
+        // features: Features,
         store: Client,
     ) -> Self {
         ServerState {
@@ -148,7 +155,9 @@ impl ServerState {
             round_params,
             rx,
             publisher,
-            features,
+            global_model,
+            // aggregation,
+            // features,
             store,
         }
     }

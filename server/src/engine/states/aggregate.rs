@@ -3,7 +3,7 @@ use tracing::info;
 
 use crate::{
     core::{
-        aggregator::{features::Features, traits::FedAvg},
+        aggregator::{features::Features, traits::{FedAvg, Aggregator}, Aggregation},
         model::{DataType, Model, ModelWrapper},
     },
     db::traits::ModelStorage,
@@ -17,8 +17,11 @@ use crate::{
 
 /// The Aggregate state.
 #[derive(Debug)]
-pub struct Aggregate {
-    features: Features,
+// pub struct Aggregate {
+//     features: Features,
+// }
+pub struct Aggregate{
+    aggregation: Aggregation,
 }
 
 #[async_trait]
@@ -31,7 +34,8 @@ where
     async fn perform(&mut self) -> Result<(), StateError> {
         self.aggregate();
 
-        let global = self.private.features.global.clone();
+        // let global = self.private.features.global.clone();
+        let global = self.shared.global_model.clone();
         let model_wrapper =
             ModelWrapper::new(global, self.shared.round_params.dtype, self.shared.round_id);
         self.shared.publisher.broadcast_model(model_wrapper);
@@ -41,10 +45,19 @@ where
             &self.shared.round_id
         );
 
+        // self.shared
+        //     .store
+        //     .set_global_model(&Model::serialize(
+        //         &self.private.features.global,
+        //         &DataType::F32,
+        //     ))
+        //     .await
+        //     .map_err(StateError::IdleError)?;
+        // Ok(())
         self.shared
             .store
             .set_global_model(&Model::serialize(
-                &self.private.features.global,
+                &self.shared.global_model,
                 &DataType::F32,
             ))
             .await
@@ -65,16 +78,17 @@ impl StateCondition<Aggregate> {
     /// Creates a new Aggregate state.
     pub fn new(shared: ServerState, features: Features) -> Self {
         Self {
-            private: Aggregate { features },
+            private: Aggregate { aggregation: Aggregation::FedAvg(Aggregator::<FedAvg>::new(features)) },
             shared,
         }
     }
     /// Aggreates all the features from collect state into the global model.
     pub fn aggregate(&mut self) {
-        self.private.features.global = self.private.features.aggregator.aggregate(
-            self.private.features.locals.clone(),
-            self.private.features.prep_stakes(),
-        );
+        // self.private.features.global = self.private.features.aggregator.aggregate(
+        //     self.private.features.locals.clone(),
+        //     self.private.features.prep_stakes(),
+        // );
+        self.shared.global_model = self.private.aggregation.aggregate();
     }
 }
 

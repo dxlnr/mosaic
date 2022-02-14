@@ -3,7 +3,7 @@ use num::{bigint::BigInt, rational::Ratio, traits::Zero};
 use num_bigint::ToBigInt;
 use rayon::prelude::*;
 
-use super::Aggregator;
+// use super::Baseline;
 
 #[derive(Debug, Default)]
 pub struct Features {
@@ -13,8 +13,8 @@ pub struct Features {
     pub stakes: Vec<u32>,
     /// stores the overall averaged vector of all messages.
     pub global: Model,
-    /// aggregation object
-    pub aggregator: Aggregator,
+    // /// aggregation object
+    // pub aggregator: Baseline,
 }
 
 impl Features {
@@ -24,7 +24,7 @@ impl Features {
             locals,
             stakes,
             global: Default::default(),
-            aggregator: Aggregator::default(),
+            // aggregator: Baseline::default(),
         }
     }
     /// Returns number of overall local models as Ratio<BigInt>
