@@ -1,11 +1,7 @@
 use byteorder::{BigEndian, ByteOrder};
 use derive_more::Display;
-use num::{
-    bigint::BigInt,
-    rational::Ratio,
-    traits::{float::FloatCore, Zero},
-};
 use rayon::prelude::*;
+use rug::Rational;
 use serde::{Deserialize, Serialize};
 use std::{
     io::ErrorKind,
@@ -13,7 +9,6 @@ use std::{
     str::FromStr,
     sync::Arc,
 };
-use thiserror::Error;
 
 use crate::{proxy::server::mosaic::Parameters, service::error::ServiceError};
 
@@ -50,9 +45,9 @@ impl ModelWrapper {
     }
 }
 
-#[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Default, Debug, Clone, PartialEq)]
 /// A representation of a machine learning model as vector object.
-pub struct Model(pub Vec<Ratio<BigInt>>);
+pub struct Model(pub Vec<Rational>);
 
 impl std::convert::AsRef<Model> for Model {
     fn as_ref(&self) -> &Model {
@@ -70,23 +65,21 @@ impl Model {
     }
     /// Returns model with all zeros given a fixed length.
     pub fn zeros(length: &usize) -> Self {
-        Model(vec![Ratio::<BigInt>::zero(); *length])
+        Model(vec![Rational::new(); *length])
     }
     /// Creates an iterator that yields references to the weights/parameters of this model.
-    pub fn iter(&self) -> Iter<Ratio<BigInt>> {
+    pub fn iter(&self) -> Iter<Rational> {
         self.0.iter()
     }
     /// Creates an iterator that yields mutable references to the weights/parameters of this model.
-    pub fn iter_mut(&mut self) -> IterMut<Ratio<BigInt>> {
+    pub fn iter_mut(&mut self) -> IterMut<Rational> {
         self.0.iter_mut()
     }
     /// Conversion from bytes to Ratio for DataType F32
     fn from_bytes_array_f32(&mut self, bytes: Vec<u8>) {
         self.0 = bytes
             .par_chunks(4)
-            .map(|x| {
-                Ratio::from_float(BigEndian::read_f32(x)).unwrap_or_else(Ratio::<BigInt>::zero)
-            })
+            .map(|x| Rational::from_f32(BigEndian::read_f32(x)).unwrap_or_else(Rational::new))
             .collect::<Vec<_>>()
             .to_vec()
     }
@@ -94,9 +87,7 @@ impl Model {
     fn from_bytes_array_f64(&mut self, bytes: Vec<u8>) {
         self.0 = bytes
             .par_chunks(8)
-            .map(|x| {
-                Ratio::from_float(BigEndian::read_f64(x)).unwrap_or_else(Ratio::<BigInt>::zero)
-            })
+            .map(|x| Rational::from_f64(BigEndian::read_f64(x)).unwrap_or_else(Rational::new))
             .collect::<Vec<_>>()
             .to_vec()
     }
@@ -110,12 +101,7 @@ impl Model {
     fn primitive_to_bytes_32(&self) -> Vec<u8> {
         self.0
             .par_iter()
-            .map(|x| {
-                ratio_to_float::<f32>(x)
-                    .unwrap_or_else(Zero::zero)
-                    .to_be_bytes()
-                    .to_vec()
-            })
+            .map(|x| Rational::to_f32(x).to_be_bytes().to_vec())
             .flatten()
             .collect::<Vec<_>>()
             .to_vec()
@@ -124,12 +110,7 @@ impl Model {
     fn primitive_to_bytes_64(&self) -> Vec<u8> {
         self.0
             .par_iter()
-            .map(|x| {
-                ratio_to_float::<f64>(x)
-                    .unwrap_or_else(Zero::zero)
-                    .to_be_bytes()
-                    .to_vec()
-            })
+            .map(|x| Rational::to_f64(x).to_be_bytes().to_vec())
             .flatten()
             .collect::<Vec<_>>()
             .to_vec()
@@ -140,41 +121,6 @@ impl Model {
             DataType::F64 => self.primitive_to_bytes_64(),
         }
     }
-}
-
-pub(crate) fn ratio_to_float<F: FloatCore>(ratio: &Ratio<BigInt>) -> Option<F> {
-    let min_value = Ratio::from_float(F::min_value()).unwrap();
-    let max_value = Ratio::from_float(F::max_value()).unwrap();
-    if ratio < &min_value || ratio > &max_value {
-        return None;
-    }
-
-    let mut numer = ratio.numer().clone();
-    let mut denom = ratio.denom().clone();
-    // safe loop: terminates after at most bit-length of ratio iterations
-    loop {
-        if let (Some(n), Some(d)) = (F::from(numer.clone()), F::from(denom.clone())) {
-            if n == F::zero() || d == F::zero() {
-                break Some(F::zero());
-            } else {
-                let float = n / d;
-                if float.is_finite() {
-                    break Some(float);
-                }
-            }
-        } else {
-            numer >>= 1_usize;
-            denom >>= 1_usize;
-        }
-    }
-}
-
-#[derive(Error, Debug)]
-#[error("Could not convert weight {weight} to floating point number {target}")]
-/// Errors related to model converting Ratio to floats.
-pub struct CastingError {
-    weight: Ratio<BigInt>,
-    target: DataType,
 }
 
 #[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize, Display)]

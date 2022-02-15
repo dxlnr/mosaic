@@ -1,8 +1,8 @@
 pub mod features;
 pub mod traits;
 
-use num::{bigint::BigInt, rational::Ratio, traits::Zero};
 use rayon::prelude::*;
+use rug::Rational;
 use std::ops::{Add, Mul};
 
 use crate::core::model::Model;
@@ -55,17 +55,17 @@ impl AggregationParams {
             tau,
         }
     }
-    pub fn get_beta_1(&self) -> Ratio<BigInt> {
-        Ratio::from_float(self.beta_1).unwrap_or_else(Ratio::<BigInt>::zero)
+    pub fn get_beta_1(&self) -> Rational {
+        Rational::from_f64(self.beta_1).unwrap_or_else(Rational::new)
     }
-    pub fn get_beta_2(&self) -> Ratio<BigInt> {
-        Ratio::from_float(self.beta_2).unwrap_or_else(Ratio::<BigInt>::zero)
+    pub fn get_beta_2(&self) -> Rational {
+        Rational::from_f64(self.beta_2).unwrap_or_else(Rational::new)
     }
-    pub fn get_eta(&self) -> Ratio<BigInt> {
-        Ratio::from_float(self.eta).unwrap_or_else(Ratio::<BigInt>::zero)
+    pub fn get_eta(&self) -> Rational {
+        Rational::from_f64(self.eta).unwrap_or_else(Rational::new)
     }
-    pub fn get_tau(&self) -> Ratio<BigInt> {
-        Ratio::from_float(self.tau).unwrap_or_else(Ratio::<BigInt>::zero)
+    pub fn get_tau(&self) -> Rational {
+        Rational::from_f64(self.tau).unwrap_or_else(Rational::new)
     }
 }
 
@@ -92,7 +92,7 @@ impl Baseline {
         Self { params }
     }
     /// Performs FedAvg and returns an aggregated model.
-    pub fn avg(&mut self, features: &[Model], stakes: &[Ratio<BigInt>]) -> Model {
+    pub fn avg(&mut self, features: &[Model], stakes: &[Rational]) -> Model {
         let mut res = Model::zeros(&features[0].len());
 
         features
@@ -103,7 +103,7 @@ impl Baseline {
                     .0
                     .par_iter()
                     .zip(&single.0)
-                    .map(|(w1, w2)| w1.add(w2.mul(s)))
+                    .map(|(w1, w2)| w1.clone().add(w2.clone().mul(s)))
                     .collect::<Vec<_>>()
                     .to_vec()
             })
@@ -117,33 +117,33 @@ impl Baseline {
 mod tests {
     use self::features::Features;
     use super::*;
-    use num::{bigint::BigInt, rational::Ratio, traits::One};
+    use rug::Rational;
 
     #[test]
     fn test_add() {
         let m1 = Model(vec![
-            Ratio::<BigInt>::one(),
-            Ratio::<BigInt>::one(),
-            Ratio::<BigInt>::one(),
-            Ratio::<BigInt>::one(),
+            Rational::from((1, 1)),
+            Rational::from((1, 1)),
+            Rational::from((1, 1)),
+            Rational::from((1, 1)),
         ]);
         let m2 = Model(vec![
-            Ratio::<BigInt>::one(),
-            Ratio::<BigInt>::one(),
-            Ratio::<BigInt>::one(),
-            Ratio::<BigInt>::one(),
+            Rational::from((1, 1)),
+            Rational::from((1, 1)),
+            Rational::from((1, 1)),
+            Rational::from((1, 1)),
         ]);
         let m3 = Model(vec![
-            Ratio::<BigInt>::one(),
-            Ratio::<BigInt>::one(),
-            Ratio::<BigInt>::one(),
-            Ratio::<BigInt>::one(),
+            Rational::from((1, 1)),
+            Rational::from((1, 1)),
+            Rational::from((1, 1)),
+            Rational::from((1, 1)),
         ]);
         let m4 = Model(vec![
-            Ratio::<BigInt>::one(),
-            Ratio::<BigInt>::one(),
-            Ratio::<BigInt>::one(),
-            Ratio::<BigInt>::one(),
+            Rational::from((1, 1)),
+            Rational::from((1, 1)),
+            Rational::from((1, 1)),
+            Rational::from((1, 1)),
         ]);
 
         let model_list = vec![m1, m2, m3, m4];
@@ -156,10 +156,10 @@ mod tests {
         assert_eq!(
             new_m,
             Model(vec![
-                Ratio::<BigInt>::one(),
-                Ratio::<BigInt>::one(),
-                Ratio::<BigInt>::one(),
-                Ratio::<BigInt>::one(),
+                Rational::from((1, 1)),
+                Rational::from((1, 1)),
+                Rational::from((1, 1)),
+                Rational::from((1, 1)),
             ])
         )
     }

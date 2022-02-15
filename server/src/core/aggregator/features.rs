@@ -1,9 +1,6 @@
 use crate::core::model::Model;
-use num::{bigint::BigInt, rational::Ratio, traits::Zero};
-use num_bigint::ToBigInt;
 use rayon::prelude::*;
-
-// use super::Baseline;
+use rug::Rational;
 
 #[derive(Debug, Default)]
 pub struct Features {
@@ -39,19 +36,17 @@ impl Features {
             v_t,
         }
     }
-    /// Returns number of overall local models as Ratio<BigInt>
-    pub fn number_of_local_feat(&self) -> Ratio<BigInt> {
-        Ratio::from_integer(self.locals.len().to_bigint().unwrap())
-    }
+    // /// Returns number of overall local models as Rational
+    // pub fn number_of_local_feat(&self) -> Rational {
+    //     Ratio::from_integer(self.locals.len().to_bigint().unwrap())
+    // }
     /// Returns a list of factors that represents the stake of each model to the global model.
     /// Computed by the number of samples it is trained on.
-    pub fn prep_stakes(&self) -> Vec<Ratio<BigInt>> {
+    pub fn prep_stakes(&self) -> Vec<Rational> {
         let all = self.sum_stakes();
         self.stakes
             .par_iter()
-            .map(|s| {
-                Ratio::from_float(*s as f32 / all as f32).unwrap_or_else(Ratio::<BigInt>::zero)
-            })
+            .map(|s| Rational::from_f32(*s as f32 / all as f32).unwrap_or_else(Rational::new))
             .collect::<Vec<_>>()
     }
     /// Returns the sum of all elements in stakes.
