@@ -42,16 +42,16 @@ pub struct AggregationParams {
     /// Second moment parameter. Defaults to 0.99.
     pub beta_2: f64,
     ///  Controls the algorithm's degree of adaptability. Defaults to 1e-9.
-    pub tau_t: f64,
+    pub tau: f64,
 }
 
 impl AggregationParams {
-    pub fn new(eta: f64, beta_1: f64, beta_2: f64, tau_t: f64) -> Self {
+    pub fn new(eta: f64, beta_1: f64, beta_2: f64, tau: f64) -> Self {
         Self {
             eta,
             beta_1,
             beta_2,
-            tau_t,
+            tau,
         }
     }
     pub fn get_beta_1(&self) -> Ratio<BigInt> {
@@ -63,8 +63,8 @@ impl AggregationParams {
     pub fn get_eta(&self) -> Ratio<BigInt> {
         Ratio::from_float(self.eta).unwrap_or_else(Ratio::<BigInt>::zero)
     }
-    pub fn get_tau_t(&self) -> Ratio<BigInt> {
-        Ratio::from_float(self.tau_t).unwrap_or_else(Ratio::<BigInt>::zero)
+    pub fn get_tau(&self) -> Ratio<BigInt> {
+        Ratio::from_float(self.tau).unwrap_or_else(Ratio::<BigInt>::zero)
     }
 }
 
@@ -75,7 +75,7 @@ impl Default for AggregationParams {
             eta: 1e-1,
             beta_1: 0.9,
             beta_2: 0.99,
-            tau_t: 1e-9,
+            tau: 1e-9,
         }
     }
 }
@@ -91,12 +91,12 @@ impl Baseline {
         Self { params }
     }
     /// Performs FedAvg and returns an aggregated model.
-    pub fn avg(self, features: Vec<Model>, stakes: Vec<Ratio<BigInt>>) -> Model {
+    pub fn avg(&mut self, features: &[Model], stakes: &[Ratio<BigInt>]) -> Model {
         let mut res = Model::zeros(&features[0].len());
 
         features
             .iter()
-            .zip(&stakes)
+            .zip(stakes)
             .map(|(single, s)| {
                 res.0 = res
                     .0
@@ -150,8 +150,8 @@ mod tests {
 
         let feats = Features::new(model_list, stakes);
 
-        let agg_object = Baseline::default();
-        let new_m = agg_object.avg(feats.locals.clone(), feats.prep_stakes());
+        let mut agg_object = Baseline::default();
+        let new_m = agg_object.avg(&feats.locals, &feats.prep_stakes());
         assert_eq!(
             new_m,
             Model(vec![
