@@ -19,7 +19,9 @@ pub enum Scheme {
 pub trait Strategy {
     const NAME: Scheme;
 
-    fn aggregate(&mut self) -> Model;
+    /// Implementation of the aggregation algorithm based on the given strategy.
+    fn aggregate(&mut self) -> (Model, Model, Model);
+    /// Setting the features for each aggregation round.
     fn set_feat(&mut self, features: Features);
 }
 
@@ -42,9 +44,11 @@ pub struct FedAvg;
 impl Strategy for Aggregator<FedAvg> {
     const NAME: Scheme = Scheme::FedAvg;
 
-    fn aggregate(&mut self) -> Model {
-        self.base
-            .avg(&self.features.locals, &self.features.prep_stakes())
+    fn aggregate(&mut self) -> (Model, Model, Model) {
+        let global = self
+            .base
+            .avg(&self.features.locals, &self.features.prep_stakes());
+        (global, Model::default(), Model::default())
     }
 
     fn set_feat(&mut self, features: Features) {
@@ -71,14 +75,15 @@ pub struct FedAdam;
 impl Strategy for Aggregator<FedAdam> {
     const NAME: Scheme = Scheme::FedAdam;
 
-    fn aggregate(&mut self) -> Model {
+    fn aggregate(&mut self) -> (Model, Model, Model) {
         let upd_model = self
             .base
             .avg(&self.features.locals, &self.features.prep_stakes());
         let delta_t = self.get_delta_t(&upd_model);
         let m_t_upd = self.get_m_t(&delta_t);
         let v_t_upd = self.get_v_t(&delta_t);
-        self.adjust(&m_t_upd, &v_t_upd)
+        let global = self.adjust(&m_t_upd, &v_t_upd);
+        (global, m_t_upd, v_t_upd)
     }
 
     fn set_feat(&mut self, features: Features) {
@@ -165,8 +170,8 @@ impl Aggregator<FedAdam> {
 
 #[cfg(test)]
 mod tests {
-    use crate::core::aggregator::features::Features;
     use super::*;
+    use crate::core::aggregator::features::Features;
     use num::{bigint::BigInt, rational::Ratio, traits::One};
 
     #[test]
@@ -209,7 +214,9 @@ mod tests {
 
         let mut aggr = Aggregator::<FedAdam>::new(Baseline::default(), feats);
 
-        let upd_model = aggr.base.avg(&aggr.features.locals, &aggr.features.prep_stakes());
+        let upd_model = aggr
+            .base
+            .avg(&aggr.features.locals, &aggr.features.prep_stakes());
         let delta_t = aggr.get_delta_t(&upd_model);
 
         assert_eq!(

@@ -9,7 +9,7 @@ use crate::core::model::Model;
 
 use self::{
     features::Features,
-    traits::{Aggregator, FedAvg, FedAdam, Strategy},
+    traits::{Aggregator, FedAdam, FedAvg, Strategy},
 };
 
 #[derive(Debug)]
@@ -19,7 +19,7 @@ pub enum Aggregation {
 }
 
 impl Aggregation {
-    pub fn aggregate(&mut self) -> Model {
+    pub fn aggregate(&mut self) -> (Model, Model, Model) {
         match self {
             Aggregation::FedAvg(strategy) => strategy.aggregate(),
             Aggregation::FedAdam(strategy) => strategy.aggregate(),
@@ -156,9 +156,6 @@ mod tests {
         assert_eq!(
             new_m,
             Model(vec![
-                // Ratio::from_float(3.0_f32).unwrap(),
-                // Ratio::from_float(3.0_f32).unwrap(),
-                // Ratio::from_float(3.0_f32).unwrap()
                 Ratio::<BigInt>::one(),
                 Ratio::<BigInt>::one(),
                 Ratio::<BigInt>::one(),

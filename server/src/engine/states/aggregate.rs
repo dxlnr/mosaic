@@ -74,7 +74,10 @@ impl StateCondition<Aggregate> {
     }
     /// Aggreates all the features from collect state into the global model.
     pub fn aggregate(&mut self) {
-        self.cache.global_model = self.private.aggregation.aggregate();
+        let (global, m_t, v_t) = self.private.aggregation.aggregate();
+        self.cache.global_model = global;
+        self.cache.m_t = m_t;
+        self.cache.v_t = v_t;
     }
 }
 
