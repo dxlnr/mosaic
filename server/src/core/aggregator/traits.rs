@@ -86,7 +86,7 @@ impl Strategy for Aggregator<FedAdam> {
     }
 }
 impl Aggregator<FedAdam> {
-    /// Creates a new idle state.
+    /// Creates a new FedAdam implementation.
     pub fn new(base: Baseline, features: Features) -> Self {
         Self {
             private: FedAdam,
@@ -105,6 +105,9 @@ impl Aggregator<FedAdam> {
     }
     /// Computes the m_t term.
     fn get_m_t(&mut self, delta_t: &Model) -> Model {
+        if self.features.m_t.is_empty() {
+            self.features.m_t = Model::zeros(&delta_t.len());
+        }
         let m_t_upd = delta_t
             .iter()
             .zip(self.features.m_t.iter())
@@ -117,6 +120,9 @@ impl Aggregator<FedAdam> {
     }
     /// Computes the v_t term for FedAdam specifically.
     fn get_v_t(&mut self, delta_t: &Model) -> Model {
+        if self.features.v_t.is_empty() {
+            self.features.v_t = Model::zeros(&delta_t.len());
+        }
         let v_t_upd = delta_t
             .iter()
             .zip(self.features.v_t.iter())
@@ -154,5 +160,78 @@ impl Aggregator<FedAdam> {
             .map(|(x_ti, x_ai)| x_ti.add(x_ai))
             .collect::<Vec<_>>();
         Model(res)
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use crate::core::aggregator::features::Features;
+    use super::*;
+    use num::{bigint::BigInt, rational::Ratio, traits::One};
+
+    #[test]
+    fn test_fedadam_aggregation() {
+        let m1 = Model(vec![
+            Ratio::from_float(20.0_f32).unwrap(),
+            Ratio::from_float(20.0_f32).unwrap(),
+            Ratio::from_float(6.0_f32).unwrap(),
+            Ratio::from_float(6.0_f32).unwrap(),
+        ]);
+        let m2 = Model(vec![
+            Ratio::from_float(20.0_f32).unwrap(),
+            Ratio::from_float(20.0_f32).unwrap(),
+            Ratio::from_float(2.0_f32).unwrap(),
+            Ratio::from_float(2.0_f32).unwrap(),
+        ]);
+        let m3 = Model(vec![
+            Ratio::from_float(4.0_f32).unwrap(),
+            Ratio::from_float(4.0_f32).unwrap(),
+            Ratio::from_float(20.0_f32).unwrap(),
+            Ratio::from_float(20.0_f32).unwrap(),
+        ]);
+        let m4 = Model(vec![
+            Ratio::from_float(4.0_f32).unwrap(),
+            Ratio::from_float(4.0_f32).unwrap(),
+            Ratio::from_float(20.0_f32).unwrap(),
+            Ratio::from_float(20.0_f32).unwrap(),
+        ]);
+
+        let model_list = vec![m1, m2, m3, m4];
+        let stakes = vec![1, 1, 1, 1];
+        let mut feats = Features::new(model_list, stakes);
+
+        feats.global = Model(vec![
+            Ratio::from_float(2.0_f32).unwrap(),
+            Ratio::from_float(2.0_f32).unwrap(),
+            Ratio::from_float(2.0_f32).unwrap(),
+            Ratio::from_float(2.0_f32).unwrap(),
+        ]);
+
+        let mut aggr = Aggregator::<FedAdam>::new(Baseline::default(), feats);
+
+        let upd_model = aggr.base.avg(&aggr.features.locals, &aggr.features.prep_stakes());
+        let delta_t = aggr.get_delta_t(&upd_model);
+
+        assert_eq!(
+            delta_t,
+            Model(vec![
+                Ratio::from_float(10.0_f32).unwrap(),
+                Ratio::from_float(10.0_f32).unwrap(),
+                Ratio::from_float(10.0_f32).unwrap(),
+                Ratio::from_float(10.0_f32).unwrap(),
+            ])
+        );
+
+        let m_t_upd = aggr.get_m_t(&delta_t);
+
+        assert_eq!(
+            m_t_upd,
+            Model(vec![
+                Ratio::<BigInt>::one(),
+                Ratio::<BigInt>::one(),
+                Ratio::<BigInt>::one(),
+                Ratio::<BigInt>::one(),
+            ])
+        );
     }
 }

@@ -13,7 +13,9 @@ pub struct Features {
     pub stakes: Vec<u32>,
     /// stores the overall averaged vector of all messages.
     pub global: Model,
+    /// stores m_t for current iteration
     pub m_t: Model,
+    /// stores v_t for current iteration.
     pub v_t: Model,
 }
 

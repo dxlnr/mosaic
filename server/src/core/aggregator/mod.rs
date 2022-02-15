@@ -9,25 +9,26 @@ use crate::core::model::Model;
 
 use self::{
     features::Features,
-    traits::{Aggregator, FedAvg, Strategy},
+    traits::{Aggregator, FedAvg, FedAdam, Strategy},
 };
 
 #[derive(Debug)]
 pub enum Aggregation {
     FedAvg(Aggregator<FedAvg>),
-    // FedAdam(Aggregator<FedAdam>),
+    FedAdam(Aggregator<FedAdam>),
 }
 
 impl Aggregation {
     pub fn aggregate(&mut self) -> Model {
         match self {
             Aggregation::FedAvg(strategy) => strategy.aggregate(),
-            // Scheme::FedAdam => state.run_state().await,
+            Aggregation::FedAdam(strategy) => strategy.aggregate(),
         }
     }
     pub fn set_feat(self, features: Features) {
         match self {
             Aggregation::FedAvg(mut strategy) => strategy.set_feat(features),
+            Aggregation::FedAdam(mut strategy) => strategy.set_feat(features),
         }
     }
 }
