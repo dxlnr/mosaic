@@ -150,14 +150,17 @@ pub struct Cache {
     pub global_model: Model,
     /// Holds the m_t variable from the previous aggregation round.
     pub m_t: Model,
+    /// Holds the v_t variable from the previous aggregation round.
+    pub v_t: Model,
 }
 impl Cache {
     /// Init new shared server state.
-    pub fn new(round_id: u32, global_model: Model, m_t: Model) -> Self {
+    pub fn new(round_id: u32, global_model: Model, m_t: Model, v_t: Model) -> Self {
         Self {
             round_id,
             global_model,
             m_t,
+            v_t,
         }
     }
     /// Sets the round ID to the given value.

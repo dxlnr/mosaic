@@ -1,5 +1,6 @@
 use derive_more::Display;
-use std::ops::Sub;
+use num::{bigint::BigInt, rational::Ratio, traits::One};
+use std::ops::{Add, Mul, Sub};
 
 use crate::core::{
     aggregator::{features::Features, Baseline},
@@ -74,7 +75,11 @@ impl Strategy for Aggregator<FedAdam> {
         let upd_model = self
             .base
             .avg(self.features.locals.clone(), self.features.prep_stakes());
-        self.get_delta_t(&upd_model)
+        let delta_t = self.get_delta_t(&upd_model);
+        let _m_t_upd = self.get_m_t(&delta_t);
+        // let v_t_upd = self.get_v_t(&delta_t)
+        self.get_v_t(&delta_t)
+
     }
 
     fn set_feat(&mut self, features: Features) {
@@ -100,12 +105,28 @@ impl Aggregator<FedAdam> {
         Model(delta)
     }
 
-    fn _get_m_t(&mut self, _delta_t: &Model) -> Model {
-        todo!()
+    fn get_m_t(&mut self, delta_t: &Model) -> Model {
+        let m_t_upd = delta_t
+            .iter()
+            .zip(self.features.m_t.iter())
+            .map(|(x1, x2)| {
+                x2.mul(self.base.params.get_beta_1())
+                    .add(x1.mul(Ratio::<BigInt>::one().sub(self.base.params.get_beta_1())))
+            })
+            .collect::<Vec<_>>();
+        Model(m_t_upd)
     }
-
-    fn _get_v_t(&mut self, _delta_: &Model) -> Model {
-        todo!()
+    
+    fn get_v_t(&mut self, delta_t: &Model) -> Model {
+        let v_t_upd = delta_t
+            .iter()
+            .zip(self.features.v_t.iter())
+            .map(|(x1, x2)| {
+                x2.mul(self.base.params.get_beta_2())
+                    .add((x1.mul(x1)).mul(Ratio::<BigInt>::one().sub(self.base.params.get_beta_2())))
+            })
+            .collect::<Vec<_>>();
+        Model(v_t_upd)
     }
 }
 

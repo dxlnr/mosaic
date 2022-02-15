@@ -1,11 +1,10 @@
 pub mod features;
 pub mod traits;
 
-use num::{bigint::BigInt, rational::Ratio};
+use num::{bigint::BigInt, rational::Ratio, traits::Zero};
 use rayon::prelude::*;
 use std::ops::{Add, Mul};
 
-// use self::traits::{FedAdam, FedAvg};
 use crate::core::model::Model;
 
 use self::{
@@ -36,9 +35,6 @@ impl Aggregation {
 /// Parameters that fascilitate the aggregation schema.
 #[derive(Debug, Clone, Copy)]
 pub struct AggregationParams {
-    // pub delta_t: f64,
-    // pub m_t: f64,
-    // pub v_t: f64,
     /// Server-side learning rate. Defaults to 1e-1.
     pub eta: f64,
     /// Momentum parameter. Defaults to 0.9
@@ -58,9 +54,22 @@ impl AggregationParams {
             tau_t,
         }
     }
+    pub fn get_beta_1(&self) -> Ratio<BigInt> {
+        Ratio::from_float(self.beta_1).unwrap_or_else(Ratio::<BigInt>::zero)
+    }
+    pub fn get_beta_2(&self) -> Ratio<BigInt> {
+        Ratio::from_float(self.beta_2).unwrap_or_else(Ratio::<BigInt>::zero)
+    }
+    pub fn get_eta(&self) -> Ratio<BigInt> {
+        Ratio::from_float(self.eta).unwrap_or_else(Ratio::<BigInt>::zero)
+    }
+    pub fn get_tau_t(&self) -> Ratio<BigInt> {
+        Ratio::from_float(self.tau_t).unwrap_or_else(Ratio::<BigInt>::zero)
+    }
 }
 
 impl Default for AggregationParams {
+    /// Setting default values for the aggregation parameters.
     fn default() -> Self {
         Self {
             eta: 1e-1,

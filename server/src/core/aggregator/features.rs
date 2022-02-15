@@ -13,6 +13,8 @@ pub struct Features {
     pub stakes: Vec<u32>,
     /// stores the overall averaged vector of all messages.
     pub global: Model,
+    pub m_t: Model,
+    pub v_t: Model,
 }
 
 impl Features {
@@ -22,13 +24,17 @@ impl Features {
             locals,
             stakes,
             global: Default::default(),
+            m_t: Default::default(),
+            v_t: Default::default(),
         }
     }
-    pub fn new_model(global: Model) -> Self {
+    pub fn new_cached(global: Model, m_t: Model, v_t: Model) -> Self {
         Self {
             locals: Vec::new(),
             stakes: Vec::new(),
             global,
+            m_t,
+            v_t,
         }
     }
     /// Returns number of overall local models as Ratio<BigInt>
