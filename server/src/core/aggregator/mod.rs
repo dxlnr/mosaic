@@ -8,7 +8,10 @@ use std::ops::{Add, Mul};
 // use self::traits::{FedAdam, FedAvg};
 use crate::core::model::Model;
 
-use self::{features::Features, traits::{Strategy, Aggregator, FedAvg}};
+use self::{
+    features::Features,
+    traits::{Aggregator, FedAvg, Strategy},
+};
 
 #[derive(Debug)]
 pub enum Aggregation {
@@ -29,7 +32,6 @@ impl Aggregation {
         }
     }
 }
-
 
 /// Parameters that fascilitate the aggregation schema.
 #[derive(Debug, Clone, Copy)]

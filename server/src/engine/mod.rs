@@ -12,10 +12,7 @@ use thiserror::Error;
 use tracing::log::warn;
 
 use crate::{
-    core::{
-        // aggregator::{features::Features, Aggregation, traits::{Aggregator, FedAvg}},
-        model::{DataType, Model, ModelUpdate},
-    },
+    core::model::{DataType, Model, ModelUpdate},
     db::s3::{Client, StorageError},
     engine::{
         channel::{RequestReceiver, RequestSender},
@@ -88,7 +85,6 @@ impl EngineInitializer {
             .map_err(InitError::StorageInit)?;
 
         let shared = ServerState::new(
-            0,
             RoundParams::new(
                 self.process_settings.rounds,
                 self.process_settings.participants,
@@ -97,9 +93,6 @@ impl EngineInitializer {
             ),
             rx,
             publisher,
-            Model::default(),
-            // Features::default(),
-            // Aggregation::FedAvg(Aggregator::<FedAvg>::default()),
             store,
         );
         Ok((
@@ -118,23 +111,14 @@ impl EngineInitializer {
     }
 }
 
-
-/// Shared ['ServerState']
+/// Shared static ['ServerState']
 pub struct ServerState {
-    /// Keeps the actual training round updated and in cache.
-    pub round_id: u32,
     /// Information about the whole process cached in ['RoundParams'].
     pub round_params: RoundParams,
     /// Field for enabling receiving requests from the client.
     pub rx: RequestReceiver,
     /// Server publishes latest updates.
     pub publisher: Publisher,
-    // /// Holds the actual global model updated after each completed training round.
-    pub global_model: Model,
-    // /// Caches all the incoming messages and their respective data.
-    // pub features: Features,
-    // /// Facilitates the aggregation process.
-    // pub aggregation: Aggregation,
     /// Shared storage state. For now it is a s3 Client which holds the storage bucket.
     pub store: Client,
 }
@@ -142,31 +126,44 @@ pub struct ServerState {
 impl ServerState {
     /// Init new shared server state.
     pub fn new(
-        round_id: u32,
         round_params: RoundParams,
         rx: RequestReceiver,
         publisher: Publisher,
-        global_model: Model,
-        // aggregation: Aggregation,
-        // features: Features,
         store: Client,
     ) -> Self {
         ServerState {
-            round_id,
             round_params,
             rx,
             publisher,
-            global_model,
-            // aggregation,
-            // features,
             store,
+        }
+    }
+}
+
+/// ['Cache'] that holds the state from previous round in order to allow
+/// sensible aggregation.
+#[derive(Debug, Default)]
+pub struct Cache {
+    /// Keeps the actual training round updated and in cache.
+    pub round_id: u32,
+    /// Holds the actual global model updated after each completed training round.
+    pub global_model: Model,
+    /// Holds the m_t variable from the previous aggregation round.
+    pub m_t: Model,
+}
+impl Cache {
+    /// Init new shared server state.
+    pub fn new(round_id: u32, global_model: Model, m_t: Model) -> Self {
+        Self {
+            round_id,
+            global_model,
+            m_t,
         }
     }
     /// Sets the round ID to the given value.
     pub fn set_round_id(&mut self, id: u32) {
         self.round_id = id;
     }
-
     /// Returns the current round ID.
     pub fn round_id(&self) -> u32 {
         self.round_id
@@ -174,14 +171,23 @@ impl ServerState {
 }
 
 pub struct RoundParams {
+    /// States how many iterations should be made.
     pub training_rounds: u32,
+    /// Sets the amount of participants in each iteratioin.
     pub per_round_participants: u32,
+    /// Specifies the Data type of the model. Crucial for serde operations.
     pub dtype: DataType,
+    /// Sets the aggregation strategy.
     pub strategy: String,
 }
 
 impl RoundParams {
-    pub fn new(training_rounds: u32, per_round_participants: u32, dtype: DataType, strategy: String) -> Self {
+    pub fn new(
+        training_rounds: u32,
+        per_round_participants: u32,
+        dtype: DataType,
+        strategy: String,
+    ) -> Self {
         Self {
             training_rounds,
             per_round_participants,

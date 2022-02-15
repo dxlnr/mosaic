@@ -4,7 +4,7 @@ use crate::{
     core::model::ModelWrapper,
     engine::{
         states::{error::StateError, Collect, State, StateCondition, StateName},
-        Engine, ServerState,
+        Engine, ServerState, Cache,
     },
     db::traits::ModelStorage,
 };
@@ -28,7 +28,7 @@ impl State for StateCondition<Idle> {
         let model_wrapper = ModelWrapper::new(
             global.unwrap(),
             self.shared.round_params.dtype,
-            self.shared.round_id,
+            self.cache.round_id,
         );
         self.shared.publisher.broadcast_model(model_wrapper);
         Ok(())
@@ -40,7 +40,7 @@ impl State for StateCondition<Idle> {
         // } else {
         //     Some(StateCondition::<Collect>::new(self.shared).into())
         // }
-        Some(StateCondition::<Collect>::new(self.shared).into())
+        Some(StateCondition::<Collect>::new(self.shared, self.cache).into())
     }
 }
 
@@ -50,6 +50,7 @@ impl StateCondition<Idle> {
         Self {
             private: Idle,
             shared,
+            cache: Cache::default(),
         }
     }
 }

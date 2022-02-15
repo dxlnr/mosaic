@@ -3,13 +3,17 @@ use tracing::info;
 
 use crate::{
     core::{
-        aggregator::{features::Features, traits::{FedAvg, Aggregator}, Aggregation},
+        aggregator::{
+            features::Features,
+            traits::{Aggregator, FedAvg},
+            Aggregation,
+        },
         model::{DataType, Model, ModelWrapper},
     },
     db::traits::ModelStorage,
     engine::{
         states::{error::StateError, Collect, Handler, Shutdown, State, StateCondition, StateName},
-        Engine, ServerState,
+        Cache, Engine, ServerState,
     },
     proxy::message::Message,
     service::error::ServiceError,
@@ -17,7 +21,7 @@ use crate::{
 
 /// The Aggregate state.
 #[derive(Debug)]
-pub struct Aggregate{
+pub struct Aggregate {
     aggregation: Aggregation,
 }
 
@@ -31,48 +35,46 @@ where
     async fn perform(&mut self) -> Result<(), StateError> {
         self.aggregate();
 
-        let global = self.shared.global_model.clone();
+        let global = self.cache.global_model.clone();
         let model_wrapper =
-            ModelWrapper::new(global, self.shared.round_params.dtype, self.shared.round_id);
+            ModelWrapper::new(global, self.shared.round_params.dtype, self.cache.round_id);
         self.shared.publisher.broadcast_model(model_wrapper);
 
         info!(
             "updated global model in round {} was published.",
-            &self.shared.round_id
+            &self.cache.round_id
         );
         self.shared
             .store
-            .set_global_model(&Model::serialize(
-                &self.shared.global_model,
-                &DataType::F32,
-            ))
+            .set_global_model(&Model::serialize(&self.cache.global_model, &DataType::F32))
             .await
             .map_err(StateError::IdleError)?;
         Ok(())
     }
 
     async fn next(self) -> Option<Engine> {
-        if self.shared.round_id() > self.shared.round_params.training_rounds {
-            Some(StateCondition::<Shutdown>::new(self.shared).into())
+        if self.cache.round_id() > self.shared.round_params.training_rounds {
+            Some(StateCondition::<Shutdown>::new(self.shared, self.cache).into())
         } else {
-            Some(StateCondition::<Collect>::new(self.shared).into())
+            Some(StateCondition::<Collect>::new(self.shared, self.cache).into())
         }
     }
 }
 
 impl StateCondition<Aggregate> {
     /// Creates a new Aggregate state.
-    pub fn new(shared: ServerState, features: Features) -> Self {
-        println!("How many features are there? {:?}", &features.locals.len());
-        println!("The model? {:?}", &features.global.len());
+    pub fn new(shared: ServerState, cache: Cache, features: Features) -> Self {
         Self {
-            private: Aggregate { aggregation: Aggregation::FedAvg(Aggregator::<FedAvg>::new(features)) },
+            private: Aggregate {
+                aggregation: Aggregation::FedAvg(Aggregator::<FedAvg>::new(features)),
+            },
             shared,
+            cache,
         }
     }
     /// Aggreates all the features from collect state into the global model.
     pub fn aggregate(&mut self) {
-        self.shared.global_model = self.private.aggregation.aggregate();
+        self.cache.global_model = self.private.aggregation.aggregate();
     }
 }
 

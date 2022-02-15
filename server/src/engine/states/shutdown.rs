@@ -3,7 +3,7 @@ use tracing::debug;
 
 use crate::engine::{
     states::{error::StateError, State, StateCondition, StateName},
-    Engine, ServerState,
+    Cache, Engine, ServerState,
 };
 
 /// The shutdown state.
@@ -27,10 +27,11 @@ impl State for StateCondition<Shutdown> {
 
 impl StateCondition<Shutdown> {
     /// Creates a new idle state.
-    pub fn new(shared: ServerState) -> Self {
+    pub fn new(shared: ServerState, cache: Cache) -> Self {
         Self {
             private: Shutdown,
             shared,
+            cache,
         }
     }
 }

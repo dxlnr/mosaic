@@ -5,7 +5,7 @@ use tokio::signal;
 use tracing::{debug, info, warn};
 
 use crate::{
-    engine::{channel::ResponseSender, states::error::StateError, Engine, ServerState},
+    engine::{channel::ResponseSender, states::error::StateError, Cache, Engine, ServerState},
     proxy::message::Message,
     service::error::ServiceError,
 };
@@ -27,8 +27,7 @@ pub enum StateName {
 
 /// A trait that must be implemented by a state in order to perform its tasks and to move to a next state.
 #[async_trait]
-pub trait State
-{
+pub trait State {
     /// The name of the current state.
     const NAME: StateName;
 
@@ -44,6 +43,8 @@ pub struct StateCondition<S> {
     pub(in crate::engine) private: S,
     /// Some shared server state.
     pub shared: ServerState,
+    /// caching state.
+    pub cache: Cache,
 }
 
 impl<S> StateCondition<S>

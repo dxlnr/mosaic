@@ -4,7 +4,7 @@ use crate::{
     core::{aggregator::features::Features, model::Model},
     engine::{
         states::{error::StateError, Aggregate, Handler, State, StateCondition, StateName},
-        Engine, ServerState,
+        Cache, Engine, ServerState,
     },
     proxy::message::Message,
     service::error::ServiceError,
@@ -30,19 +30,22 @@ where
     }
 
     async fn next(self) -> Option<Engine> {
-        Some(StateCondition::<Aggregate>::new(self.shared, self.private.features).into())
+        Some(
+            StateCondition::<Aggregate>::new(self.shared, self.cache, self.private.features).into(),
+        )
     }
 }
 
 impl StateCondition<Collect> {
     /// Creates a new collect state.
-    pub fn new(mut shared: ServerState) -> Self {
-        shared.set_round_id(shared.round_id() + 1);
+    pub fn new(shared: ServerState, mut cache: Cache) -> Self {
+        cache.set_round_id(cache.round_id() + 1);
         Self {
             private: Collect {
-                features: Features::new_model(shared.global_model.clone()),
+                features: Features::new_model(cache.global_model.clone()),
             },
             shared,
+            cache,
         }
     }
     /// Add message to feature list.

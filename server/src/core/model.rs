@@ -7,7 +7,12 @@ use num::{
 };
 use rayon::prelude::*;
 use serde::{Deserialize, Serialize};
-use std::{io::ErrorKind, str::FromStr, sync::Arc, slice::{Iter, IterMut}};
+use std::{
+    io::ErrorKind,
+    slice::{Iter, IterMut},
+    str::FromStr,
+    sync::Arc,
+};
 use thiserror::Error;
 
 use crate::{proxy::server::mosaic::Parameters, service::error::ServiceError};

@@ -22,7 +22,6 @@ pub struct Message {
     // pub params: Params,
     /// Weighting factor that determines the proportion of the local to the global model.
     pub stake: u32,
-
 }
 
 impl Message {
