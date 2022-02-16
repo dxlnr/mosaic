@@ -30,3 +30,8 @@ docker run \
   quay.io/minio/minio server /data --console-address ":9001"
 ```
 More information: [MinIO Docker Quickstart Guide](https://docs.min.io/docs/minio-docker-quickstart-guide.html)
+
+## Open Issues
+- Keep an eye on FedAdam as update averaged model is used as xt. 
+- Implement clean aggregation strategy selection from config file (hardcoded at the moment).
+- Find a proper way to restrict the precision for the Rationals.

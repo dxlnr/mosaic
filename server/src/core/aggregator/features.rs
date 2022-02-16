@@ -36,10 +36,6 @@ impl Features {
             v_t,
         }
     }
-    // /// Returns number of overall local models as Rational
-    // pub fn number_of_local_feat(&self) -> Rational {
-    //     Ratio::from_integer(self.locals.len().to_bigint().unwrap())
-    // }
     /// Returns a list of factors that represents the stake of each model to the global model.
     /// Computed by the number of samples it is trained on.
     pub fn prep_stakes(&self) -> Vec<Rational> {

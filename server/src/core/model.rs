@@ -75,6 +75,20 @@ impl Model {
     pub fn iter_mut(&mut self) -> IterMut<Rational> {
         self.0.iter_mut()
     }
+    pub fn restrict_prec(&mut self) -> Model {
+        let tmp = self
+            .0
+            .iter()
+            .map(|x| x.to_f64())
+            .collect::<Vec<_>>()
+            .to_vec();
+        let res = tmp
+            .iter()
+            .map(|x| Rational::from_f64(*x).unwrap_or_else(Rational::new))
+            .collect::<Vec<_>>()
+            .to_vec();
+        Model(res)
+    }
     /// Conversion from bytes to Ratio for DataType F32
     fn from_bytes_array_f32(&mut self, bytes: Vec<u8>) {
         self.0 = bytes

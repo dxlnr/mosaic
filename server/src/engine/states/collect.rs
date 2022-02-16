@@ -42,7 +42,11 @@ impl StateCondition<Collect> {
         cache.set_round_id(cache.round_id() + 1);
         Self {
             private: Collect {
-                features: Features::new_cached(cache.global_model.clone(), cache.m_t.clone(), cache.v_t.clone()),
+                features: Features::new_cached(
+                    cache.global_model.clone(),
+                    cache.m_t.clone(),
+                    cache.v_t.clone(),
+                ),
             },
             shared,
             cache,

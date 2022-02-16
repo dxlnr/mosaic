@@ -20,7 +20,6 @@ pub enum Scheme {
 
 pub trait Strategy {
     const NAME: Scheme;
-
     /// Implementation of the aggregation algorithm based on the given strategy.
     fn aggregate(&mut self) -> (Model, Model, Model);
     /// Setting the features for each aggregation round.
@@ -85,7 +84,8 @@ impl Strategy for Aggregator<FedAdam> {
         let delta_t = self.get_delta_t(&upd_model);
         let m_t_upd = self.get_m_t(&delta_t);
         let v_t_upd = self.get_v_t(&delta_t);
-        let global = self.adjust(&m_t_upd, &v_t_upd);
+        // let global = self.adjust(&m_t_upd, &v_t_upd);
+        let global = self.adjust(&upd_model, &m_t_upd, &v_t_upd);
 
         (global, m_t_upd, v_t_upd)
     }
@@ -167,11 +167,9 @@ impl Aggregator<FedAdam> {
         Model(factor)
     }
     /// Computes new aggregated model.
-    fn adjust(&mut self, m_t: &Model, v_t: &Model) -> Model {
+    fn adjust(&mut self, upd_model: &Model, m_t: &Model, v_t: &Model) -> Model {
         let adj = self.get_adjustment(m_t, v_t);
-        let res = self
-            .features
-            .global
+        let res = upd_model
             .0
             .par_iter()
             .zip(adj.0.par_iter())
@@ -241,7 +239,30 @@ mod tests {
                 Rational::from_f32(10.0_f32).unwrap(),
             ])
         );
+    }
 
+    #[test]
+    fn test_get_m_t() {
+        let feats = Features {
+            global: Model(vec![
+                Rational::from_f32(2.0_f32).unwrap(),
+                Rational::from_f32(2.0_f32).unwrap(),
+                Rational::from_f32(2.0_f32).unwrap(),
+                Rational::from_f32(2.0_f32).unwrap(),
+            ]),
+            ..Default::default()
+        };
+
+        let upd_model = Model(vec![
+            Rational::from_f32(12.0_f32).unwrap(),
+            Rational::from_f32(12.0_f32).unwrap(),
+            Rational::from_f32(12.0_f32).unwrap(),
+            Rational::from_f32(12.0_f32).unwrap(),
+        ]);
+
+        let mut aggr = Aggregator::<FedAdam>::new(Baseline::default(), feats);
+
+        let delta_t = aggr.get_delta_t(&upd_model);
         let m_t_upd = aggr.get_m_t(&delta_t);
 
         assert_eq!(
@@ -254,4 +275,85 @@ mod tests {
             ])
         );
     }
+
+    #[test]
+    fn test_get_v_t() {
+        let feats = Features {
+            global: Model(vec![
+                Rational::from_f32(2.0_f32).unwrap(),
+                Rational::from_f32(2.0_f32).unwrap(),
+                Rational::from_f32(2.0_f32).unwrap(),
+                Rational::from_f32(2.0_f32).unwrap(),
+            ]),
+            ..Default::default()
+        };
+
+        let upd_model = Model(vec![
+            Rational::from_f32(12.0_f32).unwrap(),
+            Rational::from_f32(12.0_f32).unwrap(),
+            Rational::from_f32(12.0_f32).unwrap(),
+            Rational::from_f32(12.0_f32).unwrap(),
+        ]);
+
+        let mut aggr = Aggregator::<FedAdam>::new(Baseline::default(), feats);
+
+        let delta_t = aggr.get_delta_t(&upd_model);
+        let v_t_upd = aggr.get_v_t(&delta_t);
+
+        assert_eq!(
+            v_t_upd,
+            Model(vec![
+                Rational::from((1, 1)),
+                Rational::from((1, 1)),
+                Rational::from((1, 1)),
+                Rational::from((1, 1)),
+            ])
+        );
+    }
+
+    #[test]
+    fn test_adj_fac() {
+        let feats = Features::default();
+        let mut aggr = Aggregator::<FedAdam>::new(Baseline::default(), feats);
+
+        let m_t_upd = Model(vec![
+            Rational::from_f32(1.0_f32).unwrap(),
+            Rational::from_f32(1.0_f32).unwrap(),
+            Rational::from_f32(1.0_f32).unwrap(),
+            Rational::from_f32(1.0_f32).unwrap(),
+        ]);
+        let v_t_upd = Model(vec![
+            Rational::from_f32(1.0_f32).unwrap(),
+            Rational::from_f32(1.0_f32).unwrap(),
+            Rational::from_f32(1.0_f32).unwrap(),
+            Rational::from_f32(1.0_f32).unwrap(),
+        ]);
+
+        let adjust_fac = aggr.get_adjustment(&m_t_upd, &v_t_upd);
+
+        assert_eq!(
+            adjust_fac,
+            Model(vec![
+                Rational::from_f32(0.1_f32).unwrap(),
+                Rational::from_f32(0.1_f32).unwrap(),
+                Rational::from_f32(0.1_f32).unwrap(),
+                Rational::from_f32(0.1_f32).unwrap(),
+            ])
+        );
+    }
+
+    // #[test]
+    // fn test_final_model() {
+    //     let _final_model = aggr.adjust(&m_t_upd, &v_t_upd);
+
+    //     assert_eq!(
+    //         final_model,
+    //         Model(vec![
+    //             Rational::from_f32(0.1_f32).unwrap(),
+    //             Rational::from_f32(0.1_f32).unwrap(),
+    //             Rational::from_f32(0.1_f32).unwrap(),
+    //             Rational::from_f32(0.1_f32).unwrap(),
+    //         ])
+    //     );
+    // }
 }
