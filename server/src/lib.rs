@@ -3,6 +3,6 @@ pub mod core;
 pub mod db;
 pub mod engine;
 pub mod proxy;
+pub mod rest;
 pub mod service;
 pub mod settings;
-pub mod rest;

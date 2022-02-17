@@ -8,7 +8,7 @@ use tonic::{transport::Server, Code, Request, Response, Status};
 
 use crate::{
     core::model::ModelUpdate,
-    service::{error::ServiceError, fetch::{Fetcher, Fetch}, messages::MessageHandler},
+    service::{error::ServiceError, fetch::Fetch, messages::MessageHandler},
     settings::APISettings,
 };
 
@@ -48,16 +48,12 @@ where
     }
     /// Handles the request for the latest global model from the ['Engine'].
     async fn handle_model(mut fetcher: F) -> Result<ModelUpdate, ServiceError> {
-        // fetcher
-        //     .fetch()
-        //     .await
-        //     .map_err(|_| Error::new(ErrorKind::Other, "failed to fetch model."))
         Ok(fetcher.fetch_model().await?)
     }
 }
 
 #[tonic::async_trait]
-impl<F> Communication for Communicator<F> 
+impl<F> Communication for Communicator<F>
 where
     F: Fetch + Sync + Send + 'static + Clone,
 {
@@ -70,9 +66,10 @@ where
             request.remote_addr().unwrap()
         );
         let fetch = self.fetcher.clone();
-        let res = Communicator::handle_model(fetch)
-            .await
-            .map_err(|e| Status::new(Code::Internal, e.to_string()))?;
+        let res = Communicator::handle_model(fetch).await.map_err(|e| {
+            warn!("Returning the global model failed: {:?}", e);
+            Status::new(Code::Internal, e.to_string())
+        })?;
 
         let server_msg = mosaic::ServerModel {
             parameters: res.map(|r| r.wrapper_to_params()),
@@ -102,10 +99,10 @@ where
 }
 
 pub async fn start<F>(
-    api_settings: APISettings,
+    api_settings: &APISettings,
     message_handler: MessageHandler,
     fetcher: F,
-) -> Result<(), Box<dyn std::error::Error>> 
+) -> Result<(), Box<dyn std::error::Error>>
 where
     F: Fetch + Sync + Send + 'static + Clone,
 {

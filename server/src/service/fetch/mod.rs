@@ -5,8 +5,13 @@ use futures::future::poll_fn;
 use std::task::{Context, Poll};
 use tower::{layer::Layer, Service, ServiceBuilder};
 
-use self::model::{ModelService, ModelRequest};
-use crate::{core::model::ModelUpdate, engine::watch::Subscriber, service::error::{ServiceError, into_service_error}, rest::stats::StatsUpdate};
+use self::model::{ModelRequest, ModelService};
+use crate::{
+    core::model::ModelUpdate,
+    engine::watch::Subscriber,
+    rest::stats::StatsUpdate,
+    service::error::{into_service_error, ServiceError},
+};
 
 /// An interface for retrieving data from running engine process.
 #[async_trait]
@@ -24,7 +29,7 @@ pub struct Fetcher<M> {
 }
 
 #[async_trait]
-impl<M> Fetch for Fetcher<M> 
+impl<M> Fetch for Fetcher<M>
 where
     Self: Send + Sync + 'static,
 
@@ -36,9 +41,14 @@ where
         todo!()
     }
     async fn fetch_model(&mut self) -> Result<ModelUpdate, ServiceError> {
-        poll_fn(|cx| <M as Service<ModelRequest>>::poll_ready(&mut self.model_service, cx)).await.map_err(into_service_error)?;
-        Ok(self.model_service.call(ModelRequest).await.map_err(into_service_error)?)
-        // todo!()
+        poll_fn(|cx| <M as Service<ModelRequest>>::poll_ready(&mut self.model_service, cx))
+            .await
+            .map_err(into_service_error)?;
+        Ok(self
+            .model_service
+            .call(ModelRequest)
+            .await
+            .map_err(into_service_error)?)
     }
 }
 
@@ -56,9 +66,7 @@ where
 
 impl<M> Fetcher<M> {
     pub fn new(model_service: M) -> Self {
-        Self {
-            model_service,
-        }
+        Self { model_service }
     }
 }
 
@@ -93,7 +101,6 @@ impl<S> Layer<S> for FetcherLayer {
 
 /// Construct a [`Fetcher`] service
 pub fn init_fetcher(subs: &Subscriber) -> impl Fetch + Sync + Send + Clone + 'static {
-
     let model = ServiceBuilder::new()
         .buffer(100)
         .concurrency_limit(100)

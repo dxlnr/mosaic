@@ -5,7 +5,11 @@ use futures::{
 use std::task::Poll;
 use tower::Service;
 
-use crate::{core::model::ModelUpdate, engine::watch::{Subscriber, Listener}, service::error::ServiceError};
+use crate::{
+    core::model::ModelUpdate,
+    engine::watch::{Listener, Subscriber},
+    service::error::ServiceError,
+};
 
 /// [`ModelService`]'s request type
 #[derive(Default, Clone, Eq, PartialEq, Debug)]

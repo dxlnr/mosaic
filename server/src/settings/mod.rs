@@ -60,7 +60,7 @@ pub struct LogSettings {
 pub struct APISettings {
     /// Defines the static IP address for the communication server.
     /// The communication server enables clients to interact via the grpc protocol.
-    /// 
+    ///
     /// # Example
     ///
     /// **TOML**
@@ -70,7 +70,7 @@ pub struct APISettings {
     /// ```
     pub address: std::net::SocketAddr,
     /// Defines the Rest API where the server exposes data from the running process.
-    /// 
+    ///
     /// # Example
     ///
     /// **TOML**
@@ -85,7 +85,7 @@ pub struct APISettings {
 pub struct ModelSettings {
     pub length: usize,
     /// The DataType the model is encoded with.
-    /// 
+    ///
     /// Options that are available: F64 & F32
     /// # Example
     ///
@@ -128,7 +128,7 @@ pub struct S3Settings {
     #[serde(deserialize_with = "deserialize_s3_region")]
     pub region: Region,
     /// Bucket name that should be targeted.
-    ///  
+    ///
     /// # Example
     ///
     /// **TOML**
@@ -138,7 +138,7 @@ pub struct S3Settings {
     /// ```
     pub bucket: String,
     /// Name of the overall global model.
-    /// 
+    ///
     /// # Example
     ///
     /// **TOML**
@@ -147,7 +147,6 @@ pub struct S3Settings {
     /// global_model = "cnn_global"
     /// ```
     pub global_model: String,
-    
 }
 
 // https://serde.rs/impl-deserialize.html

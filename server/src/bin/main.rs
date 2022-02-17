@@ -8,9 +8,9 @@ use std::{path::PathBuf, process};
 use server::{
     engine::EngineInitializer,
     proxy::server::start,
+    rest::serve,
     service::{fetch::init_fetcher, messages::MessageHandler},
     settings::{LogSettings, Settings},
-    rest::serve,
 };
 use structopt::StructOpt;
 use tokio::signal;
@@ -46,7 +46,6 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
             .init()
             .await?;
     let message_handler = MessageHandler::new(tx);
-    // let fetcher = Fetcher::new(subscriber);
     let fetcher = init_fetcher(&subscriber);
 
     tokio::select! {
@@ -56,7 +55,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         _ = engine.run() => {
             warn!("Training finished: Terminating the engine.")
         }
-        rest = serve(api_settings.clone()) => {
+        rest = serve(&api_settings, fetcher.clone()) => {
             match rest {
                 Ok(()) => warn!("Shutting down: rest http server terminated."),
                 Err(_) => {
@@ -64,7 +63,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                 },
             }
         }
-        result = start(api_settings, message_handler, fetcher) => {
+        result = start(&api_settings, message_handler, fetcher) => {
             match result {
                 Ok(()) => warn!("Shutting down: gRPC server terminated."),
                 Err(_error) => {
