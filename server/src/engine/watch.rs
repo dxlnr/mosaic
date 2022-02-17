@@ -21,8 +21,8 @@ pub struct Publisher {
 
 impl Publisher {
     pub fn new(model: ModelUpdate, stats: StatsUpdate) -> (Publisher, Subscriber) {
-        let (model_tx, model_rx) = watch::channel::<Event<ModelUpdate>>(Event  { event: model });
-        let (stats_tx, stats_rx) = watch::channel::<Event<StatsUpdate>>(Event  { event: stats });
+        let (model_tx, model_rx) = watch::channel::<Event<ModelUpdate>>(Event { event: model });
+        let (stats_tx, stats_rx) = watch::channel::<Event<StatsUpdate>>(Event { event: stats });
         let publisher = Publisher {
             tx_model: Broadcast(model_tx),
             tx_stats: Broadcast(stats_tx),
@@ -59,8 +59,8 @@ pub struct Subscriber {
 impl Subscriber {
     /// Get a listener for new model events
     pub fn get_listener_model(&self) -> Listener<ModelUpdate> {
-       self.rx_model.clone()
-   }
+        self.rx_model.clone()
+    }
 
     pub fn get_listener_stats(&self) -> Listener<StatsUpdate> {
         self.rx_stats.clone()

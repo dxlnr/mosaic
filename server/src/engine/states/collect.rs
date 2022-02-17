@@ -26,6 +26,8 @@ where
 
     async fn perform(&mut self) -> Result<(), StateError> {
         self.process().await?;
+
+        self.shared.publisher.broadcast_stats(Some(self.cache.stats.clone()));
         Ok(())
     }
 

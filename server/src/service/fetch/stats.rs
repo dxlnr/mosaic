@@ -5,6 +5,12 @@ use futures::{
 use std::task::Poll;
 use tower::Service;
 
+use crate::{
+    engine::watch::{Listener, Subscriber},
+    rest::stats::StatsUpdate,
+    service::error::ServiceError,
+};
+
 /// [`ModelService`]'s request type
 #[derive(Default, Clone, Eq, PartialEq, Debug)]
 pub struct StatsRequest;
@@ -19,8 +25,8 @@ impl StatsService {
     }
 }
 
-impl Service<ModelRequest> for StatsService {
-    type Response = ModelUpdate;
+impl Service<StatsRequest> for StatsService {
+    type Response = StatsUpdate;
     type Error = ServiceError;
     type Future = Ready<Result<Self::Response, Self::Error>>;
 
@@ -28,7 +34,7 @@ impl Service<ModelRequest> for StatsService {
         Poll::Ready(Ok(()))
     }
 
-    fn call(&mut self, _req: ModelRequest) -> Self::Future {
-        future::ready(Ok(self.subscriber.rx.recv()))
+    fn call(&mut self, _req: StatsRequest) -> Self::Future {
+        future::ready(Ok(self.0.recv().event))
     }
 }

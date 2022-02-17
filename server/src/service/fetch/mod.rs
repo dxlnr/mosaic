@@ -1,11 +1,15 @@
 mod model;
+mod stats;
 
 use async_trait::async_trait;
 use futures::future::poll_fn;
 use std::task::{Context, Poll};
 use tower::{layer::Layer, Service, ServiceBuilder};
 
-use self::model::{ModelRequest, ModelService};
+use self::{
+    model::{ModelRequest, ModelService},
+    stats::{StatsRequest, StatsService},
+};
 use crate::{
     core::model::ModelUpdate,
     engine::watch::Subscriber,
@@ -24,21 +28,33 @@ pub trait Fetch {
 }
 
 #[derive(Debug, Clone)]
-pub struct Fetcher<M> {
+pub struct Fetcher<M, S> {
     pub model_service: M,
+    pub stats_service: S,
 }
 
 #[async_trait]
-impl<M> Fetch for Fetcher<M>
+impl<M, S> Fetch for Fetcher<M, S>
 where
     Self: Send + Sync + 'static,
 
     M: Service<ModelRequest, Response = ModelUpdate> + Send + 'static,
     <M as Service<ModelRequest>>::Future: Send + Sync + 'static,
     <M as Service<ModelRequest>>::Error: Into<Box<dyn std::error::Error + 'static + Sync + Send>>,
+
+    S: Service<StatsRequest, Response = StatsUpdate> + Send + 'static,
+    <S as Service<StatsRequest>>::Future: Send + Sync + 'static,
+    <S as Service<StatsRequest>>::Error: Into<Box<dyn std::error::Error + 'static + Sync + Send>>,
 {
     async fn fetch_stats(&mut self) -> Result<StatsUpdate, ServiceError> {
-        todo!()
+        poll_fn(|cx| <S as Service<StatsRequest>>::poll_ready(&mut self.stats_service, cx))
+            .await
+            .map_err(into_service_error)?;
+        Ok(self
+            .stats_service
+            .call(StatsRequest)
+            .await
+            .map_err(into_service_error)?)
     }
     async fn fetch_model(&mut self) -> Result<ModelUpdate, ServiceError> {
         poll_fn(|cx| <M as Service<ModelRequest>>::poll_ready(&mut self.model_service, cx))
@@ -52,21 +68,12 @@ where
     }
 }
 
-// impl Fetcher {
-//     pub fn new(rx: Subscriber) -> Self {
-//         Fetcher {
-//             model_service: ModelService::new(&rx),
-//         }
-//     }
-//     pub async fn fetch(&mut self) -> Result<ModelUpdate, ServiceError> {
-//         poll_fn(|cx| self.model_service.poll_ready(cx)).await?;
-//         self.model_service.call(ModelRequest).await
-//     }
-// }
-
-impl<M> Fetcher<M> {
-    pub fn new(model_service: M) -> Self {
-        Self { model_service }
+impl<M, S> Fetcher<M, S> {
+    pub fn new(model_service: M, stats_service: S) -> Self {
+        Self {
+            model_service,
+            stats_service,
+        }
     }
 }
 
@@ -107,5 +114,11 @@ pub fn init_fetcher(subs: &Subscriber) -> impl Fetch + Sync + Send + Clone + 'st
         .layer(FetcherLayer)
         .service(ModelService::new(subs));
 
-    Fetcher::new(model)
+    let stats = ServiceBuilder::new()
+        .buffer(100)
+        .concurrency_limit(100)
+        .layer(FetcherLayer)
+        .service(StatsService::new(subs));
+
+    Fetcher::new(model, stats)
 }
