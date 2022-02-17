@@ -1,3 +1,5 @@
+pub mod stats;
+
 use std::convert::Infallible;
 use warp::{Filter, Reply};
 

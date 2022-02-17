@@ -5,18 +5,15 @@ use futures::{
 use std::task::Poll;
 use tower::Service;
 
-use crate::{core::model::ModelUpdate, engine::watch::Subscriber, service::{error::ServiceError, fetch::ModelRequest}};
+use crate::{core::model::ModelUpdate, engine::watch::{Subscriber, Listener}, service::{error::ServiceError, fetch::ModelRequest}};
 
 #[derive(Debug, Clone)]
-pub struct ModelService {
-    pub subscriber: Subscriber,
-}
+pub struct ModelService(Listener<ModelUpdate>);
 
 impl ModelService {
-    /// Create a new (tower) service with the a handler for returning
-    /// a global model to the client.
-    pub fn new(subscriber: Subscriber) -> Self {
-        Self { subscriber }
+    /// Create a new (tower) service with the a handler for returning a global model to the client.
+    pub fn new(subs: &Subscriber) -> Self {
+        Self(subs.get_listener_model())
     }
 }
 
@@ -30,6 +27,6 @@ impl Service<ModelRequest> for ModelService {
     }
 
     fn call(&mut self, _req: ModelRequest) -> Self::Future {
-        future::ready(Ok(self.subscriber.rx.recv()))
+        future::ready(Ok(self.0.recv().event))
     }
 }

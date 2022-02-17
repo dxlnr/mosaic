@@ -76,7 +76,7 @@ pub struct APISettings {
     /// **TOML**
     /// ```text
     /// [api]
-    /// rest_api = "127.0.0.1:5000"
+    /// rest_api = "127.0.0.1:8000"
     /// ```
     pub rest_api: std::net::SocketAddr,
 }

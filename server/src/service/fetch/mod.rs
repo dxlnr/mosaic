@@ -17,7 +17,7 @@ pub struct Fetcher {
 impl Fetcher {
     pub fn new(rx: Subscriber) -> Self {
         Fetcher {
-            model_service: ModelService::new(rx),
+            model_service: ModelService::new(&rx),
         }
     }
     pub async fn fetch(&mut self) -> Result<ModelUpdate, ServiceError> {
