@@ -10,3 +10,10 @@
 //     });
 //     Ok(warp::reply())
 // }
+
+/// process statistics update event.
+pub type StatsUpdate = Option<Stats>;
+
+pub struct Stats {
+    pub loss: Vec<f32>,
+}

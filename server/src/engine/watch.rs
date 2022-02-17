@@ -42,7 +42,7 @@ impl Publisher {
     }
 }
 
-/// The ['Subscriber'] holds event listeners for every generic purpose.
+/// The [`Subscriber`] holds event listeners for every generic purpose.
 #[derive(Debug, Clone)]
 pub struct Subscriber {
     pub rx_model: Listener<ModelUpdate>,

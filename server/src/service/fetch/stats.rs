@@ -5,7 +5,7 @@ use futures::{
 use std::task::Poll;
 use tower::Service;
 
-pub struct StatsService(EventListener<DictionaryUpdate<SumDict>>);
+pub struct StatsService(Listener<StatsUpdate>);
 
 impl StatsService {
     /// Create a new (tower) service for broadcasting the running process statistics.

@@ -8,7 +8,7 @@ use std::{path::PathBuf, process};
 use server::{
     engine::EngineInitializer,
     proxy::server::start,
-    service::{fetch::Fetcher, messages::MessageHandler},
+    service::{fetch::init_fetcher, messages::MessageHandler},
     settings::{LogSettings, Settings},
     rest::serve,
 };
@@ -46,7 +46,8 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
             .init()
             .await?;
     let message_handler = MessageHandler::new(tx);
-    let fetcher = Fetcher::new(subscriber);
+    // let fetcher = Fetcher::new(subscriber);
+    let fetcher = init_fetcher(&subscriber);
 
     tokio::select! {
         biased;

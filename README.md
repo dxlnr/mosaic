@@ -35,3 +35,4 @@ More information: [MinIO Docker Quickstart Guide](https://docs.min.io/docs/minio
 - Keep an eye on FedAdam as update averaged model is used as xt. 
 - Implement clean aggregation strategy selection from config file (hardcoded at the moment).
 - Find a proper way to restrict the precision for the Rationals.
+- Add metadata to the stored objects (especially to global model)

@@ -8,7 +8,7 @@ use tonic::{transport::Server, Code, Request, Response, Status};
 
 use crate::{
     core::model::ModelUpdate,
-    service::{error::ServiceError, fetch::Fetcher, messages::MessageHandler},
+    service::{error::ServiceError, fetch::{Fetcher, Fetch}, messages::MessageHandler},
     settings::APISettings,
 };
 
@@ -21,16 +21,19 @@ use mosaic::communication_server::{Communication, CommunicationServer};
 use mosaic::{ClientMessage, ClientUpdate, Parameters, ServerMessage, ServerModel};
 
 #[derive(Debug, Clone)]
-pub struct Communicator {
+pub struct Communicator<F> {
     /// Shared handle for passing messages from participant to engine.
     handler: MessageHandler,
     /// Shared fetcher for passing messages from engine to client.
-    fetcher: Fetcher,
+    fetcher: F,
 }
 
-impl Communicator {
+impl<F> Communicator<F>
+where
+    F: Fetch + Sync + Send + 'static + Clone,
+{
     /// Constructs a new CommunicationServer
-    fn new(handler: MessageHandler, fetcher: Fetcher) -> Self {
+    fn new(handler: MessageHandler, fetcher: F) -> Self {
         Communicator { handler, fetcher }
     }
     /// Forwards the incoming request to the ['Engine'].
@@ -44,17 +47,20 @@ impl Communicator {
         Ok(())
     }
     /// Handles the request for the latest global model from the ['Engine'].
-    async fn handle_model(mut fetcher: Fetcher) -> Result<ModelUpdate, ServiceError> {
+    async fn handle_model(mut fetcher: F) -> Result<ModelUpdate, ServiceError> {
         // fetcher
         //     .fetch()
         //     .await
         //     .map_err(|_| Error::new(ErrorKind::Other, "failed to fetch model."))
-        Ok(fetcher.fetch().await?)
+        Ok(fetcher.fetch_model().await?)
     }
 }
 
 #[tonic::async_trait]
-impl Communication for Communicator {
+impl<F> Communication for Communicator<F> 
+where
+    F: Fetch + Sync + Send + 'static + Clone,
+{
     async fn get_global_model(
         &self,
         request: Request<ClientMessage>,
@@ -83,7 +89,7 @@ impl Communication for Communicator {
             &request.remote_addr().unwrap()
         );
         let handle = self.handler.clone();
-        let res = Communicator::handle_message(request.into_inner().clone(), handle).await;
+        let res = Communicator::<F>::handle_message(request.into_inner().clone(), handle).await;
 
         let server_msg = mosaic::ServerMessage {
             status: match res {
@@ -95,11 +101,14 @@ impl Communication for Communicator {
     }
 }
 
-pub async fn start(
+pub async fn start<F>(
     api_settings: APISettings,
     message_handler: MessageHandler,
-    fetcher: Fetcher,
-) -> Result<(), Box<dyn std::error::Error>> {
+    fetcher: F,
+) -> Result<(), Box<dyn std::error::Error>> 
+where
+    F: Fetch + Sync + Send + 'static + Clone,
+{
     info!("Communication Server listening on {}", api_settings.address);
 
     let com = Communicator::new(message_handler, fetcher);
