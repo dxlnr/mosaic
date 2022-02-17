@@ -18,6 +18,7 @@ use crate::{
         channel::{RequestReceiver, RequestSender},
         states::{Aggregate, Collect, Idle, Shutdown, StateCondition},
     },
+    rest::stats::{Stats, StatsUpdate},
     settings::{ModelSettings, ProcessSettings, S3Settings},
 };
 
@@ -77,7 +78,7 @@ impl EngineInitializer {
     }
     /// Initializes the engine and the communication handler.
     pub async fn init(self) -> Result<(Engine, RequestSender, Subscriber), InitError> {
-        let (publisher, subscriber) = Publisher::new(ModelUpdate::None);
+        let (publisher, subscriber) = Publisher::new(ModelUpdate::None, StatsUpdate::None);
         let (rx, tx) = RequestSender::new();
         let store = self
             .init_storage(self.s3_settings.clone())
@@ -152,15 +153,18 @@ pub struct Cache {
     pub m_t: Model,
     /// Holds the v_t variable from the previous aggregation round.
     pub v_t: Model,
+    /// Holds all the metrics during the engine fascilitats the federated learning process.
+    pub stats: Stats,
 }
 impl Cache {
     /// Init new shared server state.
-    pub fn new(round_id: u32, global_model: Model, m_t: Model, v_t: Model) -> Self {
+    pub fn new(round_id: u32, global_model: Model, m_t: Model, v_t: Model, stats: Stats) -> Self {
         Self {
             round_id,
             global_model,
             m_t,
             v_t,
+            stats,
         }
     }
     /// Sets the round ID to the given value.

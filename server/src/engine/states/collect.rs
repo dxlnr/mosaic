@@ -59,6 +59,8 @@ impl StateCondition<Collect> {
 
         self.private.features.locals.push(local_model);
         self.private.features.stakes.push(req.stake);
+
+        self.cache.stats.loss.push(req.loss);
         Ok(())
     }
 }

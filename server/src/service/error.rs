@@ -8,6 +8,8 @@ pub enum ServiceError {
     ParsingError(String),
     /// Error while trying to read parameters.
     ParamsError,
+    /// Error while trying to read the process meta data.
+    MetaDataError,
     /// Error while sending a request to the engine.
     RequestError,
     /// Internal error: {0}

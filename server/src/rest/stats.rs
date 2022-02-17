@@ -14,6 +14,7 @@
 /// process statistics update event.
 pub type StatsUpdate = Option<Stats>;
 
+#[derive(Default, Debug, Clone, PartialEq)]
 pub struct Stats {
     pub loss: Vec<f32>,
 }

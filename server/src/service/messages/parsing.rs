@@ -19,6 +19,7 @@ impl MessageParser {
 
     fn parse(req: ClientUpdate) -> Result<Message, ServiceError> {
         let params = req.parameters.ok_or(ServiceError::ParamsError)?;
+        let process_meta = req.process_meta.ok_or(ServiceError::MetaDataError)?;
         let dtype = DataType::from_str(&params.data_type)?;
         Ok(Message::new(
             req.id,
@@ -26,6 +27,7 @@ impl MessageParser {
             params.tensor,
             dtype,
             req.stake,
+            process_meta.loss,
         ))
     }
 }

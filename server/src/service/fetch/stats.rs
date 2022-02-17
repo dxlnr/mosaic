@@ -5,12 +5,17 @@ use futures::{
 use std::task::Poll;
 use tower::Service;
 
+/// [`ModelService`]'s request type
+#[derive(Default, Clone, Eq, PartialEq, Debug)]
+pub struct StatsRequest;
+
+#[derive(Debug, Clone)]
 pub struct StatsService(Listener<StatsUpdate>);
 
 impl StatsService {
     /// Create a new (tower) service for broadcasting the running process statistics.
-    pub fn new(subscriber: Subscriber) -> Self {
-        Self { subscriber }
+    pub fn new(subs: &Subscriber) -> Self {
+        Self(subs.get_listener_stats())
     }
 }
 

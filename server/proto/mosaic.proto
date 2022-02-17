@@ -16,6 +16,13 @@ message Parameters {
   uint32 model_version = 3;
 }
 
+message ProcessMeta {
+  // Current trainings round.
+  uint32 round_id = 1;
+  // Local running loss for the current trainings round.
+  float	loss = 2;
+}
+
 message ServerMessage {
   uint32 status = 1;
 }
@@ -38,6 +45,8 @@ message ClientUpdate {
   Parameters parameters = 2;
   // Weight factor: number of samples the current local model was trained on.
   uint32 stake = 3;
+  // Meta data within the local training process.
+  ProcessMeta process_meta = 4;
 }
 
 // message Status {
