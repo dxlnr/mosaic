@@ -58,7 +58,8 @@ pub struct LogSettings {
 
 #[derive(Debug, Deserialize, Clone)]
 pub struct APISettings {
-    /// Defines the static IP address for the server.
+    /// Defines the static IP address for the communication server.
+    /// The communication server enables clients to interact via the grpc protocol.
     /// 
     /// # Example
     ///
@@ -68,6 +69,16 @@ pub struct APISettings {
     /// address = "127.0.0.1:8081"
     /// ```
     pub address: std::net::SocketAddr,
+    /// Defines the Rest API where the server exposes data from the running process.
+    /// 
+    /// # Example
+    ///
+    /// **TOML**
+    /// ```text
+    /// [api]
+    /// rest_api = "127.0.0.1:5000"
+    /// ```
+    pub rest_api: std::net::SocketAddr,
 }
 
 #[derive(Debug, Deserialize, Clone)]

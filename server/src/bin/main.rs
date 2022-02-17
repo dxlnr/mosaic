@@ -10,6 +10,7 @@ use server::{
     proxy::server::start,
     service::{fetch::Fetcher, messages::MessageHandler},
     settings::{LogSettings, Settings},
+    rest::serve,
 };
 use structopt::StructOpt;
 use tokio::signal;
@@ -54,11 +55,19 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         _ = engine.run() => {
             warn!("Training finished: Terminating the engine.")
         }
+        rest = serve(api_settings.clone()) => {
+            match rest {
+                Ok(()) => warn!("Shutting down: rest http server terminated."),
+                Err(_) => {
+                    warn!("Shutting down the rest http server as an error occured.");
+                },
+            }
+        }
         result = start(api_settings, message_handler, fetcher) => {
             match result {
                 Ok(()) => warn!("Shutting down: gRPC server terminated."),
                 Err(_error) => {
-                    warn!("Shutting down the server as an error occured.");
+                    warn!("Shutting down the gRPC server as an error occured.");
                 },
             }
         }

@@ -5,3 +5,4 @@ pub mod engine;
 pub mod proxy;
 pub mod service;
 pub mod settings;
+pub mod rest;
