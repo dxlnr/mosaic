@@ -4,7 +4,6 @@ use serde_json::json;
 use std::convert::Infallible;
 use tracing::warn;
 use warp::{
-    http::{Response, StatusCode},
     reply::Reply,
     Filter,
 };
@@ -16,21 +15,15 @@ async fn fetch_stats<F: Fetch>(mut fetcher: F) -> Result<impl warp::Reply, Infal
     Ok(match fetcher.fetch_stats().await {
         Err(e) => {
             warn!("fetching the process metrics failed: {:?}", e);
-            Response::builder()
-                .status(StatusCode::INTERNAL_SERVER_ERROR)
-                .body(json!(&{}).to_string())
-                .unwrap()
+            warp::reply::json(&{}).into_response()
         }
-        Ok(None) => Response::builder()
-            .status(StatusCode::NO_CONTENT)
-            .body(json!(&{}).to_string())
-            .unwrap(),
+        Ok(None) => {
+            warn!("no stats data available that can be exposed.");
+            warp::reply::json(&{}).into_response()
+        }
         Ok(Some(stats)) => {
-            let res = serde_json::to_string(&stats).unwrap();
-            Response::builder()
-                .status(StatusCode::OK)
-                .body(json!(&res).to_string())
-                .unwrap()
+            let res = json!(&stats);
+            warp::reply::json(&res).into_response()
         }
     })
 }
