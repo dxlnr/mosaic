@@ -9,7 +9,7 @@ ENV CONFIG_TOML=
 
 
 RUN rustup component add rustfmt
-
+RUN cargo build --release
 
 CMD ["sh", "-c", "./run.sh"]
 
