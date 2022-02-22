@@ -11,6 +11,8 @@ pub enum StateError {
     IdleError(StorageError),
     /// Request channel error: {0}.
     RequestChannel(&'static str),
-    /// Some error in the Aggregation state.
-    Aggregation,
+    /// Some error in the Aggregation state: {0}.
+    AggregationError(StorageError),
+    /// Error while trying to send a post request.
+    PostRequest,
 }

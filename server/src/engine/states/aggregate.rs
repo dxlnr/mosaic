@@ -48,13 +48,9 @@ where
             .store
             .set_global_model(&Model::serialize(&self.cache.global_model, &DataType::F32))
             .await
-            .map_err(StateError::IdleError)?;
+            .map_err(StateError::AggregationError)?;
 
-        // self.shared.
-        // let client_test = reqwest::Client::new();
-        // client_test.post("http://backend:5000/api/create_communication_rounds/create_communication_round").json(&json!(&self.cache.stats)).send().await.map_err(|_| StateError::Aggregation)?;
-
-        self.shared.http_client.release_stats(&self.cache.stats).await.map_err(|e| {
+        let _ = self.shared.http_client.release_stats(&self.cache.stats).await.map_err(|e| {
             warn!("The post request did not work: {}", e)
         });
 

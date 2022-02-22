@@ -3,7 +3,7 @@
 //! [`Engine`]: crate::engine::Engine.
 mod aggregate;
 mod collect;
-mod error;
+pub mod error;
 // mod failure;
 mod idle;
 mod shutdown;

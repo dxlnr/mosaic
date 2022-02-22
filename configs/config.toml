@@ -8,8 +8,8 @@ length = 4
 
 [job]
 job_id = 1
-job_token = "sieiwonnannananannad"
-route = "http://localhost:5000/api/create_communication_rounds/create_communication_round"
+job_token = "test"
+route = "http://localhost:5000/api/communication_rounds/create_communication_round"
 
 [process]
 rounds = 25
