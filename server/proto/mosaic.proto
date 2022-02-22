@@ -3,8 +3,12 @@ syntax = "proto3";
 package mosaic;
 
 service Communication {
+  // Remote protocol to handle global model requests.
   rpc GetGlobalModel(ClientMessage) returns (ServerModel);
+  // Remote protocol for sending local model to server.
   rpc Update(ClientUpdate) returns (ServerMessage);
+  // Remote protocol for sending global meta data regarding the process.
+  // rpc SetGlobalMeta(GlobalMeta) returns (ServerMessage);
 }
 
 message Parameters {
@@ -23,7 +27,12 @@ message ProcessMeta {
   float	loss = 2;
 }
 
+message GlobalMeta {
+  float acc = 1;
+}
+
 message ServerMessage {
+  // Returns status code regarding update message.
   uint32 status = 1;
 }
 

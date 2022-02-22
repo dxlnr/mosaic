@@ -42,12 +42,12 @@ impl SettingsParams {
 type ClientResult<T> = Result<T, StorageError>;
 
 #[derive(Clone)]
-pub struct Client {
+pub struct S3Client {
     bucket: Arc<Bucket>,
     params: SettingsParams,
 }
 
-impl Client {
+impl S3Client {
     /// Creates a new S3 client. The client instantiates, creates and maintains buckets for storing all
     /// the data created during the process.
     ///
@@ -131,7 +131,7 @@ impl Client {
 }
 
 #[async_trait]
-impl ModelStorage for Client {
+impl ModelStorage for S3Client {
     async fn get_global_model(&mut self) -> StorageResult<Option<Model>> {
         let data = self.download_object(&self.params.global_model_name).await?;
 

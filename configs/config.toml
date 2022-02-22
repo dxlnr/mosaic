@@ -6,9 +6,14 @@ rest_api = "127.0.0.1:8000"
 data_type = "F32"
 length = 4
 
+[job]
+job_id = 1
+job_token = "sieiwonnannananannad"
+route = "http://localhost:5000/api/create_communication_rounds/create_communication_round"
+
 [process]
-rounds = 5
-participants = 3
+rounds = 25
+participants = 10
 strategy = "FedAvg"
 
 [log]

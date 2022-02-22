@@ -13,13 +13,13 @@ use tracing::log::warn;
 
 use crate::{
     core::model::{DataType, Model, ModelUpdate},
-    db::s3::{Client, StorageError},
+    db::s3::{S3Client, StorageError},
     engine::{
         channel::{RequestReceiver, RequestSender},
         states::{Aggregate, Collect, Idle, Shutdown, StateCondition},
     },
-    rest::stats::{Stats, StatsUpdate},
-    settings::{ModelSettings, ProcessSettings, S3Settings},
+    rest::{client::HttpClient, stats::{Stats, StatsUpdate}},
+    settings::{JobSettings, ModelSettings, ProcessSettings, S3Settings},
 };
 
 #[derive(From)]
@@ -58,6 +58,7 @@ pub enum InitError {
 
 /// Handles the ['Engine'] initialization.
 pub struct EngineInitializer {
+    job_settings: JobSettings,
     model_settings: ModelSettings,
     process_settings: ProcessSettings,
     s3_settings: S3Settings,
@@ -66,11 +67,13 @@ pub struct EngineInitializer {
 impl EngineInitializer {
     /// Creates a new [`EngineInitializer`] which sets up the engine running the aggregation algorithm.
     pub fn new(
+        job_settings: JobSettings,
         model_settings: ModelSettings,
         process_settings: ProcessSettings,
         s3_settings: S3Settings,
     ) -> Self {
         EngineInitializer {
+            job_settings,
             model_settings,
             process_settings,
             s3_settings,
@@ -95,6 +98,7 @@ impl EngineInitializer {
             rx,
             publisher,
             store,
+            HttpClient::new(self.job_settings),
         );
         Ok((
             Engine::Idle(StateCondition::<Idle>::new(shared)),
@@ -102,8 +106,8 @@ impl EngineInitializer {
             subscriber,
         ))
     }
-    pub async fn init_storage(&self, s3_settings: S3Settings) -> Result<Client, StorageError> {
-        let s3 = Client::new(s3_settings).await?;
+    pub async fn init_storage(&self, s3_settings: S3Settings) -> Result<S3Client, StorageError> {
+        let s3 = S3Client::new(s3_settings).await?;
         match s3.check_conn().await {
             Ok(()) => s3.clone().create_bucket().await?,
             Err(e) => warn!("{}", e),
@@ -121,7 +125,9 @@ pub struct ServerState {
     /// Server publishes latest updates.
     pub publisher: Publisher,
     /// Shared storage state. For now it is a s3 Client which holds the storage bucket.
-    pub store: Client,
+    pub store: S3Client,
+    /// HTTP client.
+    pub http_client: HttpClient,
 }
 
 impl ServerState {
@@ -130,13 +136,15 @@ impl ServerState {
         round_params: RoundParams,
         rx: RequestReceiver,
         publisher: Publisher,
-        store: Client,
+        store: S3Client,
+        http_client: HttpClient,
     ) -> Self {
         ServerState {
             round_params,
             rx,
             publisher,
             store,
+            http_client,
         }
     }
 }

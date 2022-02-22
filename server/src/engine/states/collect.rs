@@ -7,6 +7,7 @@ use crate::{
         Cache, Engine, ServerState,
     },
     proxy::message::Message,
+    rest::stats::Single,
     service::error::ServiceError,
 };
 
@@ -27,7 +28,9 @@ where
     async fn perform(&mut self) -> Result<(), StateError> {
         self.process().await?;
 
-        self.shared.publisher.broadcast_stats(Some(self.cache.stats.clone()));
+        self.shared
+            .publisher
+            .broadcast_stats(Some(self.cache.stats.clone()));
         Ok(())
     }
 
@@ -62,7 +65,10 @@ impl StateCondition<Collect> {
         self.private.features.locals.push(local_model);
         self.private.features.stakes.push(req.stake);
 
-        self.cache.stats.loss.push(req.loss);
+        self.cache
+            .stats
+            .msgs
+            .push(Single::new(req.key, self.cache.round_id, req.loss));
         Ok(())
     }
 }

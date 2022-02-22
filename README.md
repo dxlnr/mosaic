@@ -19,6 +19,11 @@ $ curl --proto '=https' --tlsv1.2 https://sh.rustup.rs -sSf | sh
 cargo run -p server -- -c configs/config.toml
 ```
 
+**Release Build && Run**
+```shell
+cargo build --release || cargo run -p server --release -- -c configs/config.toml
+```
+
 ## Running MinIO
 ```shell
 # Running MinIO with Docker which will enable the server to fetch and save data to storage.

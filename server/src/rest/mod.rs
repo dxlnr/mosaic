@@ -1,4 +1,5 @@
 pub mod stats;
+pub mod client;
 
 use serde_json::json;
 use std::convert::Infallible;

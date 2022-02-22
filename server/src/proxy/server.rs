@@ -50,6 +50,12 @@ where
     async fn handle_model(mut fetcher: F) -> Result<ModelUpdate, ServiceError> {
         Ok(fetcher.fetch_model().await?)
     }
+    // async fn handle_meta(
+    //     req: GlobalMeta,
+    //     mut handler: MessageHandler,
+    // ) -> Result<(), ServiceError> {
+
+    // }
 }
 
 #[tonic::async_trait]
@@ -96,6 +102,21 @@ where
         };
         Ok(Response::new(server_msg))
     }
+
+    // async fn send_global_meta(
+    //     &self,
+    //     request: Request<GlobalMeta>,
+    // ) -> Result<Response<ServerMessage>, Status> {
+    //     info!("Global meta data has been sent.");
+
+    //     let server_msg = mosaic::ServerMessage {
+    //         status: match res {
+    //             Ok(()) => 0,
+    //             _ => 1,
+    //         },
+    //     };
+    //     Ok(Response::new(server_msg))
+    // }
 }
 
 pub async fn start<F>(

@@ -25,6 +25,7 @@ pub enum SettingsError {
 #[derive(Debug, Validate, Deserialize)]
 pub struct Settings {
     pub api: APISettings,
+    pub job: JobSettings,
     pub model: ModelSettings,
     pub process: ProcessSettings,
     pub log: LogSettings,
@@ -54,6 +55,13 @@ pub struct LogSettings {
     /// Tokio tracing filter which filters spans and events based on a set of filter directives.
     #[serde(deserialize_with = "deserialize_env_filter")]
     pub filter: EnvFilter,
+}
+
+#[derive(Debug, Deserialize, Clone)]
+pub struct JobSettings {
+    pub job_id: u32,
+    pub job_token: String,
+    pub route: String,
 }
 
 #[derive(Debug, Deserialize, Clone)]
