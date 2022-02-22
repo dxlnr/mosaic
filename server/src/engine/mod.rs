@@ -18,7 +18,10 @@ use crate::{
         channel::{RequestReceiver, RequestSender},
         states::{Aggregate, Collect, Idle, Shutdown, StateCondition},
     },
-    rest::{client::HttpClient, stats::{Stats, StatsUpdate}},
+    rest::{
+        client::HttpClient,
+        stats::{Stats, StatsUpdate},
+    },
     settings::{JobSettings, ModelSettings, ProcessSettings, S3Settings},
 };
 

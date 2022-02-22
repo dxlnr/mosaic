@@ -1,13 +1,10 @@
-pub mod stats;
 pub mod client;
+pub mod stats;
 
 use serde_json::json;
 use std::convert::Infallible;
 use tracing::warn;
-use warp::{
-    reply::Reply,
-    Filter,
-};
+use warp::{reply::Reply, Filter};
 
 use crate::{service::fetch::Fetch, settings::APISettings};
 

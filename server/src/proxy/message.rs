@@ -25,7 +25,14 @@ pub struct Message {
 }
 
 impl Message {
-    pub fn new(key: u32, model_version: u32, data: Vec<u8>, dtype: DataType, stake: u32, loss: f32) -> Self {
+    pub fn new(
+        key: u32,
+        model_version: u32,
+        data: Vec<u8>,
+        dtype: DataType,
+        stake: u32,
+        loss: f32,
+    ) -> Self {
         Message {
             key,
             model_version,

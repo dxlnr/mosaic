@@ -50,9 +50,12 @@ where
             .await
             .map_err(StateError::AggregationError)?;
 
-        let _ = self.shared.http_client.release_stats(&self.cache.stats).await.map_err(|e| {
-            warn!("The post request did not work: {}", e)
-        });
+        let _ = self
+            .shared
+            .http_client
+            .release_stats(&self.cache.stats)
+            .await
+            .map_err(|e| warn!("Sending a post request failed: {}", e));
 
         Ok(())
     }
