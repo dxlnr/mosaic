@@ -164,7 +164,7 @@ pub struct Cache {
     pub m_t: Model,
     /// Holds the v_t variable from the previous aggregation round.
     pub v_t: Model,
-    /// Holds all the metrics during the engine fascilitats the federated learning process.
+    /// Holds all the metrics while the engine performing the federated learning process.
     pub stats: Stats,
 }
 impl Cache {

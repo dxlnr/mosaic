@@ -14,14 +14,16 @@ pub struct Single {
     pub client_id: u32,
     pub round_id: u32,
     pub loss: f32,
+    pub samples: u32,
 }
 
 impl Single {
-    pub fn new(client_id: u32, round_id: u32, loss: f32) -> Self {
+    pub fn new(client_id: u32, round_id: u32, loss: f32, samples: u32) -> Self {
         Self {
             client_id,
             round_id,
             loss,
+            samples,
         }
     }
 }
