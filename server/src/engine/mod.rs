@@ -186,6 +186,17 @@ impl Cache {
     pub fn round_id(&self) -> u32 {
         self.round_id
     }
+    /// Returns parts of the stats correlated to a certain round_id
+    pub fn get_stats_with_round_id(&mut self) -> Stats {
+        let filtered = self
+            .stats
+            .msgs
+            .iter()
+            .filter(|msg| msg.round_id == self.round_id)
+            .cloned()
+            .collect::<Vec<_>>();
+        Stats { msgs: filtered }
+    }
 }
 
 pub struct RoundParams {

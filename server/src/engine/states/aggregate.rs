@@ -53,7 +53,7 @@ where
         let _ = self
             .shared
             .http_client
-            .release_stats(&self.cache.stats)
+            .release_stats(&self.cache.get_stats_with_round_id())
             .await
             .map_err(|e| warn!("Sending a post request failed: {}", e));
 
