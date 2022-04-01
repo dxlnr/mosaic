@@ -1,8 +1,10 @@
+//! Aggregation module.
+//!
 pub mod features;
 pub mod traits;
 
 use rayon::prelude::*;
-use rug::Rational;
+use rug::{Rational, Float};
 use std::ops::{Add, Mul};
 
 use crate::core::model::Model;
@@ -12,6 +14,9 @@ use self::{
     traits::{Aggregator, FedAdam, FedAvg, Strategy},
 };
 
+/// [`Aggregation`] strategy which defines the way the aggregation is performed.
+/// 
+/// Valid Options are `FedAvg` & `FedAdam`.
 #[derive(Debug)]
 pub enum Aggregation {
     FedAvg(Aggregator<FedAvg>),
@@ -33,7 +38,7 @@ impl Aggregation {
     }
 }
 
-/// Parameters that fascilitate the aggregation schema.
+/// Parameters necessary for performing an aggregation schema.
 #[derive(Debug, Clone, Copy)]
 pub struct AggregationParams {
     /// Server-side learning rate. Defaults to 1e-1.
@@ -55,17 +60,29 @@ impl AggregationParams {
             tau,
         }
     }
-    pub fn get_beta_1(&self) -> Rational {
-        Rational::from_f64(self.beta_1).unwrap_or_else(Rational::new)
+    // pub fn get_beta_1(&self) -> Rational {
+    //     Rational::from_f64(self.beta_1).unwrap_or_else(Rational::new)
+    // }
+    // pub fn get_beta_2(&self) -> Rational {
+    //     Rational::from_f64(self.beta_2).unwrap_or_else(Rational::new)
+    // }
+    // pub fn get_eta(&self) -> Rational {
+    //     Rational::from_f64(self.eta).unwrap_or_else(Rational::new)
+    // }
+    // pub fn get_tau(&self) -> Rational {
+    //     Rational::from_f64(self.tau).unwrap_or_else(Rational::new)
+    // }
+    pub fn get_beta_1(&self) -> Float {
+        Float::with_val(64, self.beta_1)
     }
-    pub fn get_beta_2(&self) -> Rational {
-        Rational::from_f64(self.beta_2).unwrap_or_else(Rational::new)
+    pub fn get_beta_2(&self) -> Float {
+        Float::with_val(64, self.beta_2)
     }
-    pub fn get_eta(&self) -> Rational {
-        Rational::from_f64(self.eta).unwrap_or_else(Rational::new)
+    pub fn get_eta(&self) -> Float {
+        Float::with_val(64, self.eta)
     }
-    pub fn get_tau(&self) -> Rational {
-        Rational::from_f64(self.tau).unwrap_or_else(Rational::new)
+    pub fn get_tau(&self) -> Float {
+        Float::with_val(64, self.tau)
     }
 }
 
@@ -122,28 +139,28 @@ mod tests {
     #[test]
     fn test_add() {
         let m1 = Model(vec![
-            Rational::from((1, 1)),
-            Rational::from((1, 1)),
-            Rational::from((1, 1)),
-            Rational::from((1, 1)),
+            Float::with_val(64, 1),
+            Float::with_val(64, 1),
+            Float::with_val(64, 1),
+            Float::with_val(64, 1),
         ]);
         let m2 = Model(vec![
-            Rational::from((1, 1)),
-            Rational::from((1, 1)),
-            Rational::from((1, 1)),
-            Rational::from((1, 1)),
+            Float::with_val(64, 1),
+            Float::with_val(64, 1),
+            Float::with_val(64, 1),
+            Float::with_val(64, 1),
         ]);
         let m3 = Model(vec![
-            Rational::from((1, 1)),
-            Rational::from((1, 1)),
-            Rational::from((1, 1)),
-            Rational::from((1, 1)),
+            Float::with_val(64, 1),
+            Float::with_val(64, 1),
+            Float::with_val(64, 1),
+            Float::with_val(64, 1),
         ]);
         let m4 = Model(vec![
-            Rational::from((1, 1)),
-            Rational::from((1, 1)),
-            Rational::from((1, 1)),
-            Rational::from((1, 1)),
+            Float::with_val(64, 1),
+            Float::with_val(64, 1),
+            Float::with_val(64, 1),
+            Float::with_val(64, 1),
         ]);
 
         let model_list = vec![m1, m2, m3, m4];
@@ -156,10 +173,10 @@ mod tests {
         assert_eq!(
             new_m,
             Model(vec![
-                Rational::from((1, 1)),
-                Rational::from((1, 1)),
-                Rational::from((1, 1)),
-                Rational::from((1, 1)),
+                Float::with_val(64, 1),
+                Float::with_val(64, 1),
+                Float::with_val(64, 1),
+                Float::with_val(64, 1),
             ])
         )
     }

@@ -3,7 +3,7 @@
 </h1>
 
 Mosaic Server which is the backbone of modalic MLOps platform designed for the automotive industry enabling Federated Learning. 
-All the aggregation converges at Mosaic which aims for safety, reliance and performance.
+All the aggregation converges at Mosaic which aims for safety, reliability and performance.
 
 It currently implements the basic **FedAvg** algorithm proposed in McMahan *et al.* [Communication-Efficient Learning of Deep Networks from Decentralized Data](https://arxiv.org/abs/1602.05629).
 

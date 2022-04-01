@@ -1,6 +1,6 @@
 [api]
 address = "127.0.0.1:8080"
-rest_api = "127.0.0.1:8000"
+rest_api = "127.0.0.1:8010"
 
 [model]
 data_type = "F32"
@@ -25,4 +25,3 @@ secret_access_key = "12345678"
 region = ["minio", "http://localhost:9000"]
 bucket = "mnist-cnn-testing"
 global_model = "cnn_global"
-

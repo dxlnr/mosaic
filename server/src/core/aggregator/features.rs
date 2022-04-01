@@ -18,6 +18,8 @@ pub struct Features {
 
 impl Features {
     /// Instantiates new ['Features'] object.
+    /// 
+    /// Parameters locals and stakes can be set freely, while global, m_t & v_t are set as default.
     pub fn new(locals: Vec<Model>, stakes: Vec<u32>) -> Self {
         Features {
             locals,
@@ -27,6 +29,9 @@ impl Features {
             v_t: Default::default(),
         }
     }
+    /// Instantiates new ['Features'] object.
+    /// 
+    /// While the parameters locals and stakes are set as default vectors, global, m_t & v_t are input variables.
     pub fn new_cached(global: Model, m_t: Model, v_t: Model) -> Self {
         Self {
             locals: Vec::new(),
