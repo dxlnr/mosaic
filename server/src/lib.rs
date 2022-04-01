@@ -1,4 +1,4 @@
-//! The package implements the backend functionality.
+//! The package implements the aggregation service functionality.
 pub mod core;
 pub mod db;
 pub mod engine;

@@ -4,7 +4,7 @@ pub mod features;
 pub mod traits;
 
 use rayon::prelude::*;
-use rug::{Rational, Float};
+use rug::Float;
 use std::ops::{Add, Mul};
 
 use crate::core::model::Model;
@@ -73,16 +73,16 @@ impl AggregationParams {
     //     Rational::from_f64(self.tau).unwrap_or_else(Rational::new)
     // }
     pub fn get_beta_1(&self) -> Float {
-        Float::with_val(64, self.beta_1)
+        Float::with_val(53, self.beta_1)
     }
     pub fn get_beta_2(&self) -> Float {
-        Float::with_val(64, self.beta_2)
+        Float::with_val(53, self.beta_2)
     }
     pub fn get_eta(&self) -> Float {
-        Float::with_val(64, self.eta)
+        Float::with_val(53, self.eta)
     }
     pub fn get_tau(&self) -> Float {
-        Float::with_val(64, self.tau)
+        Float::with_val(53, self.tau)
     }
 }
 
@@ -109,7 +109,7 @@ impl Baseline {
         Self { params }
     }
     /// Performs FedAvg and returns an aggregated model.
-    pub fn avg(&mut self, features: &[Model], stakes: &[Rational]) -> Model {
+    pub fn avg(&mut self, features: &[Model], stakes: &[Float]) -> Model {
         let mut res = Model::zeros(&features[0].len());
 
         features
@@ -134,33 +134,33 @@ impl Baseline {
 mod tests {
     use self::features::Features;
     use super::*;
-    use rug::Rational;
+    use rug::Float;
 
     #[test]
     fn test_add() {
         let m1 = Model(vec![
-            Float::with_val(64, 1),
-            Float::with_val(64, 1),
-            Float::with_val(64, 1),
-            Float::with_val(64, 1),
+            Float::with_val(53, 1),
+            Float::with_val(53, 1),
+            Float::with_val(53, 1),
+            Float::with_val(53, 1),
         ]);
         let m2 = Model(vec![
-            Float::with_val(64, 1),
-            Float::with_val(64, 1),
-            Float::with_val(64, 1),
-            Float::with_val(64, 1),
+            Float::with_val(53, 1),
+            Float::with_val(53, 1),
+            Float::with_val(53, 1),
+            Float::with_val(53, 1),
         ]);
         let m3 = Model(vec![
-            Float::with_val(64, 1),
-            Float::with_val(64, 1),
-            Float::with_val(64, 1),
-            Float::with_val(64, 1),
+            Float::with_val(53, 1),
+            Float::with_val(53, 1),
+            Float::with_val(53, 1),
+            Float::with_val(53, 1),
         ]);
         let m4 = Model(vec![
-            Float::with_val(64, 1),
-            Float::with_val(64, 1),
-            Float::with_val(64, 1),
-            Float::with_val(64, 1),
+            Float::with_val(53, 1),
+            Float::with_val(53, 1),
+            Float::with_val(53, 1),
+            Float::with_val(53, 1),
         ]);
 
         let model_list = vec![m1, m2, m3, m4];
@@ -173,10 +173,10 @@ mod tests {
         assert_eq!(
             new_m,
             Model(vec![
-                Float::with_val(64, 1),
-                Float::with_val(64, 1),
-                Float::with_val(64, 1),
-                Float::with_val(64, 1),
+                Float::with_val(53, 1),
+                Float::with_val(53, 1),
+                Float::with_val(53, 1),
+                Float::with_val(53, 1),
             ])
         )
     }

@@ -1,7 +1,8 @@
+//! 
 use byteorder::{BigEndian, ByteOrder};
 use derive_more::Display;
 use rayon::prelude::*;
-use rug::{Rational, Float};
+use rug::Float;
 use serde::{Deserialize, Serialize};
 use std::{
     io::ErrorKind,
@@ -49,7 +50,6 @@ impl ModelWrapper {
 
 #[derive(Default, Debug, Clone, PartialEq)]
 /// A representation of a machine learning model as vector object.
-// pub struct Model(pub Vec<Rational>);
 pub struct Model (pub Vec<Float>);
 
 impl std::convert::AsRef<Model> for Model {
@@ -68,42 +68,16 @@ impl Model {
     }
     /// Returns model with all zeros given a fixed length.
     pub fn zeros(length: &usize) -> Self {
-        // Model(vec![Rational::new(); *length])
         Model(vec![Float::new(32); *length])
     }
     /// Creates an iterator that yields references to the weights/parameters of this model.
-    // pub fn iter(&self) -> Iter<Rational> {
     pub fn iter(&self) -> Iter<Float> {
         self.0.iter()
     }
     /// Creates an iterator that yields mutable references to the weights/parameters of this model.
-    // pub fn iter_mut(&mut self) -> IterMut<Rational> {
     pub fn iter_mut(&mut self) -> IterMut<Float> {
         self.0.iter_mut()
     }
-    // pub fn restrict_prec(&mut self) -> Model {
-    //     let tmp = self
-    //         .0
-    //         .iter()
-    //         .map(|x| x.to_f64())
-    //         .collect::<Vec<_>>()
-    //         .to_vec();
-    //     let res = tmp
-    //         .iter()
-    //         .map(|x| Rational::from_f64(*x).unwrap_or_else(Rational::new))
-    //         .collect::<Vec<_>>()
-    //         .to_vec();
-    //     Model(res)
-    // }
-    /// Conversion from bytes to Ratio for DataType F32
-    /// 
-    // fn from_bytes_array_f32(&mut self, bytes: Vec<u8>) {
-    //     self.0 = bytes
-    //         .par_chunks(4)
-    //         .map(|x| Rational::from_f32(BigEndian::read_f32(x)).unwrap_or_else(Rational::new))
-    //         .collect::<Vec<_>>()
-    //         .to_vec()
-    // }
     fn from_bytes_array_f32(&mut self, bytes: Vec<u8>) {
         self.0 = bytes
             .par_chunks(4)
@@ -112,13 +86,6 @@ impl Model {
             .to_vec()
     }
     /// Conversion from bytes to Ratio for DataType F64
-    // fn from_bytes_array_f64(&mut self, bytes: Vec<u8>) {
-    //     self.0 = bytes
-    //         .par_chunks(8)
-    //         .map(|x| Rational::from_f64(BigEndian::read_f64(x)).unwrap_or_else(Rational::new))
-    //         .collect::<Vec<_>>()
-    //         .to_vec()
-    // }
     fn from_bytes_array_f64(&mut self, bytes: Vec<u8>) {
         self.0 = bytes
             .par_chunks(8)
@@ -136,7 +103,6 @@ impl Model {
     fn primitive_to_bytes_32(&self) -> Vec<u8> {
         self.0
             .par_iter()
-            // .map(|x| Rational::to_f32(x).to_be_bytes().to_vec())
             .map(|x| Float::to_f32(x).to_be_bytes().to_vec())
             .flatten()
             .collect::<Vec<_>>()
@@ -146,7 +112,6 @@ impl Model {
     fn primitive_to_bytes_64(&self) -> Vec<u8> {
         self.0
             .par_iter()
-            // .map(|x| Rational::to_f64(x).to_be_bytes().to_vec())
             .map(|x| Float::to_f64(x).to_be_bytes().to_vec())
             .flatten()
             .collect::<Vec<_>>()

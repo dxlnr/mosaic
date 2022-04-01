@@ -1,6 +1,9 @@
+//! Feature module
+
+
 use crate::core::model::Model;
 use rayon::prelude::*;
-use rug::Rational;
+use rug::Float;
 
 #[derive(Debug, Default)]
 pub struct Features {
@@ -17,7 +20,7 @@ pub struct Features {
 }
 
 impl Features {
-    /// Instantiates new ['Features'] object.
+    /// Instantiates new [`Features`] object.
     /// 
     /// Parameters locals and stakes can be set freely, while global, m_t & v_t are set as default.
     pub fn new(locals: Vec<Model>, stakes: Vec<u32>) -> Self {
@@ -29,7 +32,7 @@ impl Features {
             v_t: Default::default(),
         }
     }
-    /// Instantiates new ['Features'] object.
+    /// Instantiates new cached [`Features`] object.
     /// 
     /// While the parameters locals and stakes are set as default vectors, global, m_t & v_t are input variables.
     pub fn new_cached(global: Model, m_t: Model, v_t: Model) -> Self {
@@ -43,11 +46,11 @@ impl Features {
     }
     /// Returns a list of factors that represents the stake of each model to the global model.
     /// Computed by the number of samples it is trained on.
-    pub fn prep_stakes(&self) -> Vec<Rational> {
+    pub fn prep_stakes(&self) -> Vec<Float> {
         let all = self.sum_stakes();
         self.stakes
             .par_iter()
-            .map(|s| Rational::from_f32(*s as f32 / all as f32).unwrap_or_else(Rational::new))
+            .map(|s| Float::with_val(53, *s/ all))
             .collect::<Vec<_>>()
     }
     /// Returns the sum of all elements in stakes.
