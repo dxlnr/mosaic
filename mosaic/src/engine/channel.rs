@@ -8,7 +8,7 @@ use tokio::sync::{mpsc, oneshot};
 
 use crate::{proxy::message::Message, service::error::ServiceError};
 
-/// A handle to send requests to the [`Engine`].
+/// A handle to send requests to the ['Engine'].
 #[derive(Clone, From, Debug)]
 pub struct RequestSender(pub mpsc::UnboundedSender<(Message, ResponseSender)>);
 
@@ -47,7 +47,7 @@ impl RequestReceiver {
     pub fn try_recv(&mut self) -> Option<()> {
         todo!()
     }
-    /// Closes the [`Request`] channel.
+    /// Closes the [`RequestReceiver`] channel.
     pub fn close(&mut self) {
         self.0.close()
     }

@@ -62,7 +62,7 @@ where
         }
         .await
     }
-    /// Receives the next [`Request`] from gRPC server.
+    /// Receives the next ['Request'] from gRPC server.
     pub async fn next_request(&mut self) -> Result<(Message, ResponseSender), StateError> {
         info!("Waiting for the next request");
         self.shared

@@ -2,7 +2,7 @@
   <b>Mosaic</b><br>
 </h1>
 
-Mosaic Server which is the backbone of modalic MLOps platform designed for the automotive industry enabling Federated Learning. 
+Mosaic Server which is the backbone of the Modalic MLOps platform designed for enabling Federated Learning.
 All the aggregation converges at Mosaic which aims for safety, reliability and performance.
 
 It currently implements the basic **FedAvg** algorithm proposed in McMahan *et al.* [Communication-Efficient Learning of Deep Networks from Decentralized Data](https://arxiv.org/abs/1602.05629).
@@ -16,12 +16,12 @@ $ curl --proto '=https' --tlsv1.2 https://sh.rustup.rs -sSf | sh
 ## Running the Server
 ```shell
 # First time running takes a while to download and compile
-cargo run -p server -- -c configs/config.toml
+cargo run -p mosaic -- -c configs/config.toml
 ```
 
 **Release Build && Run**
 ```shell
-cargo build --release || cargo run -p server --release -- -c configs/config.toml
+cargo build --release || cargo run -p mosaic --release -- -c configs/config.toml
 ```
 
 ## Running MinIO
@@ -36,8 +36,13 @@ docker run \
 ```
 More information: [MinIO Docker Quickstart Guide](https://docs.min.io/docs/minio-docker-quickstart-guide.html)
 
+## Running the Docs
+```shell
+cargo doc --open
+```
+
 ## Open Issues
-- Keep an eye on FedAdam as update averaged model is used as xt. 
+- Keep an eye on FedAdam as update averaged model is used as xt.
 - Implement clean aggregation strategy selection from config file (hardcoded at the moment).
 - Find a proper way to restrict the precision for the Rationals.
 - Add metadata to the stored objects (especially to global model)

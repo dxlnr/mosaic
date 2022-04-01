@@ -38,7 +38,7 @@ pub struct Aggregator<A> {
 }
 
 /// FedAvg algorithm based on McMahan et al. Communication-Efficient Learning of Deep Networks
-/// from Decentralized Data (https://arxiv.org/abs/1602.05629)
+/// from Decentralized Data `<https://arxiv.org/abs/1602.05629>`
 #[derive(Debug, Default)]
 pub struct FedAvg;
 
@@ -69,7 +69,7 @@ impl Aggregator<FedAvg> {
 }
 
 /// FedAdam algorithm based on Reddi et al. ADAPTIVE FEDERATED OPTIMIZATION
-/// (https://arxiv.org/pdf/2003.00295.pdf)
+/// `<https://arxiv.org/pdf/2003.00295.pdf>`
 #[derive(Debug, Default)]
 pub struct FedAdam;
 
@@ -84,7 +84,6 @@ impl Strategy for Aggregator<FedAdam> {
         let delta_t = self.get_delta_t(&upd_model);
         let m_t_upd = self.get_m_t(&delta_t);
         let v_t_upd = self.get_v_t(&delta_t);
-        // let global = self.adjust(&m_t_upd, &v_t_upd);
         let global = self.adjust(&upd_model, &m_t_upd, &v_t_upd);
 
         (global, m_t_upd, v_t_upd)

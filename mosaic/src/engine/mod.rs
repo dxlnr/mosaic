@@ -26,7 +26,7 @@ use crate::{
 };
 
 #[derive(From)]
-/// ['Engine'] functions as the state machine which handles the whole Federated Learning process
+/// [`Engine`] functions as the state machine which handles the whole Federated Learning process
 /// on the server side.
 pub enum Engine {
     Idle(StateCondition<Idle>),

@@ -5,7 +5,7 @@
 
 use std::{path::PathBuf, process};
 
-use server::{
+use mosaic::{
     engine::EngineInitializer,
     proxy::server::start,
     rest::serve,
