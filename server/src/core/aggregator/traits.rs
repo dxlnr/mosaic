@@ -118,21 +118,6 @@ impl Aggregator<FedAdam> {
         Model(delta)
     }
     /// Computes the m_t term.
-    // fn get_m_t(&mut self, delta_t: &Model) -> Model {
-    //     if self.features.m_t.is_empty() {
-    //         self.features.m_t = Model::zeros(&delta_t.len());
-    //     }
-    //     let m_t_upd = delta_t
-    //         .0
-    //         .par_iter()
-    //         .zip(self.features.m_t.0.par_iter())
-    //         .map(|(delta_ti, m_ti)| {
-    //             m_ti.mul(self.base.params.get_beta_1())
-    //                 .add(delta_ti.mul(Rational::from((1, 1)).sub(self.base.params.get_beta_1())))
-    //         })
-    //         .collect::<Vec<_>>();
-    //     Model(m_t_upd)
-    // }
     fn get_m_t(&mut self, delta_t: &Model) -> Model {
         if self.features.m_t.is_empty() {
             self.features.m_t = Model::zeros(&delta_t.len());
@@ -149,23 +134,6 @@ impl Aggregator<FedAdam> {
         Model(m_t_upd)
     }
     /// Computes the v_t term for FedAdam specifically.
-    // fn get_v_t(&mut self, delta_t: &Model) -> Model {
-    //     if self.features.v_t.is_empty() {
-    //         self.features.v_t = Model::zeros(&delta_t.len());
-    //     }
-    //     let v_t_upd = delta_t
-    //         .0
-    //         .par_iter()
-    //         .zip(self.features.v_t.0.par_iter())
-    //         .map(|(delta_ti, v_ti)| {
-    //             v_ti.mul(self.base.params.get_beta_2()).add(
-    //                 (delta_ti.clone().mul(delta_ti))
-    //                     .mul(Rational::from((1, 1)).sub(self.base.params.get_beta_2())),
-    //             )
-    //         })
-    //         .collect::<Vec<_>>();
-    //     Model(v_t_upd)
-    // }
     fn get_v_t(&mut self, delta_t: &Model) -> Model {
         if self.features.v_t.is_empty() {
             self.features.v_t = Model::zeros(&delta_t.len());
@@ -176,8 +144,9 @@ impl Aggregator<FedAdam> {
             .zip(self.features.v_t.0.par_iter())
             .map(|(delta_ti, v_ti)| {
                 v_ti.mul(self.base.params.get_beta_2()).add(
-                    (delta_ti.clone().mul(delta_ti)).mul(Float::with_val(53, 1).sub(self.base.params.get_beta_2()),
-                ))
+                    (delta_ti.clone().mul(delta_ti))
+                        .mul(Float::with_val(53, 1).sub(self.base.params.get_beta_2())),
+                )
             })
             .collect::<Vec<_>>();
         Model(v_t_upd)
@@ -219,28 +188,28 @@ mod tests {
     #[test]
     fn test_fedadam_aggregation() {
         let m1 = Model(vec![
-            Float::with_val(64, 20.0),
-            Float::with_val(64, 20.0),
-            Float::with_val(64, 6.0),
-            Float::with_val(64, 6.0),
+            Float::with_val(53, 20.0),
+            Float::with_val(53, 20.0),
+            Float::with_val(53, 6.0),
+            Float::with_val(53, 6.0),
         ]);
         let m2 = Model(vec![
-            Float::with_val(64, 20.0),
-            Float::with_val(64, 20.0),
-            Float::with_val(64, 2.0),
-            Float::with_val(64, 2.0),
+            Float::with_val(53, 20.0),
+            Float::with_val(53, 20.0),
+            Float::with_val(53, 2.0),
+            Float::with_val(53, 2.0),
         ]);
         let m3 = Model(vec![
-            Float::with_val(64, 4.0),
-            Float::with_val(64, 4.0),
-            Float::with_val(64, 20.0),
-            Float::with_val(64, 20.0),
+            Float::with_val(53, 4.0),
+            Float::with_val(53, 4.0),
+            Float::with_val(53, 20.0),
+            Float::with_val(53, 20.0),
         ]);
         let m4 = Model(vec![
-            Float::with_val(64, 4.0),
-            Float::with_val(64, 4.0),
-            Float::with_val(64, 20.0),
-            Float::with_val(64, 20.0),
+            Float::with_val(53, 4.0),
+            Float::with_val(53, 4.0),
+            Float::with_val(53, 20.0),
+            Float::with_val(53, 20.0),
         ]);
 
         let model_list = vec![m1, m2, m3, m4];
@@ -248,10 +217,10 @@ mod tests {
         let mut feats = Features::new(model_list, stakes);
 
         feats.global = Model(vec![
-            Float::with_val(64, 2.0),
-            Float::with_val(64, 2.0),
-            Float::with_val(64, 2.0),
-            Float::with_val(64, 2.0),
+            Float::with_val(53, 2.0),
+            Float::with_val(53, 2.0),
+            Float::with_val(53, 2.0),
+            Float::with_val(53, 2.0),
         ]);
 
         let mut aggr = Aggregator::<FedAdam>::new(Baseline::default(), feats);
@@ -264,10 +233,10 @@ mod tests {
         assert_eq!(
             delta_t,
             Model(vec![
-                Float::with_val(64, 10.0),
-                Float::with_val(64, 10.0),
-                Float::with_val(64, 10.0),
-                Float::with_val(64, 10.0),
+                Float::with_val(53, 10.0),
+                Float::with_val(53, 10.0),
+                Float::with_val(53, 10.0),
+                Float::with_val(53, 10.0),
             ])
         );
     }
@@ -276,19 +245,19 @@ mod tests {
     fn test_get_m_t() {
         let feats = Features {
             global: Model(vec![
-                Float::with_val(64, 2.0),
-                Float::with_val(64, 2.0),
-                Float::with_val(64, 2.0),
-                Float::with_val(64, 2.0),
+                Float::with_val(53, 2.0),
+                Float::with_val(53, 2.0),
+                Float::with_val(53, 2.0),
+                Float::with_val(53, 2.0),
             ]),
             ..Default::default()
         };
 
         let upd_model = Model(vec![
-            Float::with_val(64, 12.0),
-            Float::with_val(64, 12.0),
-            Float::with_val(64, 12.0),
-            Float::with_val(64, 12.0),
+            Float::with_val(53, 12.0),
+            Float::with_val(53, 12.0),
+            Float::with_val(53, 12.0),
+            Float::with_val(53, 12.0),
         ]);
 
         let mut aggr = Aggregator::<FedAdam>::new(Baseline::default(), feats);
@@ -299,10 +268,10 @@ mod tests {
         assert_eq!(
             m_t_upd,
             Model(vec![
-                Float::with_val(64, 1.0),
-                Float::with_val(64, 1.0),
-                Float::with_val(64, 1.0),
-                Float::with_val(64, 1.0),
+                Float::with_val(53, 1.0),
+                Float::with_val(53, 1.0),
+                Float::with_val(53, 1.0),
+                Float::with_val(53, 1.0),
             ])
         );
     }
@@ -311,19 +280,19 @@ mod tests {
     fn test_get_v_t() {
         let feats = Features {
             global: Model(vec![
-                Float::with_val(64, 2.0),
-                Float::with_val(64, 2.0),
-                Float::with_val(64, 2.0),
-                Float::with_val(64, 2.0),
+                Float::with_val(53, 2.0),
+                Float::with_val(53, 2.0),
+                Float::with_val(53, 2.0),
+                Float::with_val(53, 2.0),
             ]),
             ..Default::default()
         };
 
         let upd_model = Model(vec![
-            Float::with_val(64, 12.0),
-            Float::with_val(64, 12.0),
-            Float::with_val(64, 12.0),
-            Float::with_val(64, 12.0),
+            Float::with_val(53, 12.0),
+            Float::with_val(53, 12.0),
+            Float::with_val(53, 12.0),
+            Float::with_val(53, 12.0),
         ]);
 
         let mut aggr = Aggregator::<FedAdam>::new(Baseline::default(), feats);
@@ -334,10 +303,10 @@ mod tests {
         assert_eq!(
             v_t_upd,
             Model(vec![
-                Float::with_val(64, 1.0),
-                Float::with_val(64, 1.0),
-                Float::with_val(64, 1.0),
-                Float::with_val(64, 1.0),
+                Float::with_val(53, 1.0),
+                Float::with_val(53, 1.0),
+                Float::with_val(53, 1.0),
+                Float::with_val(53, 1.0),
             ])
         );
     }
@@ -348,16 +317,16 @@ mod tests {
         let mut aggr = Aggregator::<FedAdam>::new(Baseline::default(), feats);
 
         let m_t_upd = Model(vec![
-            Float::with_val(64, 1.0),
-            Float::with_val(64, 1.0),
-            Float::with_val(64, 1.0),
-            Float::with_val(64, 1.0),
+            Float::with_val(53, 1.0),
+            Float::with_val(53, 1.0),
+            Float::with_val(53, 1.0),
+            Float::with_val(53, 1.0),
         ]);
         let v_t_upd = Model(vec![
-            Float::with_val(64, 1.0),
-            Float::with_val(64, 1.0),
-            Float::with_val(64, 1.0),
-            Float::with_val(64, 1.0),
+            Float::with_val(53, 1.0),
+            Float::with_val(53, 1.0),
+            Float::with_val(53, 1.0),
+            Float::with_val(53, 1.0),
         ]);
 
         let adjust_fac = aggr.get_adjustment(&m_t_upd, &v_t_upd);
@@ -365,10 +334,10 @@ mod tests {
         assert_eq!(
             adjust_fac,
             Model(vec![
-                Float::with_val(64, 0.1),
-                Float::with_val(64, 0.1),
-                Float::with_val(64, 0.1),
-                Float::with_val(64, 0.1),
+                Float::with_val(53, 0.1),
+                Float::with_val(53, 0.1),
+                Float::with_val(53, 0.1),
+                Float::with_val(53, 0.1),
             ])
         );
     }
@@ -380,10 +349,10 @@ mod tests {
     //     assert_eq!(
     //         final_model,
     //         Model(vec![
-    //             Float::with_val(64, (0.1_f32),
-    //             Float::with_val(64, (0.1_f32),
-    //             Float::with_val(64, (0.1_f32),
-    //             Float::with_val(64, (0.1_f32),
+    //             Float::with_val(53, (0.1_f32),
+    //             Float::with_val(53, (0.1_f32),
+    //             Float::with_val(53, (0.1_f32),
+    //             Float::with_val(53, (0.1_f32),
     //         ])
     //     );
     // }

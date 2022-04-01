@@ -1,6 +1,5 @@
 //! Feature module
 
-
 use crate::core::model::Model;
 use rayon::prelude::*;
 use rug::Float;
@@ -21,7 +20,7 @@ pub struct Features {
 
 impl Features {
     /// Instantiates new [`Features`] object.
-    /// 
+    ///
     /// Parameters locals and stakes can be set freely, while global, m_t & v_t are set as default.
     pub fn new(locals: Vec<Model>, stakes: Vec<u32>) -> Self {
         Features {
@@ -33,7 +32,7 @@ impl Features {
         }
     }
     /// Instantiates new cached [`Features`] object.
-    /// 
+    ///
     /// While the parameters locals and stakes are set as default vectors, global, m_t & v_t are input variables.
     pub fn new_cached(global: Model, m_t: Model, v_t: Model) -> Self {
         Self {
@@ -50,7 +49,7 @@ impl Features {
         let all = self.sum_stakes();
         self.stakes
             .par_iter()
-            .map(|s| Float::with_val(53, *s/ all))
+            .map(|s| Float::with_val(53, *s / all))
             .collect::<Vec<_>>()
     }
     /// Returns the sum of all elements in stakes.

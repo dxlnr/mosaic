@@ -65,10 +65,12 @@ impl StateCondition<Collect> {
         self.private.features.locals.push(local_model);
         self.private.features.stakes.push(req.stake);
 
-        self.cache
-            .stats
-            .msgs
-            .push(Single::new(req.key, self.cache.round_id, req.loss, req.stake));
+        self.cache.stats.msgs.push(Single::new(
+            req.key,
+            self.cache.round_id,
+            req.loss,
+            req.stake,
+        ));
         Ok(())
     }
 }

@@ -1,4 +1,4 @@
-//! 
+//!
 use byteorder::{BigEndian, ByteOrder};
 use derive_more::Display;
 use rayon::prelude::*;
@@ -50,7 +50,7 @@ impl ModelWrapper {
 
 #[derive(Default, Debug, Clone, PartialEq)]
 /// A representation of a machine learning model as vector object.
-pub struct Model (pub Vec<Float>);
+pub struct Model(pub Vec<Float>);
 
 impl std::convert::AsRef<Model> for Model {
     fn as_ref(&self) -> &Model {
@@ -89,7 +89,7 @@ impl Model {
     fn from_bytes_array_f64(&mut self, bytes: Vec<u8>) {
         self.0 = bytes
             .par_chunks(8)
-            .map(|x| Float::with_val(64,BigEndian::read_f64(x)))
+            .map(|x| Float::with_val(64, BigEndian::read_f64(x)))
             .collect::<Vec<_>>()
             .to_vec()
     }

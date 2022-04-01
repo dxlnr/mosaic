@@ -15,7 +15,7 @@ use self::{
 };
 
 /// [`Aggregation`] strategy which defines the way the aggregation is performed.
-/// 
+///
 /// Valid Options are `FedAvg` & `FedAdam`.
 #[derive(Debug)]
 pub enum Aggregation {
@@ -60,18 +60,6 @@ impl AggregationParams {
             tau,
         }
     }
-    // pub fn get_beta_1(&self) -> Rational {
-    //     Rational::from_f64(self.beta_1).unwrap_or_else(Rational::new)
-    // }
-    // pub fn get_beta_2(&self) -> Rational {
-    //     Rational::from_f64(self.beta_2).unwrap_or_else(Rational::new)
-    // }
-    // pub fn get_eta(&self) -> Rational {
-    //     Rational::from_f64(self.eta).unwrap_or_else(Rational::new)
-    // }
-    // pub fn get_tau(&self) -> Rational {
-    //     Rational::from_f64(self.tau).unwrap_or_else(Rational::new)
-    // }
     pub fn get_beta_1(&self) -> Float {
         Float::with_val(53, self.beta_1)
     }
