@@ -12,7 +12,7 @@ use thiserror::Error;
 use tracing::log::warn;
 
 use crate::{
-    core::model::{DataType, Model, ModelUpdate},
+    core::{aggregator::traits::Scheme, model::{DataType, Model, ModelUpdate}},
     db::s3::{S3Client, StorageError},
     engine::{
         channel::{RequestReceiver, RequestSender},
@@ -207,7 +207,7 @@ pub struct RoundParams {
     /// Specifies the Data type of the model. Crucial for serde operations.
     pub dtype: DataType,
     /// Sets the aggregation strategy.
-    pub strategy: String,
+    pub strategy: Scheme,
 }
 
 impl RoundParams {
@@ -215,7 +215,7 @@ impl RoundParams {
         training_rounds: u32,
         per_round_participants: u32,
         dtype: DataType,
-        strategy: String,
+        strategy: Scheme,
     ) -> Self {
         Self {
             training_rounds,

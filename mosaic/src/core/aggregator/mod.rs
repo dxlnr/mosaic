@@ -12,7 +12,7 @@ use crate::core::model::Model;
 
 use self::{
     features::Features,
-    traits::{Aggregator, FedAdam, FedAvg, Strategy},
+    traits::{Aggregator, FedAdam, FedAvg, Strategy, FedAdaGrad, FedYogi},
 };
 
 /// [`Aggregation`] strategy which defines the way the aggregation is performed.
@@ -21,22 +21,26 @@ use self::{
 #[derive(Debug)]
 pub enum Aggregation {
     FedAvg(Aggregator<FedAvg>),
+    FedAdaGrad(Aggregator<FedAdaGrad>),
     FedAdam(Aggregator<FedAdam>),
+    FedYogi(Aggregator<FedYogi>),
 }
 
 impl Aggregation {
     pub fn aggregate(&mut self) -> (Model, Model, Model) {
         match self {
             Aggregation::FedAvg(strategy) => strategy.aggregate(),
+            Aggregation::FedAdaGrad(strategy) => strategy.aggregate(),
             Aggregation::FedAdam(strategy) => strategy.aggregate(),
+            Aggregation::FedYogi(strategy) => strategy.aggregate(),
         }
     }
-    pub fn set_feat(self, features: Features) {
-        match self {
-            Aggregation::FedAvg(mut strategy) => strategy.set_feat(features),
-            Aggregation::FedAdam(mut strategy) => strategy.set_feat(features),
-        }
-    }
+    // pub fn set_feat(self, features: Features) {
+    //     match self {
+    //         Aggregation::FedAvg(mut strategy) => strategy.set_feat(features),
+    //         Aggregation::FedAdam(mut strategy) => strategy.set_feat(features),
+    //     }
+    // }
 }
 
 /// Parameters necessary for performing an aggregation schema.

@@ -1,17 +1,19 @@
 use derive_more::Display;
 use rayon::prelude::*;
-use rug::{ops::Pow, Float};
-use std::ops::{Add, Div, Mul, Sub};
+use rug::Float;
+use tracing::log::warn;
+use std::{str::FromStr, ops::{Add, Mul, Sub}};
+use serde::{Deserialize, Serialize};
 
-use crate::core::{
+use crate::{settings::SettingsError, core::{
     aggregator::{features::Features, fedopt::FedOpt, Baseline},
     model::Model,
-};
+}};
 
 // use super::features;
 
 /// The name of the aggregation scheme.
-#[derive(Clone, Copy, Debug, Display, Eq, PartialEq)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Serialize, Deserialize, Display)]
 pub enum Scheme {
     #[display(fmt = "FedAvg")]
     FedAvg,
@@ -19,6 +21,32 @@ pub enum Scheme {
     FedAdaGrad,
     #[display(fmt = "FedAdam")]
     FedAdam,
+    #[display(fmt = "FedYogi")]
+    FedYogi,
+}
+
+impl Scheme {
+    /// `FedAvg` is the default aggregation strategy used.
+    pub const DEFAULT_SCHEME: &'static str = "FedAvg";
+}
+
+impl FromStr for Scheme {
+    type Err = ();
+
+    /// Returns a new [`Scheme`] from the given string,
+    /// or an error if any strings are invalid.
+    fn from_str(s: &str) -> Result<Self, ()> {
+        match s {
+            "FedAvg" => Ok(Scheme::FedAvg),
+            "FedAdaGrad" => Ok(Scheme::FedAdaGrad),
+            "FedAdam" => Ok(Scheme::FedAdam),
+            "FedYogi" => Ok(Scheme::FedYogi),
+            _ => {
+                warn!("Aggregation strategy {:?} not valid. Please choose from [FedAvg, FedAdaGrad, FedAdam, FedYogi].", &s);
+                Ok(Scheme::FedAvg)
+            },
+        }
+    }
 }
 
 pub trait Strategy {
@@ -184,3 +212,52 @@ impl FedOpt for Aggregator<FedAdaGrad> {
         todo!()
     }
 }
+
+/// [`FedYogi`]: A federated version of the adaptive optimizer FedOpt
+/// based on Reddi et al. ADAPTIVE FEDERATED OPTIMIZATION
+#[derive(Debug, Default)]
+pub struct FedYogi;
+
+impl Aggregator<FedYogi> {
+    /// Creates a new [`Aggregator`] which uses [`FedYogi`] implementation as aggregation strategy.
+    ///
+    /// # Example
+    ///
+    /// Aggregator::<FedYogi>::new(Baseline::default(), features)
+    ///
+    pub fn new(base: Baseline, features: Features) -> Self {
+        Self {
+            private: FedYogi,
+            base,
+            features,
+        }
+    }
+}
+
+impl Strategy for Aggregator<FedYogi> {
+    const NAME: Scheme = Scheme::FedAdaGrad;
+
+    fn aggregate(&mut self) -> (Model, Model, Model) {
+        let upd_model = self
+            .base
+            .avg(&self.features.locals, &self.features.prep_stakes());
+
+        let delta_t = self.get_delta_t(self.features.clone(), &upd_model);
+        let m_t_upd = self.get_m_t(&self.base.params.clone(), self.features.clone(), &delta_t);
+        let v_t_upd = self.get_v_t(&delta_t);
+        let global = self.adjust(&self.base.params.clone(), &upd_model, &m_t_upd, &v_t_upd);
+
+        (global, m_t_upd, v_t_upd)
+    }
+
+    fn set_feat(&mut self, features: Features) {
+        self.features = features;
+    }
+}
+
+impl FedOpt for Aggregator<FedYogi> {
+    fn get_v_t(&mut self, _delta_t: &Model) -> Model {
+        todo!()
+    }
+}
+

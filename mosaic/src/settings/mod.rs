@@ -11,7 +11,7 @@ use thiserror::Error;
 use tracing_subscriber::filter::EnvFilter;
 use validator::{Validate, ValidationErrors};
 
-use crate::core::model::DataType;
+use crate::core::{aggregator::traits::Scheme, model::DataType};
 
 #[derive(Debug, Display, Error)]
 /// An error related to loading and validation of settings.
@@ -20,6 +20,8 @@ pub enum SettingsError {
     Loading(#[from] ConfigError),
     /// Validation failed: {0}.
     Validation(#[from] ValidationErrors),
+    /// Parsing error
+    ParsingError,
 }
 
 #[derive(Debug, Validate, Deserialize)]
@@ -112,8 +114,28 @@ pub struct ProcessSettings {
     /// Sets the number of participants.
     pub participants: u32,
     /// Aggregation algorithm
-    pub strategy: String,
+    pub strategy: Scheme,
 }
+
+// fn deserialize_aggr_scheme<'de, D>(deserializer: D) -> Result<Scheme, D::Error>
+// where
+//     D: Deserializer<'de>,
+// {
+//     struct SchemeVisitor;
+//     impl<'de> Visitor<'de> for SchemeVisitor {
+//         type Value = Scheme;
+//         fn expecting(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
+//             write!(formatter, "please choose a valid aggregation strategy: FedAvg - FedAdaGrad - FedAdam - FedYogi")
+//         }
+//         fn visit_str<E>(self, value: &str) -> Result<Self::Value, E>
+//         where
+//             E: de::Error,
+//         {
+//             Scheme::from_str(value).map_err(|_| de::Error::invalid_value(serde::de::Unexpected::Str(value), &self))
+//         }
+//     }
+//     deserializer.deserialize_str(SchemeVisitor)
+// }
 
 #[derive(Debug, Deserialize, Clone)]
 pub struct S3Settings {

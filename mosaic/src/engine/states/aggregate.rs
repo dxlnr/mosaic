@@ -5,7 +5,7 @@ use crate::{
     core::{
         aggregator::{
             features::Features,
-            traits::{Aggregator, FedAdam, FedAvg},
+            traits::{Aggregator, Scheme, FedAdam, FedAvg, FedAdaGrad, FedYogi},
             Aggregation, Baseline,
         },
         model::{DataType, Model, ModelWrapper},
@@ -80,12 +80,22 @@ impl StateCondition<Aggregate> {
             //     )),
             // },
             private: Aggregate {
-                aggregation: Aggregation::FedAvg(Aggregator::<FedAvg>::new(features)),
+                aggregation: StateCondition::define_aggregation(&shared, features),
             },
             shared,
             cache,
         }
     }
+
+    fn define_aggregation(shared: &ServerState, features: Features) -> Aggregation {
+        match shared.round_params.strategy {
+            Scheme::FedAvg => Aggregation::FedAvg(Aggregator::<FedAvg>::new(features)),
+            Scheme::FedAdaGrad => Aggregation::FedAdaGrad(Aggregator::<FedAdaGrad>::new(Baseline::default(), features)),
+            Scheme::FedAdam => Aggregation::FedAdam(Aggregator::<FedAdam>::new(Baseline::default(), features)),
+            Scheme::FedYogi => Aggregation::FedYogi(Aggregator::<FedYogi>::new(Baseline::default(), features)),
+        }
+    }
+
     /// Aggreates all the features from collect state into a global model.
     pub fn aggregate(&mut self) {
         let (global, m_t, v_t) = self.private.aggregation.aggregate();
