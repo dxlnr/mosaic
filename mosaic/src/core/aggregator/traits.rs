@@ -1,19 +1,22 @@
 use derive_more::Display;
 use rayon::prelude::*;
-use rug::ops::Pow;
-use rug::Float;
+use rug::{Float, ops::Pow};
 use std::ops::{Add, Div, Mul, Sub};
 
 use crate::core::{
-    aggregator::{features::Features, Baseline},
+    aggregator::{fedopt::FedOpt, features::Features, Baseline},
     model::Model,
 };
+
+// use super::features;
 
 /// The name of the aggregation scheme.
 #[derive(Clone, Copy, Debug, Display, Eq, PartialEq)]
 pub enum Scheme {
     #[display(fmt = "FedAvg")]
     FedAvg,
+    #[display(fmt = "FedAdaGrad")]
+    FedAdaGrad,
     #[display(fmt = "FedAdam")]
     FedAdam,
 }
@@ -51,14 +54,18 @@ impl Strategy for Aggregator<FedAvg> {
             .avg(&self.features.locals, &self.features.prep_stakes());
         (global, Model::default(), Model::default())
     }
-
     fn set_feat(&mut self, features: Features) {
         self.features = features;
     }
 }
 
 impl Aggregator<FedAvg> {
-    /// Creates a new idle state.
+    /// Creates a new [`Aggregator`] which uses [`FedAvg`] as baseline aggregation strategy.
+    /// 
+    /// # Example
+    /// 
+    /// Aggregator::<FedAvg>::new(features)
+    /// 
     pub fn new(features: Features) -> Self {
         Self {
             private: FedAvg,
@@ -95,7 +102,12 @@ impl Strategy for Aggregator<FedAdam> {
 }
 
 impl Aggregator<FedAdam> {
-    /// Creates a new FedAdam implementation.
+    /// Creates a new [`Aggregator`] which uses [`FedAdam`] implementation as aggregation strategy.
+    /// 
+    /// # Example
+    /// 
+    /// Aggregator::<FedAdam>::new(Baseline::default(), features)
+    /// 
     pub fn new(base: Baseline, features: Features) -> Self {
         Self {
             private: FedAdam,
@@ -103,7 +115,7 @@ impl Aggregator<FedAdam> {
             features,
         }
     }
-    /// Computes the delta_t parameter from the referenced paper.
+    /// Computes the delta_t parameter.
     fn get_delta_t(&mut self, upd_model: &Model) -> Model {
         if self.features.global.is_empty() {
             self.features.global = Model::zeros(&upd_model.len());
@@ -132,7 +144,7 @@ impl Aggregator<FedAdam> {
             .collect::<Vec<_>>();
         Model(m_t_upd)
     }
-    /// Computes the v_t term for FedAdam specifically.
+    /// Computes the v_t term for ['FedAdam'] specifically.
     fn get_v_t(&mut self, delta_t: &Model) -> Model {
         if self.features.v_t.is_empty() {
             self.features.v_t = Model::zeros(&delta_t.len());
@@ -175,6 +187,54 @@ impl Aggregator<FedAdam> {
             .map(|(x_ti, x_ai)| x_ti.clone().add(x_ai))
             .collect::<Vec<_>>();
         Model(res)
+    }
+}
+
+/// [`FedAdaGrad`]: A federated version of the adaptive optimizer FedOpt
+/// based on Reddi et al. ADAPTIVE FEDERATED OPTIMIZATION
+#[derive(Debug, Default)]
+pub struct FedAdaGrad;
+
+impl Aggregator<FedAdaGrad> {
+    /// Creates a new [`Aggregator`] which uses [`FedAdaGrad`] implementation as aggregation strategy.
+    /// 
+    /// # Example
+    /// 
+    /// Aggregator::<FedAdaGrad>::new(Baseline::default(), features)
+    /// 
+    pub fn new(base: Baseline, features: Features) -> Self {
+        Self {
+            private: FedAdaGrad,
+            base,
+            features,
+        }
+    }
+}
+
+impl Strategy for Aggregator<FedAdaGrad> {
+    const NAME: Scheme = Scheme::FedAdaGrad;
+
+    fn aggregate(&mut self) -> (Model, Model, Model) {
+        let upd_model = self
+            .base
+            .avg(&self.features.locals, &self.features.prep_stakes());
+
+        let delta_t = self.get_delta_t(self.features.clone(), &upd_model);
+        let m_t_upd = self.get_m_t(&self.base.params.clone(), self.features.clone(), &delta_t);
+        let v_t_upd = self.get_v_t(&delta_t);
+        let global = self.adjust(&self.base.params.clone(), &upd_model, &m_t_upd, &v_t_upd);
+
+        (global, m_t_upd, v_t_upd)
+    }
+
+    fn set_feat(&mut self, features: Features) {
+        self.features = features;
+    }
+}
+
+impl FedOpt for Aggregator<FedAdaGrad> {
+    fn get_v_t(&mut self, _delta_t: &Model) -> Model {
+        todo!()
     }
 }
 

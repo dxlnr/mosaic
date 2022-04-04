@@ -4,13 +4,13 @@ use crate::core::model::Model;
 use rayon::prelude::*;
 use rug::Float;
 
-#[derive(Debug, Default)]
+#[derive(Debug, Default, Clone)]
 pub struct Features {
     /// keeps msgs in cache that have been received by the clients.
     pub locals: Vec<Model>,
     /// keeps track of the number of samples each model was trained on which will result in a weighting factor.
     pub stakes: Vec<u32>,
-    /// stores the overall averaged vector of all messages.
+    /// stores the overall aggregated [`Model`] of all messages containing local models.
     pub global: Model,
     /// stores m_t for current iteration
     pub m_t: Model,

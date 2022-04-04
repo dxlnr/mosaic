@@ -70,7 +70,7 @@ where
 }
 
 impl StateCondition<Aggregate> {
-    /// Creates a new Aggregate state.
+    /// Creates a new [`Aggregate`] state which holdes an [`Aggregation`] object.
     pub fn new(shared: ServerState, cache: Cache, features: Features) -> Self {
         Self {
             private: Aggregate {
@@ -83,7 +83,7 @@ impl StateCondition<Aggregate> {
             cache,
         }
     }
-    /// Aggreates all the features from collect state into the global model.
+    /// Aggreates all the features from collect state into a global model.
     pub fn aggregate(&mut self) {
         let (global, m_t, v_t) = self.private.aggregation.aggregate();
         self.cache.global_model = global;

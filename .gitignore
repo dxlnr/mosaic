@@ -2,3 +2,4 @@ target
 server/target
 Cargo.lock
 server/src/console-subscriber
+.vscode

@@ -1,8 +1,7 @@
 #![cfg_attr(docsrs, feature(doc_cfg))]
 #![cfg_attr(doc, forbid(warnings))]
 #![doc(
-    html_logo_url = "https://raw.githubusercontent.com/modalic/mosaic/public/logo.svg",
-    html_favicon_url = "https://raw.githubusercontent.com/modalic/mosaic/public/logo.svg"
+    html_logo_url = "https://raw.githubusercontent.com/modalic/mosaic/main/public/logo.svg?token=GHSAT0AAAAAABRDIVC3KCOKQQDUHUDVRNCQYSHIQ7A"
 )]
 //! # Mosaic Aggregation Server for Federated Learning
 

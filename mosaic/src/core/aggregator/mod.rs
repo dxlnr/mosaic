@@ -2,6 +2,7 @@
 //!
 pub mod features;
 pub mod traits;
+pub mod fedopt;
 
 use rayon::prelude::*;
 use rug::Float;
@@ -30,12 +31,12 @@ impl Aggregation {
             Aggregation::FedAdam(strategy) => strategy.aggregate(),
         }
     }
-    pub fn set_feat(self, features: Features) {
-        match self {
-            Aggregation::FedAvg(mut strategy) => strategy.set_feat(features),
-            Aggregation::FedAdam(mut strategy) => strategy.set_feat(features),
-        }
-    }
+    // pub fn set_feat(self, features: Features) {
+    //     match self {
+    //         Aggregation::FedAvg(mut strategy) => strategy.set_feat(features),
+    //         Aggregation::FedAdam(mut strategy) => strategy.set_feat(features),
+    //     }
+    // }
 }
 
 /// Parameters necessary for performing an aggregation schema.
@@ -52,6 +53,8 @@ pub struct AggregationParams {
 }
 
 impl AggregationParams {
+    /// Creates new [`AggregationParams`] which allows altering the default parameters 
+    /// eta, beta_1, beta_2 and tau.
     pub fn new(eta: f64, beta_1: f64, beta_2: f64, tau: f64) -> Self {
         Self {
             eta,
@@ -60,15 +63,19 @@ impl AggregationParams {
             tau,
         }
     }
+    /// Returns the beta_1 parameter as [`Float`]
     pub fn get_beta_1(&self) -> Float {
         Float::with_val(53, self.beta_1)
     }
+    /// Returns the beta_2 parameter as [`Float`]
     pub fn get_beta_2(&self) -> Float {
         Float::with_val(53, self.beta_2)
     }
+    /// Returns the eta parameter as [`Float`]
     pub fn get_eta(&self) -> Float {
         Float::with_val(53, self.eta)
     }
+    /// Returns the tau parameter as [`Float`]
     pub fn get_tau(&self) -> Float {
         Float::with_val(53, self.tau)
     }
@@ -92,15 +99,15 @@ pub struct Baseline {
 }
 
 impl Baseline {
-    // /// Creates a new [`Baseline`].
+    /// Creates a new [`Baseline`] with specified [`AggregationParams`].
     pub fn new(params: AggregationParams) -> Self {
         Self { params }
     }
     /// Performs FedAvg and returns an aggregated model.
-    pub fn avg(&mut self, features: &[Model], stakes: &[Float]) -> Model {
-        let mut res = Model::zeros(&features[0].len());
+    pub fn avg(&mut self, models: &[Model], stakes: &[Float]) -> Model {
+        let mut res = Model::zeros(&models[0].len());
 
-        features
+        models
             .iter()
             .zip(stakes)
             .map(|(single, s)| {
