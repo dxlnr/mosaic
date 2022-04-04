@@ -3,7 +3,7 @@ use rug::{Float, ops::Pow};
 use std::ops::{Add, Div, Mul, Sub};
 
 use crate::core::{
-    aggregator::{AggregationParams, features::Features},
+    aggregator::{AggregationParams, features::Features, Baseline},
     model::Model,
 };
 
@@ -69,3 +69,183 @@ pub trait FedOpt {
         Model(res)
     }
 }
+
+
+// #[cfg(test)]
+// mod tests {
+//     use super::*;
+//     use crate::core::aggregator::features::Features;
+//     use rug::Float;
+
+//     #[test]
+//     fn test_fedadam_aggregation() {
+//         let m1 = Model(vec![
+//             Float::with_val(53, 20.0),
+//             Float::with_val(53, 20.0),
+//             Float::with_val(53, 6.0),
+//             Float::with_val(53, 6.0),
+//         ]);
+//         let m2 = Model(vec![
+//             Float::with_val(53, 20.0),
+//             Float::with_val(53, 20.0),
+//             Float::with_val(53, 2.0),
+//             Float::with_val(53, 2.0),
+//         ]);
+//         let m3 = Model(vec![
+//             Float::with_val(53, 4.0),
+//             Float::with_val(53, 4.0),
+//             Float::with_val(53, 20.0),
+//             Float::with_val(53, 20.0),
+//         ]);
+//         let m4 = Model(vec![
+//             Float::with_val(53, 4.0),
+//             Float::with_val(53, 4.0),
+//             Float::with_val(53, 20.0),
+//             Float::with_val(53, 20.0),
+//         ]);
+
+//         let model_list = vec![m1, m2, m3, m4];
+//         let stakes = vec![1, 1, 1, 1];
+//         let mut feats = Features::new(model_list, stakes);
+
+//         feats.global = Model(vec![
+//             Float::with_val(53, 2.0),
+//             Float::with_val(53, 2.0),
+//             Float::with_val(53, 2.0),
+//             Float::with_val(53, 2.0),
+//         ]);
+
+//         let mut aggr = Aggregator::<FedAdam>::new(Baseline::default(), feats);
+
+//         let upd_model = aggr
+//             .base
+//             .avg(&aggr.features.locals, &aggr.features.prep_stakes());
+//         let delta_t = aggr.get_delta_t(&upd_model);
+
+//         assert_eq!(
+//             delta_t,
+//             Model(vec![
+//                 Float::with_val(53, 10.0),
+//                 Float::with_val(53, 10.0),
+//                 Float::with_val(53, 10.0),
+//                 Float::with_val(53, 10.0),
+//             ])
+//         );
+//     }
+
+//     #[test]
+//     fn test_get_m_t() {
+//         let feats = Features {
+//             global: Model(vec![
+//                 Float::with_val(53, 2.0),
+//                 Float::with_val(53, 2.0),
+//                 Float::with_val(53, 2.0),
+//                 Float::with_val(53, 2.0),
+//             ]),
+//             ..Default::default()
+//         };
+
+//         let upd_model = Model(vec![
+//             Float::with_val(53, 12.0),
+//             Float::with_val(53, 12.0),
+//             Float::with_val(53, 12.0),
+//             Float::with_val(53, 12.0),
+//         ]);
+
+//         let mut aggr = Aggregator::<FedAdam>::new(Baseline::default(), feats);
+
+//         let delta_t = aggr.get_delta_t(&upd_model);
+//         let m_t_upd = aggr.get_m_t(&delta_t);
+
+//         assert_eq!(
+//             m_t_upd,
+//             Model(vec![
+//                 Float::with_val(53, 1.0),
+//                 Float::with_val(53, 1.0),
+//                 Float::with_val(53, 1.0),
+//                 Float::with_val(53, 1.0),
+//             ])
+//         );
+//     }
+
+//     #[test]
+//     fn test_get_v_t() {
+//         let feats = Features {
+//             global: Model(vec![
+//                 Float::with_val(53, 2.0),
+//                 Float::with_val(53, 2.0),
+//                 Float::with_val(53, 2.0),
+//                 Float::with_val(53, 2.0),
+//             ]),
+//             ..Default::default()
+//         };
+
+//         let upd_model = Model(vec![
+//             Float::with_val(53, 12.0),
+//             Float::with_val(53, 12.0),
+//             Float::with_val(53, 12.0),
+//             Float::with_val(53, 12.0),
+//         ]);
+
+//         let mut aggr = Aggregator::<FedAdam>::new(Baseline::default(), feats);
+
+//         let delta_t = aggr.get_delta_t(&upd_model);
+//         let v_t_upd = aggr.get_v_t(&delta_t);
+
+//         assert_eq!(
+//             v_t_upd,
+//             Model(vec![
+//                 Float::with_val(53, 1.0),
+//                 Float::with_val(53, 1.0),
+//                 Float::with_val(53, 1.0),
+//                 Float::with_val(53, 1.0),
+//             ])
+//         );
+//     }
+
+//     #[test]
+//     fn test_adj_fac() {
+//         let feats = Features::default();
+//         let mut aggr = Aggregator::<FedAdam>::new(Baseline::default(), feats);
+
+//         let m_t_upd = Model(vec![
+//             Float::with_val(53, 1.0),
+//             Float::with_val(53, 1.0),
+//             Float::with_val(53, 1.0),
+//             Float::with_val(53, 1.0),
+//         ]);
+//         let v_t_upd = Model(vec![
+//             Float::with_val(53, 1.0),
+//             Float::with_val(53, 1.0),
+//             Float::with_val(53, 1.0),
+//             Float::with_val(53, 1.0),
+//         ]);
+
+//         let adjust_fac = aggr.get_adjustment(&m_t_upd, &v_t_upd);
+
+//         assert_eq!(
+//             adjust_fac,
+//             Model(vec![
+//                 Float::with_val(53, 0.1),
+//                 Float::with_val(53, 0.1),
+//                 Float::with_val(53, 0.1),
+//                 Float::with_val(53, 0.1),
+//             ])
+//         );
+//     }
+
+//     // #[test]
+//     // fn test_final_model() {
+//     //     let _final_model = aggr.adjust(&m_t_upd, &v_t_upd);
+
+//     //     assert_eq!(
+//     //         final_model,
+//     //         Model(vec![
+//     //             Float::with_val(53, (0.1_f32),
+//     //             Float::with_val(53, (0.1_f32),
+//     //             Float::with_val(53, (0.1_f32),
+//     //             Float::with_val(53, (0.1_f32),
+//     //         ])
+//     //     );
+//     // }
+// }

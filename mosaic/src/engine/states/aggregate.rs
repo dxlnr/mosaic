@@ -5,7 +5,7 @@ use crate::{
     core::{
         aggregator::{
             features::Features,
-            traits::{Aggregator, FedAdam},
+            traits::{Aggregator, FedAdam, FedAvg},
             Aggregation, Baseline,
         },
         model::{DataType, Model, ModelWrapper},
@@ -73,12 +73,17 @@ impl StateCondition<Aggregate> {
     /// Creates a new [`Aggregate`] state which holdes an [`Aggregation`] object.
     pub fn new(shared: ServerState, cache: Cache, features: Features) -> Self {
         Self {
+            // private: Aggregate {
+            //     aggregation: Aggregation::FedAdam(Aggregator::<FedAdam>::new(
+            //         Baseline::default(),
+            //         features,
+            //     )),
+            // },
             private: Aggregate {
-                aggregation: Aggregation::FedAdam(Aggregator::<FedAdam>::new(
-                    Baseline::default(),
-                    features,
-                )),
-            },
+                    aggregation: Aggregation::FedAvg(Aggregator::<FedAvg>::new(
+                        features,
+                    )),
+                },
             shared,
             cache,
         }

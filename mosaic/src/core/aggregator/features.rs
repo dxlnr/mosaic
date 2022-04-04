@@ -47,9 +47,10 @@ impl Features {
     /// Computed by the number of samples it is trained on.
     pub fn prep_stakes(&self) -> Vec<Float> {
         let all = self.sum_stakes();
+        println!("{:?}", &all);
         self.stakes
             .par_iter()
-            .map(|s| Float::with_val(53, *s / all))
+            .map(|s| Float::with_val(53, *s as f32 / all as f32))
             .collect::<Vec<_>>()
     }
     /// Returns the sum of all elements in stakes.

@@ -31,12 +31,12 @@ impl Aggregation {
             Aggregation::FedAdam(strategy) => strategy.aggregate(),
         }
     }
-    // pub fn set_feat(self, features: Features) {
-    //     match self {
-    //         Aggregation::FedAvg(mut strategy) => strategy.set_feat(features),
-    //         Aggregation::FedAdam(mut strategy) => strategy.set_feat(features),
-    //     }
-    // }
+    pub fn set_feat(self, features: Features) {
+        match self {
+            Aggregation::FedAvg(mut strategy) => strategy.set_feat(features),
+            Aggregation::FedAdam(mut strategy) => strategy.set_feat(features),
+        }
+    }
 }
 
 /// Parameters necessary for performing an aggregation schema.
@@ -104,10 +104,12 @@ impl Baseline {
         Self { params }
     }
     /// Performs FedAvg and returns an aggregated model.
-    pub fn avg(&mut self, models: &[Model], stakes: &[Float]) -> Model {
-        let mut res = Model::zeros(&models[0].len());
+    pub fn avg(&mut self, features: &[Model], stakes: &[Float]) -> Model {
+        let mut res = Model::zeros(&features[0].len());
 
-        models
+        println!("{:?}", &stakes);
+
+        features
             .iter()
             .zip(stakes)
             .map(|(single, s)| {
@@ -115,7 +117,7 @@ impl Baseline {
                     .0
                     .par_iter()
                     .zip(&single.0)
-                    .map(|(w1, w2)| w1.clone().add(w2.clone().mul(s)))
+                    .map(|(w1, w2)| w1.add(w2.clone().mul(s)))
                     .collect::<Vec<_>>()
                     .to_vec()
             })
