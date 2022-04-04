@@ -10,10 +10,7 @@ use std::ops::{Add, Mul};
 
 use crate::core::model::Model;
 
-use self::{
-    features::Features,
-    traits::{Aggregator, FedAdam, FedAvg, Strategy, FedAdaGrad, FedYogi},
-};
+use self::traits::{Aggregator, FedAdaGrad, FedAdam, FedAvg, FedYogi, Strategy};
 
 /// [`Aggregation`] strategy which defines the way the aggregation is performed.
 ///

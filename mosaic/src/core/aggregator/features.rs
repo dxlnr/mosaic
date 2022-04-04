@@ -1,5 +1,5 @@
-//! Feature module which stores all important information enabling the aggregation regarding each training round. 
-//! 
+//! Feature module which stores all important information enabling the aggregation regarding each training round.
+//!
 //! Some attributes have to be cached for the consecutive round as well like the global, m_t & v_t model.
 
 use crate::core::model::Model;
@@ -55,11 +55,11 @@ impl Features {
     /// let stakes = vec![8, 2, 2, 4];
     /// let feats = Features::new([Model::default(); 4], stakes);
     /// assert_eq!(
-    ///     feats.prep_stakes(), 
+    ///     feats.prep_stakes(),
     ///     vec![
-    ///         Float::with_val(53, 0.5), 
-    ///         Float::with_val(53, 0.125), 
-    ///         Float::with_val(53, 0.125), 
+    ///         Float::with_val(53, 0.5),
+    ///         Float::with_val(53, 0.125),
+    ///         Float::with_val(53, 0.125),
     ///         Float::with_val(53, 0.25)]);
     /// ```
     pub fn prep_stakes(&self) -> Vec<Float> {

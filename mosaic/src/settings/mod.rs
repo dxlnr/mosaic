@@ -117,26 +117,6 @@ pub struct ProcessSettings {
     pub strategy: Scheme,
 }
 
-// fn deserialize_aggr_scheme<'de, D>(deserializer: D) -> Result<Scheme, D::Error>
-// where
-//     D: Deserializer<'de>,
-// {
-//     struct SchemeVisitor;
-//     impl<'de> Visitor<'de> for SchemeVisitor {
-//         type Value = Scheme;
-//         fn expecting(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
-//             write!(formatter, "please choose a valid aggregation strategy: FedAvg - FedAdaGrad - FedAdam - FedYogi")
-//         }
-//         fn visit_str<E>(self, value: &str) -> Result<Self::Value, E>
-//         where
-//             E: de::Error,
-//         {
-//             Scheme::from_str(value).map_err(|_| de::Error::invalid_value(serde::de::Unexpected::Str(value), &self))
-//         }
-//     }
-//     deserializer.deserialize_str(SchemeVisitor)
-// }
-
 #[derive(Debug, Deserialize, Clone)]
 pub struct S3Settings {
     /// Defines the user (access) key.

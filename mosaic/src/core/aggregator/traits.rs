@@ -1,16 +1,17 @@
 use derive_more::Display;
 use rayon::prelude::*;
 use rug::Float;
-use tracing::log::warn;
-use std::{str::FromStr, ops::{Add, Mul, Sub}};
 use serde::{Deserialize, Serialize};
+use std::{
+    ops::{Add, Mul, Sub},
+    str::FromStr,
+};
+use tracing::log::warn;
 
-use crate::{settings::SettingsError, core::{
+use crate::core::{
     aggregator::{features::Features, fedopt::FedOpt, Baseline},
     model::Model,
-}};
-
-// use super::features;
+};
 
 /// The name of the aggregation scheme.
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Serialize, Deserialize, Display)]
@@ -23,11 +24,6 @@ pub enum Scheme {
     FedAdam,
     #[display(fmt = "FedYogi")]
     FedYogi,
-}
-
-impl Scheme {
-    /// `FedAvg` is the default aggregation strategy used.
-    pub const DEFAULT_SCHEME: &'static str = "FedAvg";
 }
 
 impl FromStr for Scheme {
@@ -44,7 +40,7 @@ impl FromStr for Scheme {
             _ => {
                 warn!("Aggregation strategy {:?} not valid. Please choose from [FedAvg, FedAdaGrad, FedAdam, FedYogi].", &s);
                 Ok(Scheme::FedAvg)
-            },
+            }
         }
     }
 }
@@ -260,4 +256,3 @@ impl FedOpt for Aggregator<FedYogi> {
         todo!()
     }
 }
-
