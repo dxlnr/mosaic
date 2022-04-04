@@ -6,7 +6,7 @@ use tower::Service;
 
 use self::{engine::EngineService, parsing::MessageParser};
 use crate::{
-    engine::channel::RequestSender, proxy::message::Message, proxy::server::mosaic::ClientUpdate,
+    engine::channel::RequestSender, proxy::message::Message, proxy::server::mosaic_proto::ClientUpdate,
     service::error::ServiceError,
 };
 

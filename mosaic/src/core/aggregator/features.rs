@@ -45,9 +45,17 @@ impl Features {
     }
     /// Returns a list of factors that represents the stake of each model to the global model.
     /// Computed by the number of samples it is trained on.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Float;
+    /// let stakes = vec![8, 2, 2, 4];
+    /// let feats = Features::new([Model::default(); 4], stakes);
+    /// assert_eq!(feats.prep_stakes(), vec![Float::with_val(53, 0.5), Float::with_val(53, 0.125), Float::with_val(53, 0.125), Float::with_val(53, 0.25)]);
+    /// ```
     pub fn prep_stakes(&self) -> Vec<Float> {
         let all = self.sum_stakes();
-        println!("{:?}", &all);
         self.stakes
             .par_iter()
             .map(|s| Float::with_val(53, *s as f32 / all as f32))
@@ -56,5 +64,29 @@ impl Features {
     /// Returns the sum of all elements in stakes.
     fn sum_stakes(&self) -> u32 {
         self.stakes.par_iter().sum()
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::core::aggregator::features::Features;
+    use rug::Float;
+
+    #[test]
+    fn test_prep_stakes() {
+        let stakes = vec![8, 2, 2, 4];
+        let _placeholder = vec![Model::default()];
+        let feats = Features::new(_placeholder, stakes);
+
+        assert_eq!(
+            feats.prep_stakes(),
+            vec![
+                Float::with_val(53, 0.5),
+                Float::with_val(53, 0.125),
+                Float::with_val(53, 0.125),
+                Float::with_val(53, 0.25),
+            ]
+        );
     }
 }

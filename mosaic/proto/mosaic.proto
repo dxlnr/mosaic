@@ -1,6 +1,6 @@
 syntax = "proto3";
 
-package mosaic;
+package mosaic_proto;
 
 service Communication {
   // Remote protocol to handle global model requests.

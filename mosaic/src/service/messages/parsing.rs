@@ -3,7 +3,7 @@ use std::{str::FromStr, task::Poll};
 use tower::Service;
 
 use crate::{
-    core::model::DataType, proxy::message::Message, proxy::server::mosaic::ClientUpdate,
+    core::model::DataType, proxy::message::Message, proxy::server::mosaic_proto::ClientUpdate,
     service::error::ServiceError,
 };
 

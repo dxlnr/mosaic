@@ -11,7 +11,7 @@ use std::{
     sync::Arc,
 };
 
-use crate::{proxy::server::mosaic::Parameters, service::error::ServiceError};
+use crate::{proxy::server::mosaic_proto::Parameters, service::error::ServiceError};
 
 /// Global model update event.
 pub type ModelUpdate = Option<ModelWrapper>;
@@ -63,6 +63,7 @@ impl Model {
     pub fn len(&self) -> usize {
         self.0.len()
     }
+    /// Returns bool whether tuple is empty.
     pub fn is_empty(&self) -> bool {
         self.0.is_empty()
     }

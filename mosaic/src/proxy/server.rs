@@ -12,13 +12,13 @@ use crate::{
     settings::APISettings,
 };
 
-pub mod mosaic {
+pub mod mosaic_proto {
     tonic::include_proto!("mosaic");
 }
 
-use mosaic::communication_server::{Communication, CommunicationServer};
+use mosaic_proto::communication_server::{Communication, CommunicationServer};
 #[allow(unused_imports)]
-use mosaic::{ClientMessage, ClientUpdate, Parameters, ServerMessage, ServerModel};
+use mosaic_proto::{ClientMessage, ClientUpdate, Parameters, ServerMessage, ServerModel};
 
 #[derive(Debug, Clone)]
 pub struct Communicator<F> {
@@ -77,7 +77,7 @@ where
             Status::new(Code::Internal, e.to_string())
         })?;
 
-        let server_msg = mosaic::ServerModel {
+        let server_msg = mosaic_proto::ServerModel {
             parameters: res.map(|r| r.wrapper_to_params()),
         };
         Ok(Response::new(server_msg))
@@ -94,7 +94,7 @@ where
         let handle = self.handler.clone();
         let res = Communicator::<F>::handle_message(request.into_inner().clone(), handle).await;
 
-        let server_msg = mosaic::ServerMessage {
+        let server_msg = mosaic_proto::ServerMessage {
             status: match res {
                 Ok(()) => 0,
                 _ => 1,

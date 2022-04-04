@@ -1,9 +1,9 @@
 use rayon::prelude::*;
-use rug::{Float, ops::Pow};
+use rug::{ops::Pow, Float};
 use std::ops::{Add, Div, Mul, Sub};
 
 use crate::core::{
-    aggregator::{AggregationParams, features::Features, Baseline},
+    aggregator::{features::Features, AggregationParams},
     model::Model,
 };
 
@@ -23,7 +23,12 @@ pub trait FedOpt {
     }
 
     /// Computes the m_t term.
-    fn get_m_t(&mut self, params: &AggregationParams, mut features: Features, delta_t: &Model) -> Model {
+    fn get_m_t(
+        &mut self,
+        params: &AggregationParams,
+        mut features: Features,
+        delta_t: &Model,
+    ) -> Model {
         if features.m_t.is_empty() {
             features.m_t = Model::zeros(&delta_t.len());
         }
@@ -58,7 +63,13 @@ pub trait FedOpt {
     }
 
     /// Computes new aggregated model.
-    fn adjust(&mut self, params: &AggregationParams, upd_model: &Model, m_t: &Model, v_t: &Model) -> Model {
+    fn adjust(
+        &mut self,
+        params: &AggregationParams,
+        upd_model: &Model,
+        m_t: &Model,
+        v_t: &Model,
+    ) -> Model {
         let adj = self.get_adjustment(params, m_t, v_t);
         let res = upd_model
             .0
@@ -69,7 +80,6 @@ pub trait FedOpt {
         Model(res)
     }
 }
-
 
 // #[cfg(test)]
 // mod tests {

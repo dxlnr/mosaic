@@ -1,10 +1,10 @@
 use derive_more::Display;
 use rayon::prelude::*;
-use rug::{Float, ops::Pow};
+use rug::{ops::Pow, Float};
 use std::ops::{Add, Div, Mul, Sub};
 
 use crate::core::{
-    aggregator::{fedopt::FedOpt, features::Features, Baseline},
+    aggregator::{features::Features, fedopt::FedOpt, Baseline},
     model::Model,
 };
 
@@ -61,11 +61,11 @@ impl Strategy for Aggregator<FedAvg> {
 
 impl Aggregator<FedAvg> {
     /// Creates a new [`Aggregator`] which uses [`FedAvg`] as baseline aggregation strategy.
-    /// 
+    ///
     /// # Example
-    /// 
+    ///
     /// Aggregator::<FedAvg>::new(features)
-    /// 
+    ///
     pub fn new(features: Features) -> Self {
         Self {
             private: FedAvg,
@@ -88,10 +88,10 @@ impl Strategy for Aggregator<FedAdam> {
             .base
             .avg(&self.features.locals, &self.features.prep_stakes());
 
-            let delta_t = self.get_delta_t(self.features.clone(), &upd_model);
-            let m_t_upd = self.get_m_t(&self.base.params.clone(), self.features.clone(), &delta_t);
-            let v_t_upd = self.get_v_t(&delta_t);
-            let global = self.adjust(&self.base.params.clone(), &upd_model, &m_t_upd, &v_t_upd);
+        let delta_t = self.get_delta_t(self.features.clone(), &upd_model);
+        let m_t_upd = self.get_m_t(&self.base.params.clone(), self.features.clone(), &delta_t);
+        let v_t_upd = self.get_v_t(&delta_t);
+        let global = self.adjust(&self.base.params.clone(), &upd_model, &m_t_upd, &v_t_upd);
 
         (global, m_t_upd, v_t_upd)
     }
@@ -103,11 +103,11 @@ impl Strategy for Aggregator<FedAdam> {
 
 impl Aggregator<FedAdam> {
     /// Creates a new [`Aggregator`] which uses [`FedAdam`] implementation as aggregation strategy.
-    /// 
+    ///
     /// # Example
-    /// 
+    ///
     /// Aggregator::<FedAdam>::new(Baseline::default(), features)
-    /// 
+    ///
     pub fn new(base: Baseline, features: Features) -> Self {
         Self {
             private: FedAdam,
@@ -217,11 +217,11 @@ pub struct FedAdaGrad;
 
 impl Aggregator<FedAdaGrad> {
     /// Creates a new [`Aggregator`] which uses [`FedAdaGrad`] implementation as aggregation strategy.
-    /// 
+    ///
     /// # Example
-    /// 
+    ///
     /// Aggregator::<FedAdaGrad>::new(Baseline::default(), features)
-    /// 
+    ///
     pub fn new(base: Baseline, features: Features) -> Self {
         Self {
             private: FedAdaGrad,

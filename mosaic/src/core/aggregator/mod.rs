@@ -1,8 +1,8 @@
 //! Aggregation module.
 //!
 pub mod features;
-pub mod traits;
 pub mod fedopt;
+pub mod traits;
 
 use rayon::prelude::*;
 use rug::Float;
@@ -53,7 +53,7 @@ pub struct AggregationParams {
 }
 
 impl AggregationParams {
-    /// Creates new [`AggregationParams`] which allows altering the default parameters 
+    /// Creates new [`AggregationParams`] which allows altering the default parameters
     /// eta, beta_1, beta_2 and tau.
     pub fn new(eta: f64, beta_1: f64, beta_2: f64, tau: f64) -> Self {
         Self {

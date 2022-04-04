@@ -35,7 +35,9 @@ pub struct SettingsParams {
 
 impl SettingsParams {
     pub fn new(global_model_name: &str) -> Self {
-        Self { global_model_name: global_model_name.to_string() }
+        Self {
+            global_model_name: global_model_name.to_string(),
+        }
     }
 }
 
@@ -95,7 +97,11 @@ impl S3Client {
 
     // Uploads an object with the given key to the given bucket.
     async fn upload_object(&self, key: &str, data: &[u8]) -> ClientResult<()> {
-        let (_, _code) = self.bucket.put_object(key, data).await.map_err(StorageError::UploadError)?;
+        let (_, _code) = self
+            .bucket
+            .put_object(key, data)
+            .await
+            .map_err(StorageError::UploadError)?;
         Ok(())
     }
 
@@ -149,7 +155,8 @@ impl ModelStorage for S3Client {
         Ok(Some(model))
     }
     async fn set_global_model(&mut self, data: &[u8]) -> StorageResult<()> {
-        self.upload_object(&self.params.global_model_name, data).await?;
+        self.upload_object(&self.params.global_model_name, data)
+            .await?;
         Ok(())
     }
 }

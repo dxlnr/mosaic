@@ -80,10 +80,8 @@ impl StateCondition<Aggregate> {
             //     )),
             // },
             private: Aggregate {
-                    aggregation: Aggregation::FedAvg(Aggregator::<FedAvg>::new(
-                        features,
-                    )),
-                },
+                aggregation: Aggregation::FedAvg(Aggregator::<FedAvg>::new(features)),
+            },
             shared,
             cache,
         }
