@@ -14,7 +14,7 @@ use self::traits::{Aggregator, FedAdaGrad, FedAdam, FedAvg, FedYogi, Strategy};
 
 /// [`Aggregation`] strategy which defines the way the aggregation is performed.
 ///
-/// Valid Options are `FedAvg` & `FedAdam`.
+/// Valid Options are `FedAvg`, `FedAdaGrad`, `FedAdam` `FedYogi`.
 #[derive(Debug)]
 pub enum Aggregation {
     FedAvg(Aggregator<FedAvg>),
@@ -107,8 +107,6 @@ impl Baseline {
     /// Performs FedAvg and returns an aggregated model.
     pub fn avg(&mut self, features: &[Model], stakes: &[Float]) -> Model {
         let mut res = Model::zeros(&features[0].len());
-
-        println!("{:?}", &stakes);
 
         features
             .iter()

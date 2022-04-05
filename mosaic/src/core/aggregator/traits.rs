@@ -13,7 +13,7 @@ use crate::core::{
     model::Model,
 };
 
-/// The name of the aggregation scheme.
+/// The name of the aggregation scheme which determines the way the aggregation will work.
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Serialize, Deserialize, Display)]
 pub enum Scheme {
     #[display(fmt = "FedAvg")]
@@ -64,8 +64,8 @@ pub struct Aggregator<A> {
     pub features: Features,
 }
 
-/// FedAvg algorithm based on McMahan et al. Communication-Efficient Learning of Deep Networks
-/// from Decentralized Data `<https://arxiv.org/abs/1602.05629>`
+/// FedAvg algorithm based on
+/// [McMahan et al. Communication-Efficient Learning of Deep Networks from Decentralized Data](https://arxiv.org/abs/1602.05629)
 #[derive(Debug, Default)]
 pub struct FedAvg;
 
@@ -73,6 +73,7 @@ impl Strategy for Aggregator<FedAvg> {
     const NAME: Scheme = Scheme::FedAvg;
 
     fn aggregate(&mut self) -> (Model, Model, Model) {
+        warn!("Using FedAvg now");
         let global = self
             .base
             .avg(&self.features.locals, &self.features.prep_stakes());
@@ -108,6 +109,7 @@ impl Strategy for Aggregator<FedAdam> {
     const NAME: Scheme = Scheme::FedAdam;
 
     fn aggregate(&mut self) -> (Model, Model, Model) {
+        warn!("Using FedAdam now");
         let upd_model = self
             .base
             .avg(&self.features.locals, &self.features.prep_stakes());

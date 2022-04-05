@@ -109,11 +109,57 @@ pub struct ModelSettings {
 
 #[derive(Debug, Deserialize, Clone)]
 pub struct ProcessSettings {
-    /// Defines the number of training rounds.
+    /// Defines the number of training rounds that will be performed.
+    ///
+    /// # Example
+    ///
+    /// **TOML**
+    /// ```text
+    /// [process]
+    /// rounds = 25
+    /// ```
     pub rounds: u32,
-    /// Sets the number of participants.
+    /// Sets the number of participants one global epoch should at least contain.
+    ///
+    /// # Example
+    ///
+    /// **TOML**
+    /// ```text
+    /// [process]
+    /// participants = 10
+    /// ```
     pub participants: u32,
-    /// Aggregation algorithm
+    /// Sets the aggregation strategy as key ingredient for Federated Learning.
+    ///
+    /// Options that are available:
+    /// * **FedAvg**: Most basic algorithm performing iterative model averaging.
+    ///
+    ///     This method is based on local models using stochastic gradient descent (SGD) for optimization.
+    ///     SGD can be applied naively to the federated optimization problem,
+    ///     where a single batch gradient calculation is done per round of communication.
+    ///     This approach is computationally efficient, but requires very large numbers of rounds of training to produce good models.
+    ///
+    ///     For more information check out [McMahan et al. Communication-Efficient Learning of Deep Networks from Decentralized Data](https://arxiv.org/abs/1602.05629)
+    ///
+    /// * **FedAdaGrad**: Based on FedOpt and one of the federated versions of adaptive optimizers.
+    ///
+    ///     For more information check out [Reddi et al. Adaptive Federated Optimization](https://arxiv.org/abs/2003.00295)
+    ///
+    /// * **FedAdam**: Based on FedOpt and one of the federated versions of adaptive optimizers.
+    ///
+    ///     For more information check out [Reddi et al. Adaptive Federated Optimization](https://arxiv.org/abs/2003.00295)
+    ///
+    /// * **FedYogi**: Based on FedOpt and one of the federated versions of adaptive optimizers.
+    ///
+    ///     For more information check out [Reddi et al. Adaptive Federated Optimization](https://arxiv.org/abs/2003.00295)
+    ///
+    /// # Example
+    ///
+    /// **TOML**
+    /// ```text
+    /// [process]
+    /// strategy = "FedAvg"
+    /// ```
     pub strategy: Scheme,
 }
 
