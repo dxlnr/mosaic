@@ -64,7 +64,7 @@ pub struct Aggregator<A> {
     pub features: Features,
 }
 
-/// FedAvg algorithm based on
+/// [`FedAvg`] algorithm based on
 /// [McMahan et al. Communication-Efficient Learning of Deep Networks from Decentralized Data](https://arxiv.org/abs/1602.05629)
 #[derive(Debug, Default)]
 pub struct FedAvg;
@@ -100,8 +100,8 @@ impl Aggregator<FedAvg> {
     }
 }
 
-/// FedAdam algorithm based on Reddi et al. ADAPTIVE FEDERATED OPTIMIZATION
-/// `<https://arxiv.org/pdf/2003.00295.pdf>`
+/// [`FedAdam`]: A federated version of the adaptive optimizer FedOpt based on
+/// [Reddi et al. Adaptive Federated Optimization](https://arxiv.org/pdf/2003.00295.pdf)
 #[derive(Debug, Default)]
 pub struct FedAdam;
 
@@ -163,8 +163,8 @@ impl FedOpt for Aggregator<FedAdam> {
     }
 }
 
-/// [`FedAdaGrad`]: A federated version of the adaptive optimizer FedOpt
-/// based on Reddi et al. ADAPTIVE FEDERATED OPTIMIZATION
+/// [`FedAdaGrad`]: A federated version of the adaptive optimizer FedOpt based on
+/// [Reddi et al. Adaptive Federated Optimization](https://arxiv.org/pdf/2003.00295.pdf)
 #[derive(Debug, Default)]
 pub struct FedAdaGrad;
 
@@ -206,13 +206,22 @@ impl Strategy for Aggregator<FedAdaGrad> {
 }
 
 impl FedOpt for Aggregator<FedAdaGrad> {
-    fn get_v_t(&mut self, _delta_t: &Model) -> Model {
-        todo!()
+    fn get_v_t(&mut self, delta_t: &Model) -> Model {
+        if self.features.v_t.is_empty() {
+            self.features.v_t = Model::zeros(&delta_t.len());
+        }
+        let v_t_upd = delta_t
+            .0
+            .par_iter()
+            .zip(self.features.v_t.0.par_iter())
+            .map(|(delta_ti, v_ti)| v_ti.clone().add(delta_ti.clone().mul(delta_ti)))
+            .collect::<Vec<_>>();
+        Model(v_t_upd)
     }
 }
 
-/// [`FedYogi`]: A federated version of the adaptive optimizer FedOpt
-/// based on Reddi et al. ADAPTIVE FEDERATED OPTIMIZATION
+/// [`FedYogi`]: A federated version of the adaptive optimizer FedOpt based on
+/// [Reddi et al. Adaptive Federated Optimization](https://arxiv.org/pdf/2003.00295.pdf)
 #[derive(Debug, Default)]
 pub struct FedYogi;
 
@@ -254,7 +263,22 @@ impl Strategy for Aggregator<FedYogi> {
 }
 
 impl FedOpt for Aggregator<FedYogi> {
-    fn get_v_t(&mut self, _delta_t: &Model) -> Model {
-        todo!()
+    fn get_v_t(&mut self, delta_t: &Model) -> Model {
+        if self.features.v_t.is_empty() {
+            self.features.v_t = Model::zeros(&delta_t.len());
+        }
+        let v_t_upd = delta_t
+            .0
+            .par_iter()
+            .zip(self.features.v_t.0.par_iter())
+            .map(|(delta_ti, v_ti)| {
+                v_ti.clone().sub(
+                    (Float::with_val(53, 1).sub(self.base.params.get_beta_2()))
+                        .mul(delta_ti.clone().mul(delta_ti))
+                        .mul((v_ti.sub(delta_ti.clone().mul(delta_ti))).signum()),
+                )
+            })
+            .collect::<Vec<_>>();
+        Model(v_t_upd)
     }
 }

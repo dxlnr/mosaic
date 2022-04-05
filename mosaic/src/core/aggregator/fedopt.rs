@@ -246,15 +246,15 @@ mod tests {
 
     // #[test]
     // fn test_final_model() {
-    //     let _final_model = aggr.adjust(&m_t_upd, &v_t_upd);
+    //     let final_model = aggr.adjust(&m_t_upd, &v_t_upd);
 
     //     assert_eq!(
     //         final_model,
     //         Model(vec![
-    //             Float::with_val(53, (0.1_f32),
-    //             Float::with_val(53, (0.1_f32),
-    //             Float::with_val(53, (0.1_f32),
-    //             Float::with_val(53, (0.1_f32),
+    //             Float::with_val(53, (0.1),
+    //             Float::with_val(53, (0.1),
+    //             Float::with_val(53, (0.1),
+    //             Float::with_val(53, (0.1),
     //         ])
     //     );
     // }

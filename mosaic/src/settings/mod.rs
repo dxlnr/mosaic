@@ -1,3 +1,9 @@
+//! Settings module which allows to manipulate the server from the outside.
+//! 
+//! Important settings regarding the training process can be configured using **.toml**.
+//! Therefore this module serves as an entry point to define specialised Federated Learning training processes without
+//! touching the code.
+
 use std::{fmt, path::Path};
 
 use config::{Config, ConfigError};
@@ -26,6 +32,7 @@ pub enum SettingsError {
 
 #[derive(Debug, Validate, Deserialize)]
 pub struct Settings {
+    /// Defines all the relevant API information and how to interact with the server.
     pub api: APISettings,
     pub job: JobSettings,
     pub model: ModelSettings,
@@ -67,6 +74,7 @@ pub struct JobSettings {
 }
 
 #[derive(Debug, Deserialize, Clone)]
+/// Defines all the relevant API information and how to interact with the server.
 pub struct APISettings {
     /// Defines the static IP address for the communication server.
     /// The communication server enables clients to interact via the grpc protocol.
