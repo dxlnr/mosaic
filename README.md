@@ -46,3 +46,4 @@ cargo doc --open
 - Implement clean aggregation strategy selection from config file (hardcoded at the moment).
 - Find a proper way to restrict the precision for the Rationals.
 - Add metadata to the stored objects (especially to global model)
+- Establish default values for settings & just include the most important in example .toml (rest will be covered in docu)

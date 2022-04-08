@@ -1,5 +1,5 @@
 //! Settings module which allows to manipulate the server from the outside.
-//! 
+//!
 //! Important settings regarding the training process can be configured using **.toml**.
 //! Therefore this module serves as an entry point to define specialised Federated Learning training processes without
 //! touching the code.
@@ -34,10 +34,15 @@ pub enum SettingsError {
 pub struct Settings {
     /// Defines all the relevant API information and how to interact with the server.
     pub api: APISettings,
+    /// Defines information regarding the specific job that is performed.
     pub job: JobSettings,
+    /// Setting regarding the model that is trained.
     pub model: ModelSettings,
+    /// Hyperparameter regarding the Federated Learning training process.
     pub process: ProcessSettings,
+    /// Defines the way the logging of the server is done via filter.
     pub log: LogSettings,
+    /// Handling storage regarding the training process.
     pub s3: S3Settings,
 }
 
@@ -59,9 +64,67 @@ impl Settings {
     }
 }
 
-#[derive(Debug, Deserialize)]
+impl Default for Settings {
+    fn default() -> Self {
+        let api = APISettings {
+            address: std::net::SocketAddr::new(
+                std::net::IpAddr::V4(std::net::Ipv4Addr::new(127, 0, 0, 1)),
+                8080,
+            ),
+            rest_api: std::net::SocketAddr::new(
+                std::net::IpAddr::V4(std::net::Ipv4Addr::new(127, 0, 0, 1)),
+                8000,
+            ),
+        };
+        let job = JobSettings {
+            job_id: 0,
+            job_token: "modalic".to_string(),
+            route: "http://localhost:5000/api/communication_rounds/create_communication_round"
+                .to_string(),
+        };
+        let model = ModelSettings {
+            data_type: DataType::F32,
+            precision: 53,
+        };
+        let process = ProcessSettings {
+            rounds: 0,
+            participants: 0,
+            strategy: Scheme::FedAvg,
+        };
+        let log = Default::default();
+        let s3 = S3Settings {
+            access_key: "modalic".to_string(),
+            secret_access_key: "modalic".to_string(),
+            region: Region::Custom {
+                region: "minio".to_string(),
+                endpoint: "http://localhost:9000".to_string(),
+            },
+            bucket: "modalic-testing".to_string(),
+            global_model: "global_model".to_string(),
+        };
+        Self {
+            api,
+            job,
+            model,
+            process,
+            log,
+            s3,
+        }
+    }
+}
+
+#[derive(Debug, Default, Deserialize)]
+/// Defines the way the logging of the server is done via filter.
 pub struct LogSettings {
     /// Tokio tracing filter which filters spans and events based on a set of filter directives.
+    ///
+    /// # Example
+    ///
+    /// **TOML**
+    /// ```text
+    /// [log]
+    /// filter = "mosaic=debug,info"
+    /// ```
     #[serde(deserialize_with = "deserialize_env_filter")]
     pub filter: EnvFilter,
 }
@@ -84,7 +147,7 @@ pub struct APISettings {
     /// **TOML**
     /// ```text
     /// [api]
-    /// address = "127.0.0.1:8081"
+    /// address = "127.0.0.1:8080"
     /// ```
     pub address: std::net::SocketAddr,
     /// Defines the Rest API where the server exposes data from the running process.
@@ -101,7 +164,6 @@ pub struct APISettings {
 
 #[derive(Debug, Deserialize, Clone)]
 pub struct ModelSettings {
-    pub length: usize,
     /// The DataType the model is encoded with.
     ///
     /// Options that are available: F64 & F32
@@ -113,9 +175,21 @@ pub struct ModelSettings {
     /// data_type = "F32"
     /// ```
     pub data_type: DataType,
+    /// Sets the precision the Float values of the model are encoded with.
+    /// The precision has to be set during construction.
+    ///
+    /// # Example
+    ///
+    /// **TOML**
+    /// ```text
+    /// [model]
+    /// precision = 53
+    /// ```
+    pub precision: u32,
 }
 
 #[derive(Debug, Deserialize, Clone)]
+/// Hyperparameter regarding the Federated Learning training process.
 pub struct ProcessSettings {
     /// Defines the number of training rounds that will be performed.
     ///
@@ -172,10 +246,32 @@ pub struct ProcessSettings {
 }
 
 #[derive(Debug, Deserialize, Clone)]
+/// Defines the connection to external storage drive by handling the access points to MinIO and
+/// sets the information regarding the stored elements.
+///
+///
+/// Server will work also without setting up the connection to MinIO or AWS services.
 pub struct S3Settings {
-    /// Defines the user (access) key.
+    /// Defines the user (access) key. Essentially the user name.
+    ///
+    /// # Example
+    ///
+    /// **TOML**
+    /// ```text
+    /// [s3]
+    /// access_key = "modalic"
+    /// ```
     pub access_key: String,
-    /// Defines the user secret key (password)
+    /// Defines the user secret key (password). This is sensitive information and you might not want to state that directly
+    /// within the config but use a *.env* for that.
+    ///
+    /// # Example
+    ///
+    /// **TOML**
+    /// ```text
+    /// [s3]
+    /// secret_access_key = "12345678"
+    /// ```
     pub secret_access_key: String,
     /// The Regional AWS endpoint.
     /// The region is specified using the [Region code](https://docs.aws.amazon.com/general/latest/gr/rande.html#regional-endpoints)
