@@ -6,18 +6,10 @@ rest_api = "127.0.0.1:8000"
 data_type = "F32"
 precision = 53
 
-[job]
-job_id = 1
-job_token = "test"
-route = "http://localhost:5000/api/communication_rounds/create_communication_round"
-
 [process]
 rounds = 25
 participants = 10
 strategy = "FedAvg"
-
-[log]
-filter = "mosaic=debug,info"
 
 [s3]
 access_key = "modalic"

@@ -11,7 +11,7 @@ derive_more = { version = "0.99.16", default-features = false, features = [
     "display",
     "from",
 ] }
-config = "0.11.0"
+config = "0.13.0"
 thiserror = "1.0.30"
 displaydoc = "0.2.3"
 structopt = "0.3.25"

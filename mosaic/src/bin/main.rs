@@ -40,6 +40,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         log: logging,
         s3: s3_settings,
     } = settings;
+
     init_logging(logging);
 
     let (engine, tx, subscriber) =

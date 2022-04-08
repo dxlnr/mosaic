@@ -4,7 +4,10 @@
 //! Therefore this module serves as an entry point to define specialised Federated Learning training processes without
 //! touching the code.
 
-use std::{fmt, path::Path};
+use std::{
+    fmt,
+    path::{Path, PathBuf},
+};
 
 use config::{Config, ConfigError};
 use displaydoc::Display;
@@ -52,15 +55,22 @@ impl Settings {
     /// # Errors
     /// Fails when the loading of the configuration file or its validation failed.
     pub fn new(path: impl AsRef<Path>) -> Result<Self, SettingsError> {
-        let settings: Settings = Self::load(path)?;
+        // let mut settings = Default::default();
+        let settings = Self::load(path)?;
         settings.validate()?;
         Ok(settings)
     }
 
     fn load(path: impl AsRef<Path>) -> Result<Self, ConfigError> {
-        let mut config = Config::new();
-        config.merge(config::File::from(path.as_ref()))?;
-        config.try_into()
+        let _default_settings: Settings = Default::default();
+
+        Config::builder()
+            .add_source(config::File::from(
+                PathBuf::from("mosaic/src/settings/default.toml").as_ref(),
+            ))
+            .add_source(config::File::from(path.as_ref()))
+            .build()?
+            .try_deserialize()
     }
 }
 
