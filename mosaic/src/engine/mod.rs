@@ -1,4 +1,4 @@
-//! Main module that handles the core process sequences. It is essentially implemented as a state machine.
+//! Main module that handles the core process sequences. Implemented as a state machine.
 //! 
 //! The state machine performes aggregation of the global model, keeping track of the training state, publishing protocol events
 //! and handling protocol errors.
@@ -120,7 +120,7 @@ impl EngineInitializer {
     }
 }
 
-/// Shared static ['ServerState']
+/// Shared static [`ServerState`]
 pub struct ServerState {
     /// Information about the whole process cached in ['RoundParams'].
     pub round_params: RoundParams,
@@ -154,7 +154,7 @@ impl ServerState {
 }
 
 #[derive(Debug, Default)]
-/// ['Cache'] that holds the state from previous round in order to allow
+/// [`Cache`] that holds the state from previous round in order to allow
 /// sensible aggregation.
 pub struct Cache {
     /// Keeps the actual training round updated and in cache.
@@ -169,7 +169,7 @@ pub struct Cache {
     pub stats: Stats,
 }
 impl Cache {
-    /// Init new shared server state.
+    /// Init new shared [`Cache`] which holds important information for the next aggregation state.
     pub fn new(round_id: u32, global_model: Model, m_t: Model, v_t: Model, stats: Stats) -> Self {
         Self {
             round_id,
@@ -184,10 +184,10 @@ impl Cache {
         self.round_id = id;
     }
     /// Returns the current round ID.
-    pub fn round_id(&self) -> u32 {
+    pub fn get_round_id(&self) -> u32 {
         self.round_id
     }
-    /// Returns parts of the stats correlated to a certain round_id
+    /// Returns parts of the stats correlated to a certain round_id.
     pub fn get_stats_with_round_id(&mut self) -> Stats {
         let filtered = self
             .stats

@@ -37,6 +37,14 @@ impl ModelWrapper {
             model_version,
         })
     }
+    /// Turns the model wrapper into proto parameter type.
+    /// 
+    /// message Parameters {
+    ///    bytes tensor = 1;
+    ///    string data_type = 2;
+    ///    uint32 model_version = 3;
+    /// }
+    /// 
     pub fn wrapper_to_params(self) -> Parameters {
         let model = Model::serialize(&self.model, &DataType::F32);
 
@@ -69,7 +77,7 @@ impl Model {
     }
     /// Returns model with all zeros given a fixed length.
     pub fn zeros(length: &usize) -> Self {
-        Model(vec![Float::new(32); *length])
+        Model(vec![Float::new(53); *length])
     }
     /// Creates an iterator that yields references to the weights/parameters of this model.
     pub fn iter(&self) -> Iter<Float> {
@@ -90,7 +98,7 @@ impl Model {
     fn from_bytes_array_f64(&mut self, bytes: Vec<u8>) {
         self.0 = bytes
             .par_chunks(8)
-            .map(|x| Float::with_val(64, BigEndian::read_f64(x)))
+            .map(|x| Float::with_val(53, BigEndian::read_f64(x)))
             .collect::<Vec<_>>()
             .to_vec()
     }

@@ -19,8 +19,9 @@ use crate::{
     service::error::ServiceError,
 };
 
-/// The Aggregation state.
+
 #[derive(Debug)]
+/// [`Aggregation`] object representing the aggregation state via [`Aggregation`].
 pub struct Aggregate {
     aggregation: Aggregation,
 }
@@ -61,7 +62,7 @@ where
     }
 
     async fn next(self) -> Option<Engine> {
-        if self.cache.round_id() > self.shared.round_params.training_rounds {
+        if self.cache.get_round_id() > self.shared.round_params.training_rounds {
             Some(StateCondition::<Shutdown>::new(self.shared, self.cache).into())
         } else {
             Some(StateCondition::<Collect>::new(self.shared, self.cache).into())

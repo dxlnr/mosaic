@@ -1,7 +1,7 @@
 use async_trait::async_trait;
 
 use crate::{
-    core::{aggregator::features::Features, model::Model},
+    core::{aggregator::features::{Features, FeatureDeque}, model::Model},
     engine::{
         states::{error::StateError, Aggregate, Handler, State, StateCondition, StateName},
         Cache, Engine, ServerState,
@@ -11,11 +11,12 @@ use crate::{
     service::error::ServiceError,
 };
 
-/// The collect state.
 #[derive(Debug)]
+/// [`Collect`] object representing the collect state.
 pub struct Collect {
     /// Caches all the incoming messages and their respective data.
     pub features: Features,
+    // pub feature_deque: FeatureDeque,
 }
 
 #[async_trait]
@@ -42,9 +43,10 @@ where
 }
 
 impl StateCondition<Collect> {
-    /// Creates a new collect state.
+    /// Creates a new [`Collect`] state.
+    // pub fn new(shared: ServerState, mut feature_deque: FeatureDeque, mut cache: Cache) -> Self {
     pub fn new(shared: ServerState, mut cache: Cache) -> Self {
-        cache.set_round_id(cache.round_id() + 1);
+        cache.set_round_id(cache.get_round_id() + 1);
         Self {
             private: Collect {
                 features: Features::new_cached(

@@ -1,4 +1,4 @@
-//! Module for handling and processing certain changes and updates that are produced by the engine
+//! Module for processing certain changes and updates that are produced by the engine
 //! to the clients.
 use tokio::sync::watch;
 

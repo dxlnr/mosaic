@@ -1,7 +1,7 @@
 use async_trait::async_trait;
 
 use crate::{
-    core::model::ModelWrapper,
+    core::{model::ModelWrapper, aggregator::features::FeatureDeque},
     db::traits::ModelStorage,
     engine::{
         states::{error::StateError, Collect, State, StateCondition, StateName},
@@ -9,8 +9,8 @@ use crate::{
     },
 };
 
-/// The idle state.
 #[derive(Debug)]
+/// [`Idle`] object representing the idle state.
 pub struct Idle;
 
 #[async_trait]
@@ -35,6 +35,7 @@ impl State for StateCondition<Idle> {
     }
 
     async fn next(self) -> Option<Engine> {
+        // Some(StateCondition::<Collect>::new(self.shared, FeatureDeque::default(), self.cache).into())
         Some(StateCondition::<Collect>::new(self.shared, self.cache).into())
     }
 }

@@ -4,12 +4,13 @@ use serde::{Deserialize, Serialize};
 pub type StatsUpdate = Option<Stats>;
 
 #[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]
+/// [`Stats`] holding a vector of [`Single`] messages from individual clients which contain meta data about the training.
 pub struct Stats {
     pub msgs: Vec<Single>,
 }
 
-/// single meta data message from specific client.
 #[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]
+/// [`Single`] meta data message from specific client.
 pub struct Single {
     pub client_id: u32,
     pub round_id: u32,

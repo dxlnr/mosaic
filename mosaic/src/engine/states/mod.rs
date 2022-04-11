@@ -1,4 +1,4 @@
-//! States module that implements the different individual states the ['Engine'] operates in.
+//! States module implementing the different individual states the ['Engine'] operates on.
 //!
 //! [`Engine`]: crate::engine::Engine.
 mod aggregate;

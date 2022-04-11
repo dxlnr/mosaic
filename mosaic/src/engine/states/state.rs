@@ -10,8 +10,8 @@ use crate::{
     service::error::ServiceError,
 };
 
-/// The name of the current state.
 #[derive(Clone, Copy, Debug, Display, Eq, PartialEq)]
+/// The name of the current state.
 pub enum StateName {
     #[display(fmt = "Idle")]
     Idle,
@@ -31,7 +31,7 @@ pub trait State {
     /// The name of the current state.
     const NAME: StateName;
 
-    /// Performs the tasks of this state.
+    /// Performs the attached tasks of the state.
     async fn perform(&mut self) -> Result<(), StateError>;
 
     /// Moves from the current to the next state.

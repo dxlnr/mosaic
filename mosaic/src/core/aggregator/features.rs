@@ -1,10 +1,15 @@
 //! Feature module which stores all important information enabling the aggregation regarding each training round.
 //!
 //! Some attributes have to be cached for the consecutive round as well like the global, m_t & v_t model.
-
+use std::collections::VecDeque;
 use crate::core::model::Model;
 use rayon::prelude::*;
 use rug::Float;
+
+#[derive(Debug, Default, Clone)]
+pub struct FeatureDeque {
+    _queue: VecDeque<Features>
+}
 
 #[derive(Debug, Default, Clone)]
 pub struct Features {

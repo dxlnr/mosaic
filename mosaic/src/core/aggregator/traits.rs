@@ -13,8 +13,8 @@ use crate::core::{
     model::Model,
 };
 
-/// The name of the aggregation scheme which determines the way the aggregation will work.
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Serialize, Deserialize, Display)]
+/// The name of the aggregation scheme which determines the way the aggregation will work.
 pub enum Scheme {
     #[display(fmt = "FedAvg")]
     FedAvg,

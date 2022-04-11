@@ -1,3 +1,5 @@
+//! Modules implements a REST API which can be used to expose data of the running aggregation process.
+//! 
 pub mod client;
 pub mod stats;
 
