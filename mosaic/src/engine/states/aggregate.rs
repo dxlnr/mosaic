@@ -4,7 +4,7 @@ use tracing::{info, warn};
 use crate::{
     core::{
         aggregator::{
-            features::Features,
+            features::{Features, FeatureDeque},
             traits::{Aggregator, Scheme, FedAdam, FedAvg, FedAdaGrad, FedYogi},
             Aggregation, Baseline,
         },
@@ -24,6 +24,7 @@ use crate::{
 /// [`Aggregation`] object representing the aggregation state via [`Aggregation`].
 pub struct Aggregate {
     aggregation: Aggregation,
+    pub feature_deque: FeatureDeque,
 }
 
 #[async_trait]
@@ -65,17 +66,25 @@ where
         if self.cache.get_round_id() > self.shared.round_params.training_rounds {
             Some(StateCondition::<Shutdown>::new(self.shared, self.cache).into())
         } else {
-            Some(StateCondition::<Collect>::new(self.shared, self.cache).into())
+            Some(StateCondition::<Collect>::new(self.shared, self.private.feature_deque, self.cache).into())
         }
     }
 }
 
 impl StateCondition<Aggregate> {
     /// Creates a new [`Aggregate`] state which holdes an [`Aggregation`] object.
-    pub fn new(shared: ServerState, cache: Cache, features: Features) -> Self {
+    pub fn new(shared: ServerState, cache: Cache, mut feature_deque: FeatureDeque) -> Self {
+        let mut features = Features::default();
+        match feature_deque.pop_front() {
+            Some(values) => { features = values; },
+            None => {
+                warn!("No features available for current aggregation round {}", &cache.round_id);
+            } 
+        }
         Self {
             private: Aggregate {
                 aggregation: StateCondition::define_aggregation(&shared, features),
+                feature_deque
             },
             shared,
             cache,

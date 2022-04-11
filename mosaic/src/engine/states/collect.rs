@@ -1,4 +1,5 @@
 use async_trait::async_trait;
+// use tracing::warn;
 
 use crate::{
     core::{aggregator::features::{Features, FeatureDeque}, model::Model},
@@ -15,8 +16,8 @@ use crate::{
 /// [`Collect`] object representing the collect state.
 pub struct Collect {
     /// Caches all the incoming messages and their respective data.
-    pub features: Features,
-    // pub feature_deque: FeatureDeque,
+    // pub features: Features,
+    pub feature_deque: FeatureDeque,
 }
 
 #[async_trait]
@@ -37,23 +38,29 @@ where
 
     async fn next(self) -> Option<Engine> {
         Some(
-            StateCondition::<Aggregate>::new(self.shared, self.cache, self.private.features).into(),
+            // StateCondition::<Aggregate>::new(self.shared, self.cache, self.private.features).into(),
+            StateCondition::<Aggregate>::new(self.shared, self.cache, self.private.feature_deque).into(),
         )
     }
 }
 
 impl StateCondition<Collect> {
     /// Creates a new [`Collect`] state.
-    // pub fn new(shared: ServerState, mut feature_deque: FeatureDeque, mut cache: Cache) -> Self {
-    pub fn new(shared: ServerState, mut cache: Cache) -> Self {
+    pub fn new(shared: ServerState, mut feature_deque: FeatureDeque, mut cache: Cache) -> Self {
         cache.set_round_id(cache.get_round_id() + 1);
+
+        match feature_deque.get_mut(0) {
+            Some(features) => { features.set_global_mt_vt(cache.global_model.clone(), cache.m_t.clone(), cache.v_t.clone()) }
+            None => { feature_deque.queue.push_back(Features::new_cached(cache.global_model.clone(), cache.m_t.clone(), cache.v_t.clone())) }
+        }
+        // features: Features::new_cached(
+        //     cache.global_model.clone(),
+        //     cache.m_t.clone(),
+        //     cache.v_t.clone(),
+
         Self {
             private: Collect {
-                features: Features::new_cached(
-                    cache.global_model.clone(),
-                    cache.m_t.clone(),
-                    cache.v_t.clone(),
-                ),
+                feature_deque
             },
             shared,
             cache,
@@ -64,8 +71,11 @@ impl StateCondition<Collect> {
         let mut local_model: Model = Default::default();
         local_model.deserialize(req.data, &self.shared.round_params.dtype);
 
-        self.private.features.locals.push(local_model);
-        self.private.features.stakes.push(req.stake);
+        self.private.feature_deque.queue[req.model_version.try_into().unwrap()].locals.push(local_model);
+        self.private.feature_deque.queue[req.model_version.try_into().unwrap()].stakes.push(req.stake);
+
+        // self.private.features.locals.push(local_model);
+        // self.private.features.stakes.push(req.stake);
 
         self.cache.stats.msgs.push(Single::new(
             req.key,
@@ -81,5 +91,26 @@ impl StateCondition<Collect> {
 impl Handler for StateCondition<Collect> {
     async fn handle_request(&mut self, req: Message) -> Result<(), ServiceError> {
         self.add(req)
+    }
+}
+
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::core::model::DataType;
+    use rug::Float;
+
+    #[test]
+    fn test_collect_add() {
+        let mut test_vec_deque = FeatureDeque::default();
+        let msg_one = Message::new(1, 1, vec![62, 128, 0, 0, 63, 87, 220, 190], DataType::F32, 1, 0.7);
+
+        let mut local_model: Model = Default::default();
+        local_model.deserialize(msg_one.data, &msg_one.dtype);
+
+        test_vec_deque.queue[msg_one.model_version.try_into().unwrap()].locals.push(local_model);
+
+        assert_eq!(test_vec_deque.queue[1].locals[0], Model(vec![Float::with_val(53, 0.25), Float::with_val(53, 0.843212)]));
     }
 }

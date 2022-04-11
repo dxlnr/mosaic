@@ -8,9 +8,27 @@ use rug::Float;
 
 #[derive(Debug, Default, Clone)]
 pub struct FeatureDeque {
-    _queue: VecDeque<Features>
+    pub queue: VecDeque<Features>
 }
 
+impl FeatureDeque {
+    /// Provides a reference to the element at the given index.
+    /// 
+    /// Element at index 0 is the front of the queue.
+    pub fn get(&self, index: usize) -> Option<&Features> {
+        self.queue.get(index)
+    }
+    /// Provides a mutable reference to the element at the given index.
+    /// 
+    /// Element at index 0 is the front of the queue.
+    pub fn get_mut(&mut self, index: usize) -> Option<&mut Features> {
+        self.queue.get_mut(index)
+    }
+    /// Removes the first element and returns it, or `None` if qeque is empty.
+    pub fn pop_front(&mut self) -> Option<Features> {
+        self.queue.pop_front()
+    }
+}
 #[derive(Debug, Default, Clone)]
 pub struct Features {
     /// keeps msgs in cache that have been received by the clients.
@@ -50,6 +68,13 @@ impl Features {
             v_t,
         }
     }
+    /// Alters the three parameters global, m_t & v_t for later use.
+    pub fn set_global_mt_vt(&mut self, global: Model, m_t: Model, v_t: Model) {
+        self.global = global;
+        self.m_t = m_t;
+        self.v_t = v_t;
+    }
+
     /// Returns a list of factors that represents the stake of each model to the global model.
     /// Computed by the number of samples it is trained on.
     ///
@@ -101,5 +126,11 @@ mod tests {
                 Float::with_val(53, 0.25),
             ]
         );
+    }
+    #[test]
+    fn test_set_global_mt_vt() {
+        let mut feats = Features::new(vec![Model::default(); 4], vec![8, 2, 2, 4]);
+        feats.set_global_mt_vt(Model(vec![Float::with_val(53, 2)]), Model(vec![Float::with_val(53, 4)]), Model(vec![Float::with_val(53, 3)]));
+        assert_eq!(feats.global, Model(vec![Float::with_val(53, 2)]));
     }
 }

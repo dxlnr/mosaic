@@ -35,8 +35,7 @@ impl State for StateCondition<Idle> {
     }
 
     async fn next(self) -> Option<Engine> {
-        // Some(StateCondition::<Collect>::new(self.shared, FeatureDeque::default(), self.cache).into())
-        Some(StateCondition::<Collect>::new(self.shared, self.cache).into())
+        Some(StateCondition::<Collect>::new(self.shared, FeatureDeque::default(), self.cache).into())
     }
 }
 
