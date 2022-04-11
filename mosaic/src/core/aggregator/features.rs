@@ -1,25 +1,26 @@
 //! Feature module which stores all important information enabling the aggregation regarding each training round.
 //!
 //! Some attributes have to be cached for the consecutive round as well like the global, m_t & v_t model.
-use std::collections::VecDeque;
 use crate::core::model::Model;
 use rayon::prelude::*;
 use rug::Float;
+use std::collections::VecDeque;
 
 #[derive(Debug, Default, Clone)]
+// TODO: Probably hashmap might be beneficial.
 pub struct FeatureDeque {
-    pub queue: VecDeque<Features>
+    pub queue: VecDeque<Features>,
 }
 
 impl FeatureDeque {
     /// Provides a reference to the element at the given index.
-    /// 
+    ///
     /// Element at index 0 is the front of the queue.
     pub fn get(&self, index: usize) -> Option<&Features> {
         self.queue.get(index)
     }
     /// Provides a mutable reference to the element at the given index.
-    /// 
+    ///
     /// Element at index 0 is the front of the queue.
     pub fn get_mut(&mut self, index: usize) -> Option<&mut Features> {
         self.queue.get_mut(index)
@@ -130,7 +131,11 @@ mod tests {
     #[test]
     fn test_set_global_mt_vt() {
         let mut feats = Features::new(vec![Model::default(); 4], vec![8, 2, 2, 4]);
-        feats.set_global_mt_vt(Model(vec![Float::with_val(53, 2)]), Model(vec![Float::with_val(53, 4)]), Model(vec![Float::with_val(53, 3)]));
+        feats.set_global_mt_vt(
+            Model(vec![Float::with_val(53, 2)]),
+            Model(vec![Float::with_val(53, 4)]),
+            Model(vec![Float::with_val(53, 3)]),
+        );
         assert_eq!(feats.global, Model(vec![Float::with_val(53, 2)]));
     }
 }

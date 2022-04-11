@@ -1,5 +1,5 @@
 //! Main module that handles the core process sequences. Implemented as a state machine.
-//! 
+//!
 //! The state machine performes aggregation of the global model, keeping track of the training state, publishing protocol events
 //! and handling protocol errors.
 pub mod channel;
@@ -13,7 +13,10 @@ use thiserror::Error;
 use tracing::log::warn;
 
 use crate::{
-    core::{aggregator::traits::Scheme, model::{DataType, Model, ModelUpdate}},
+    core::{
+        aggregator::traits::Scheme,
+        model::{DataType, Model, ModelUpdate},
+    },
     db::s3::{S3Client, StorageError},
     engine::{
         channel::{RequestReceiver, RequestSender},

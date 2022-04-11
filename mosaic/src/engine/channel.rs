@@ -1,5 +1,5 @@
 //! Module creating a channel for transferring messages between client and engine.
-//! 
+//!
 use derive_more::From;
 use futures::Stream;
 use std::{

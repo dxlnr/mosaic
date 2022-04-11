@@ -38,13 +38,13 @@ impl ModelWrapper {
         })
     }
     /// Turns the model wrapper into proto parameter type.
-    /// 
+    ///
     /// message Parameters {
     ///    bytes tensor = 1;
     ///    string data_type = 2;
     ///    uint32 model_version = 3;
     /// }
-    /// 
+    ///
     pub fn wrapper_to_params(self) -> Parameters {
         let model = Model::serialize(&self.model, &DataType::F32);
 

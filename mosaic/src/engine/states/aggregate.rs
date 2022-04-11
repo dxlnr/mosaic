@@ -4,8 +4,8 @@ use tracing::{info, warn};
 use crate::{
     core::{
         aggregator::{
-            features::{Features, FeatureDeque},
-            traits::{Aggregator, Scheme, FedAdam, FedAvg, FedAdaGrad, FedYogi},
+            features::{FeatureDeque, Features},
+            traits::{Aggregator, FedAdaGrad, FedAdam, FedAvg, FedYogi, Scheme},
             Aggregation, Baseline,
         },
         model::{DataType, Model, ModelWrapper},
@@ -18,7 +18,6 @@ use crate::{
     proxy::message::Message,
     service::error::ServiceError,
 };
-
 
 #[derive(Debug)]
 /// [`Aggregation`] object representing the aggregation state via [`Aggregation`].
@@ -66,7 +65,10 @@ where
         if self.cache.get_round_id() > self.shared.round_params.training_rounds {
             Some(StateCondition::<Shutdown>::new(self.shared, self.cache).into())
         } else {
-            Some(StateCondition::<Collect>::new(self.shared, self.private.feature_deque, self.cache).into())
+            Some(
+                StateCondition::<Collect>::new(self.shared, self.private.feature_deque, self.cache)
+                    .into(),
+            )
         }
     }
 }
@@ -76,15 +78,20 @@ impl StateCondition<Aggregate> {
     pub fn new(shared: ServerState, cache: Cache, mut feature_deque: FeatureDeque) -> Self {
         let mut features = Features::default();
         match feature_deque.pop_front() {
-            Some(values) => { features = values; },
+            Some(values) => {
+                features = values;
+            }
             None => {
-                warn!("No features available for current aggregation round {}", &cache.round_id);
-            } 
+                warn!(
+                    "No features available for current aggregation round {}",
+                    &cache.round_id
+                );
+            }
         }
         Self {
             private: Aggregate {
                 aggregation: StateCondition::define_aggregation(&shared, features),
-                feature_deque
+                feature_deque,
             },
             shared,
             cache,
@@ -94,9 +101,16 @@ impl StateCondition<Aggregate> {
     fn define_aggregation(shared: &ServerState, features: Features) -> Aggregation {
         match shared.round_params.strategy {
             Scheme::FedAvg => Aggregation::FedAvg(Aggregator::<FedAvg>::new(features)),
-            Scheme::FedAdaGrad => Aggregation::FedAdaGrad(Aggregator::<FedAdaGrad>::new(Baseline::default(), features)),
-            Scheme::FedAdam => Aggregation::FedAdam(Aggregator::<FedAdam>::new(Baseline::default(), features)),
-            Scheme::FedYogi => Aggregation::FedYogi(Aggregator::<FedYogi>::new(Baseline::default(), features)),
+            Scheme::FedAdaGrad => Aggregation::FedAdaGrad(Aggregator::<FedAdaGrad>::new(
+                Baseline::default(),
+                features,
+            )),
+            Scheme::FedAdam => {
+                Aggregation::FedAdam(Aggregator::<FedAdam>::new(Baseline::default(), features))
+            }
+            Scheme::FedYogi => {
+                Aggregation::FedYogi(Aggregator::<FedYogi>::new(Baseline::default(), features))
+            }
         }
     }
 
