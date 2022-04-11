@@ -1,3 +1,5 @@
+//! Module creating a channel for transferring messages between client and engine.
+//! 
 use derive_more::From;
 use futures::Stream;
 use std::{
@@ -8,8 +10,8 @@ use tokio::sync::{mpsc, oneshot};
 
 use crate::{proxy::message::Message, service::error::ServiceError};
 
-/// A handle to send requests to the ['Engine'].
 #[derive(Clone, From, Debug)]
+/// A handle to send requests to the ['Engine'].
 pub struct RequestSender(pub mpsc::UnboundedSender<(Message, ResponseSender)>);
 
 impl RequestSender {
@@ -28,8 +30,8 @@ impl RequestSender {
 
 /// A handle to send a response upon the request receiver.
 pub type ResponseSender = oneshot::Sender<Result<(), ServiceError>>;
-/// A handle to receive requests that the ['Engine'] makes use of.
 #[derive(From, Debug)]
+/// A handle to receive requests that the ['Engine'] makes use of.
 pub struct RequestReceiver(mpsc::UnboundedReceiver<(Message, ResponseSender)>);
 
 impl Stream for RequestReceiver {

@@ -67,12 +67,12 @@ impl Subscriber {
     }
 }
 
-/// A watch channel to send events to clients.
 #[derive(Debug)]
+/// A watch channel to send events to clients.
 pub struct Broadcast<E>(watch::Sender<Event<E>>);
 
-/// A watch channel that functions as a listener.
 #[derive(Debug, Clone)]
+/// A watch channel that functions as a listener.
 pub struct Listener<E>(watch::Receiver<Event<E>>);
 
 impl<E> From<watch::Receiver<Event<E>>> for Listener<E> {

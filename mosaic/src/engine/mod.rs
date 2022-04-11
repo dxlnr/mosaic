@@ -1,6 +1,7 @@
-/// Main module as it implements all the key functionality.
-/// Aggregation of the global model, keeping track of the training state, publishing protocol events
-/// and handling protocol errors.
+//! Main module that handles the core process sequences. It is essentially implemented as a state machine.
+//! 
+//! The state machine performes aggregation of the global model, keeping track of the training state, publishing protocol events
+//! and handling protocol errors.
 pub mod channel;
 pub mod states;
 pub mod watch;
@@ -152,9 +153,9 @@ impl ServerState {
     }
 }
 
+#[derive(Debug, Default)]
 /// ['Cache'] that holds the state from previous round in order to allow
 /// sensible aggregation.
-#[derive(Debug, Default)]
 pub struct Cache {
     /// Keeps the actual training round updated and in cache.
     pub round_id: u32,

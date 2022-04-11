@@ -1,4 +1,5 @@
 //! Sets up a gRPC server.
+//! 
 use std::convert::Infallible;
 // use std::io::{Error, ErrorKind};
 use thiserror::Error;
@@ -13,7 +14,7 @@ use crate::{
 };
 
 pub mod mosaic_proto {
-    tonic::include_proto!("mosaic");
+    tonic::include_proto!("mosaic_proto");
 }
 
 use mosaic_proto::communication_server::{Communication, CommunicationServer};

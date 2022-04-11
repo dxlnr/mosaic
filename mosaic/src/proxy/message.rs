@@ -1,5 +1,5 @@
-/// Module for setting the messages that are exchanged between server and engine.
-///
+//! Module for setting the messages that are exchanged between client and server and engine in consecutive order.
+//!
 use crate::core::model::DataType;
 
 // /// message buffer object
@@ -7,8 +7,10 @@ use crate::core::model::DataType;
 //     inner: T,
 // }
 
-/// main message object
+
 #[derive(Debug, Clone)]
+/// [`Message`] object that gets sent from client to server to engine.
+/// 
 pub struct Message {
     /// client key to check if message is authorized.
     pub key: u32,

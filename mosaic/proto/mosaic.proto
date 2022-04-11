@@ -18,6 +18,18 @@ message Parameters {
   string data_type = 2;
   // The model version that defines the training round of the model.
   uint32 model_version = 3;
+  // Holds the model shape
+  // ModelShape model_shape = 4;
+}
+
+message ModelShape {
+  // Shape of overall model which consists of many different layers.
+  repeated LayerShape layer_shape = 1; 
+}
+
+message LayerShape {
+  // Shape of individual layer which consists of weights and bias structure.
+  repeated uint32 wb_shape = 1;
 }
 
 message ProcessMeta {

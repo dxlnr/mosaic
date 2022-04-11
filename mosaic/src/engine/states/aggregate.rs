@@ -73,12 +73,6 @@ impl StateCondition<Aggregate> {
     /// Creates a new [`Aggregate`] state which holdes an [`Aggregation`] object.
     pub fn new(shared: ServerState, cache: Cache, features: Features) -> Self {
         Self {
-            // private: Aggregate {
-            //     aggregation: Aggregation::FedAdam(Aggregator::<FedAdam>::new(
-            //         Baseline::default(),
-            //         features,
-            //     )),
-            // },
             private: Aggregate {
                 aggregation: StateCondition::define_aggregation(&shared, features),
             },

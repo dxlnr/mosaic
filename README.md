@@ -46,4 +46,6 @@ cargo doc --open
 - Implement clean aggregation strategy selection from config file (hardcoded at the moment).
 - Find a proper way to restrict the precision for the Rationals.
 - Add metadata to the stored objects (especially to global model)
-- Establish default values for settings & just include the most important in example .toml (rest will be covered in docu)
+- Establish default values for settings (done) & just include the most important in example .toml (rest will be covered in docu) but maybe without extra toml file but rather as default values in code.
+- get rid of code duplication in fedopt algos
+- error handling.

@@ -39,7 +39,7 @@ pub struct Settings {
     pub api: APISettings,
     /// Defines information regarding the specific job that is performed.
     pub job: JobSettings,
-    /// Setting regarding the model that is trained.
+    /// Settings regarding the model that is trained.
     pub model: ModelSettings,
     /// Hyperparameter regarding the Federated Learning training process.
     pub process: ProcessSettings,
@@ -140,7 +140,9 @@ pub struct LogSettings {
 }
 
 #[derive(Debug, Deserialize, Clone)]
+/// General Settings regarding the Job. Only important if used in conjunction with the Modalic backend.
 pub struct JobSettings {
+    /// Defines the Job ID which is unique.
     pub job_id: u32,
     pub job_token: String,
     pub route: String,
@@ -173,6 +175,7 @@ pub struct APISettings {
 }
 
 #[derive(Debug, Deserialize, Clone)]
+/// Settings regarding the model that is trained during runtime.
 pub struct ModelSettings {
     /// The DataType the model is encoded with.
     ///
@@ -186,7 +189,7 @@ pub struct ModelSettings {
     /// ```
     pub data_type: DataType,
     /// Sets the precision the Float values of the model are encoded with.
-    /// The precision has to be set during construction.
+    /// The precision has to be set during construction of the Float variable.
     ///
     /// # Example
     ///
