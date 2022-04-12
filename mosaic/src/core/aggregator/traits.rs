@@ -8,10 +8,12 @@ use std::{
 };
 use tracing::log::warn;
 
-use crate::core::{
+use crate::{
+    core::{
     aggregator::{features::Features, fedopt::FedOpt, Baseline},
     model::Model,
-};
+}, 
+    engine::states::error::StateError};
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Serialize, Deserialize, Display)]
 /// The name of the aggregation scheme which determines the way the aggregation will work.
@@ -48,9 +50,7 @@ impl FromStr for Scheme {
 pub trait Strategy {
     const NAME: Scheme;
     /// Implementation of the aggregation algorithm based on the given strategy.
-    fn aggregate(&mut self) -> (Model, Model, Model);
-    /// Setting the features for each aggregation round.
-    fn set_feat(&mut self, features: Features);
+    fn aggregate(&mut self) -> Result<(Model, Model, Model), StateError>;
 }
 
 #[derive(Debug, Default)]
@@ -72,14 +72,11 @@ pub struct FedAvg;
 impl Strategy for Aggregator<FedAvg> {
     const NAME: Scheme = Scheme::FedAvg;
 
-    fn aggregate(&mut self) -> (Model, Model, Model) {
+    fn aggregate(&mut self) -> Result<(Model, Model, Model), StateError> {
         let global = self
             .base
-            .avg(&self.features.locals, &self.features.prep_stakes());
-        (global, Model::default(), Model::default())
-    }
-    fn set_feat(&mut self, features: Features) {
-        self.features = features;
+            .avg(&self.features.locals, &self.features.prep_stakes())?;
+        Ok((global, Model::default(), Model::default()))
     }
 }
 
@@ -107,21 +104,17 @@ pub struct FedAdam;
 impl Strategy for Aggregator<FedAdam> {
     const NAME: Scheme = Scheme::FedAdam;
 
-    fn aggregate(&mut self) -> (Model, Model, Model) {
+    fn aggregate(&mut self) -> Result<(Model, Model, Model), StateError> {
         let upd_model = self
             .base
-            .avg(&self.features.locals, &self.features.prep_stakes());
+            .avg(&self.features.locals, &self.features.prep_stakes())?;
 
         let delta_t = self.get_delta_t(self.features.clone(), &upd_model);
         let m_t_upd = self.get_m_t(&self.base.params.clone(), self.features.clone(), &delta_t);
         let v_t_upd = self.get_v_t(&delta_t);
         let global = self.adjust(&self.base.params.clone(), &upd_model, &m_t_upd, &v_t_upd);
 
-        (global, m_t_upd, v_t_upd)
-    }
-
-    fn set_feat(&mut self, features: Features) {
-        self.features = features;
+        Ok((global, m_t_upd, v_t_upd))
     }
 }
 
@@ -185,21 +178,17 @@ impl Aggregator<FedAdaGrad> {
 impl Strategy for Aggregator<FedAdaGrad> {
     const NAME: Scheme = Scheme::FedAdaGrad;
 
-    fn aggregate(&mut self) -> (Model, Model, Model) {
+    fn aggregate(&mut self) -> Result<(Model, Model, Model), StateError> {
         let upd_model = self
             .base
-            .avg(&self.features.locals, &self.features.prep_stakes());
+            .avg(&self.features.locals, &self.features.prep_stakes())?;
 
         let delta_t = self.get_delta_t(self.features.clone(), &upd_model);
         let m_t_upd = self.get_m_t(&self.base.params.clone(), self.features.clone(), &delta_t);
         let v_t_upd = self.get_v_t(&delta_t);
         let global = self.adjust(&self.base.params.clone(), &upd_model, &m_t_upd, &v_t_upd);
 
-        (global, m_t_upd, v_t_upd)
-    }
-
-    fn set_feat(&mut self, features: Features) {
-        self.features = features;
+        Ok((global, m_t_upd, v_t_upd))
     }
 }
 
@@ -242,22 +231,22 @@ impl Aggregator<FedYogi> {
 impl Strategy for Aggregator<FedYogi> {
     const NAME: Scheme = Scheme::FedAdaGrad;
 
-    fn aggregate(&mut self) -> (Model, Model, Model) {
+    fn aggregate(&mut self) -> Result<(Model, Model, Model), StateError> {
         let upd_model = self
             .base
-            .avg(&self.features.locals, &self.features.prep_stakes());
+            .avg(&self.features.locals, &self.features.prep_stakes())?;
 
         let delta_t = self.get_delta_t(self.features.clone(), &upd_model);
         let m_t_upd = self.get_m_t(&self.base.params.clone(), self.features.clone(), &delta_t);
         let v_t_upd = self.get_v_t(&delta_t);
         let global = self.adjust(&self.base.params.clone(), &upd_model, &m_t_upd, &v_t_upd);
 
-        (global, m_t_upd, v_t_upd)
+        Ok((global, m_t_upd, v_t_upd))
     }
 
-    fn set_feat(&mut self, features: Features) {
-        self.features = features;
-    }
+    // fn set_feat(&mut self, features: Features) {
+    //     self.features = features;
+    // }
 }
 
 impl FedOpt for Aggregator<FedYogi> {

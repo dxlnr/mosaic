@@ -4,11 +4,12 @@ pub mod features;
 pub mod fedopt;
 pub mod traits;
 
+use tracing::error;
 use rayon::prelude::*;
 use rug::Float;
 use std::ops::{Add, Mul};
 
-use crate::core::model::Model;
+use crate::{core::model::Model, engine::states::error::StateError};
 
 use self::traits::{Aggregator, FedAdaGrad, FedAdam, FedAvg, FedYogi, Strategy};
 
@@ -24,7 +25,7 @@ pub enum Aggregation {
 }
 
 impl Aggregation {
-    pub fn aggregate(&mut self) -> (Model, Model, Model) {
+    pub fn aggregate(&mut self) -> Result<(Model, Model, Model), StateError> {
         match self {
             Aggregation::FedAvg(strategy) => strategy.aggregate(),
             Aggregation::FedAdaGrad(strategy) => strategy.aggregate(),
@@ -32,12 +33,6 @@ impl Aggregation {
             Aggregation::FedYogi(strategy) => strategy.aggregate(),
         }
     }
-    // pub fn set_feat(self, features: Features) {
-    //     match self {
-    //         Aggregation::FedAvg(mut strategy) => strategy.set_feat(features),
-    //         Aggregation::FedAdam(mut strategy) => strategy.set_feat(features),
-    //     }
-    // }
 }
 
 /// Parameters necessary for performing an aggregation schema.
@@ -105,10 +100,14 @@ impl Baseline {
         Self { params }
     }
     /// Performs FedAvg and returns an aggregated model.
-    pub fn avg(&mut self, features: &[Model], stakes: &[Float]) -> Model {
-        let mut res = Model::zeros(&features[0].len());
+    pub fn avg(&mut self, locals: &[Model], stakes: &[Float]) -> Result<Model, StateError> {
+        if locals.is_empty() {
+            error!("No local models available for aggregating.");
+            return Err(StateError::FeatureError("No aggregation for current training round. Transition to Collect state again."));
+        }
+        let mut res = Model::zeros(&locals[0].len());
 
-        features
+        locals
             .iter()
             .zip(stakes)
             .map(|(single, s)| {
@@ -122,7 +121,7 @@ impl Baseline {
             })
             .collect::<Vec<_>>()
             .to_vec();
-        res
+        Ok(res)
     }
 }
 
@@ -165,7 +164,7 @@ mod tests {
         let feats = Features::new(model_list, stakes);
 
         let mut agg_object = Baseline::default();
-        let new_m = agg_object.avg(&feats.locals, &feats.prep_stakes());
+        let new_m = agg_object.avg(&feats.locals, &feats.prep_stakes()).unwrap();
         assert_eq!(
             new_m,
             Model(vec![

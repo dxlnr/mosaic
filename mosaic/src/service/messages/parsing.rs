@@ -7,7 +7,7 @@ use crate::{
     service::error::ServiceError,
 };
 
-/// Message parsing object
+/// [`MessageParser`] object
 #[derive(Debug, Clone, Default)]
 pub struct MessageParser;
 

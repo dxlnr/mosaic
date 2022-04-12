@@ -13,6 +13,8 @@ pub enum StateError {
     RequestChannel(&'static str),
     /// Some error in the Aggregation state: {0}.
     AggregationError(StorageError),
+    /// No local features available for aggregation.
+    FeatureError(&'static str),
     /// Error while trying to send a post request.
     PostRequest,
 }

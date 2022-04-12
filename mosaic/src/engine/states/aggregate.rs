@@ -34,7 +34,7 @@ where
     const NAME: StateName = StateName::Aggregate;
 
     async fn perform(&mut self) -> Result<(), StateError> {
-        self.aggregate();
+        self.aggregate()?;
 
         let global = self.cache.global_model.clone();
         let model_wrapper =
@@ -86,6 +86,10 @@ impl StateCondition<Aggregate> {
                     "No features available for current aggregation round {}",
                     &cache.round_id
                 );
+                // Some(
+                //     StateCondition::<Collect>::new(shared, feature_map, cache)
+                //         .into(),
+                // );
             }
         }
         Self {
@@ -115,11 +119,12 @@ impl StateCondition<Aggregate> {
     }
 
     /// Aggreates all the features from collect state into a global model.
-    pub fn aggregate(&mut self) {
-        let (global, m_t, v_t) = self.private.aggregation.aggregate();
+    pub fn aggregate(&mut self) -> Result<(), StateError> {
+        let (global, m_t, v_t) = self.private.aggregation.aggregate()?;
         self.cache.global_model = global;
         self.cache.m_t = m_t;
         self.cache.v_t = v_t;
+        Ok(())
     }
 }
 
