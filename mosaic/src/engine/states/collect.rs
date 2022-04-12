@@ -74,7 +74,7 @@ impl StateCondition<Collect> {
         }
     }
     /// Add message to feature map according to the model version via key.
-    /// 
+    ///
     fn add(&mut self, req: Message) -> Result<(), ServiceError> {
         let mut local_model: Model = Default::default();
         local_model.deserialize(req.data, &self.shared.round_params.dtype);

@@ -4,10 +4,10 @@ pub mod features;
 pub mod fedopt;
 pub mod traits;
 
-use tracing::error;
 use rayon::prelude::*;
 use rug::Float;
 use std::ops::{Add, Mul};
+use tracing::error;
 
 use crate::{core::model::Model, engine::states::error::StateError};
 
@@ -103,7 +103,9 @@ impl Baseline {
     pub fn avg(&mut self, locals: &[Model], stakes: &[Float]) -> Result<Model, StateError> {
         if locals.is_empty() {
             error!("No local models available for aggregating.");
-            return Err(StateError::FeatureError("No aggregation for current training round. Transition to Collect state again."));
+            return Err(StateError::FeatureError(
+                "No aggregation for current training round. Transition to Collect state again.",
+            ));
         }
         let mut res = Model::zeros(&locals[0].len());
 

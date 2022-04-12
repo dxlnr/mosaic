@@ -7,9 +7,9 @@ use rug::Float;
 use std::collections::HashMap;
 
 #[derive(Debug, Default, Clone)]
-/// [`FeatureMap`] that stores the features according to a certain training round 
+/// [`FeatureMap`] that stores the features according to a certain training round
 /// which is defined by the key of the Hashmap.
-/// 
+///
 pub struct FeatureMap {
     pub fmap: HashMap<u32, Features>,
 }
@@ -20,7 +20,7 @@ impl FeatureMap {
         self.fmap.get_mut(index)
     }
     /// Inserts a key-value pair into the map.
-    /// 
+    ///
     /// If the map did not have this key present, `None` is returned.
     pub fn insert_into(&mut self, index: u32, values: Features) -> Option<Features> {
         self.fmap.insert(index, values)

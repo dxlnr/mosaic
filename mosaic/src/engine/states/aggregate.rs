@@ -86,10 +86,6 @@ impl StateCondition<Aggregate> {
                     "No features available for current aggregation round {}",
                     &cache.round_id
                 );
-                // Some(
-                //     StateCondition::<Collect>::new(shared, feature_map, cache)
-                //         .into(),
-                // );
             }
         }
         Self {

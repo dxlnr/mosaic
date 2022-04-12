@@ -129,7 +129,8 @@ mod tests {
 
         let upd_model = aggr
             .base
-            .avg(&aggr.features.locals, &aggr.features.prep_stakes()).unwrap();
+            .avg(&aggr.features.locals, &aggr.features.prep_stakes())
+            .unwrap();
         let delta_t = aggr.get_delta_t(aggr.features.clone(), &upd_model);
 
         assert_eq!(

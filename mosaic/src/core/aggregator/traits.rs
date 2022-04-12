@@ -6,14 +6,15 @@ use std::{
     ops::{Add, Mul, Sub},
     str::FromStr,
 };
-use tracing::log::warn;
+use tracing::log::error;
 
 use crate::{
     core::{
-    aggregator::{features::Features, fedopt::FedOpt, Baseline},
-    model::Model,
-}, 
-    engine::states::error::StateError};
+        aggregator::{features::Features, fedopt::FedOpt, Baseline},
+        model::Model,
+    },
+    engine::states::error::StateError,
+};
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Serialize, Deserialize, Display)]
 /// The name of the aggregation scheme which determines the way the aggregation will work.
@@ -40,7 +41,7 @@ impl FromStr for Scheme {
             "FedAdam" => Ok(Scheme::FedAdam),
             "FedYogi" => Ok(Scheme::FedYogi),
             _ => {
-                warn!("Aggregation strategy {:?} not valid. Please choose from [FedAvg, FedAdaGrad, FedAdam, FedYogi].", &s);
+                error!("Aggregation strategy {:?} not valid. Please choose from [FedAvg, FedAdaGrad, FedAdam, FedYogi].", &s);
                 Ok(Scheme::FedAvg)
             }
         }
