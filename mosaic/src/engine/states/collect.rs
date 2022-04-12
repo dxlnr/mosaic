@@ -50,13 +50,21 @@ impl StateCondition<Collect> {
     pub fn new(shared: ServerState, mut feature_map: FeatureMap, mut cache: Cache) -> Self {
         cache.set_round_id(cache.get_round_id() + 1);
 
-        if let Some(x) = feature_map.get_mut(&cache.get_round_id()) {
-                x.set_global_mt_vt(cache.global_model.clone(),cache.m_t.clone(),cache.v_t.clone());
-        } else {
-            feature_map.insert_into(cache.get_round_id(), Features::new_cached(
+        if let Some(features) = feature_map.get_mut(&cache.get_round_id()) {
+            features.set_global_mt_vt(
                 cache.global_model.clone(),
                 cache.m_t.clone(),
-                cache.v_t.clone()));
+                cache.v_t.clone(),
+            );
+        } else {
+            feature_map.insert_into(
+                cache.get_round_id(),
+                Features::new_cached(
+                    cache.global_model.clone(),
+                    cache.m_t.clone(),
+                    cache.v_t.clone(),
+                ),
+            );
         }
 
         Self {
@@ -65,7 +73,7 @@ impl StateCondition<Collect> {
             cache,
         }
     }
-    /// Add message to feature list.
+    /// Add message to feature map according to the model version.
     fn add(&mut self, req: Message) -> Result<(), ServiceError> {
         let mut local_model: Model = Default::default();
         local_model.deserialize(req.data, &self.shared.round_params.dtype);
@@ -74,7 +82,10 @@ impl StateCondition<Collect> {
             features.locals.push(local_model);
             features.stakes.push(req.stake);
         } else {
-            self.private.feature_map.insert_into(req.model_version, Features::new(vec![local_model], vec![req.stake]));
+            self.private.feature_map.insert_into(
+                req.model_version,
+                Features::new(vec![local_model], vec![req.stake]),
+            );
         }
 
         self.cache.stats.msgs.push(Single::new(
@@ -100,16 +111,15 @@ mod tests {
     use crate::core::model::DataType;
     use rug::Float;
 
-    fn modified_add(
-        mut feature_map: FeatureMap,
-        req: Message,
-        local_model: Model,
-    ) -> FeatureMap {
+    fn modified_add(mut feature_map: FeatureMap, req: Message, local_model: Model) -> FeatureMap {
         if let Some(features) = feature_map.get_mut(&req.model_version) {
             features.locals.push(local_model);
             features.stakes.push(req.stake);
         } else {
-            feature_map.insert_into(req.model_version, Features::new(vec![local_model], vec![req.stake]));
+            feature_map.insert_into(
+                req.model_version,
+                Features::new(vec![local_model], vec![req.stake]),
+            );
         }
         feature_map
     }
@@ -135,14 +145,10 @@ mod tests {
             Model(vec![Float::with_val(32, 0.25), Float::with_val(32, 0.25)])
         );
 
-        // println!("{:?}", &test_vec_map);
-
         test_vec_map = modified_add(test_vec_map, msg_one.clone(), local_model.clone());
         assert_eq!(
             test_vec_map.fmap.get(&1).unwrap().locals[1],
             Model(vec![Float::with_val(32, 0.25), Float::with_val(32, 0.25)])
         );
-
-        // println!("{:?}", &test_vec_map);
     }
 }

@@ -73,7 +73,6 @@ impl Strategy for Aggregator<FedAvg> {
     const NAME: Scheme = Scheme::FedAvg;
 
     fn aggregate(&mut self) -> (Model, Model, Model) {
-        warn!("Using FedAvg now");
         let global = self
             .base
             .avg(&self.features.locals, &self.features.prep_stakes());
@@ -109,7 +108,6 @@ impl Strategy for Aggregator<FedAdam> {
     const NAME: Scheme = Scheme::FedAdam;
 
     fn aggregate(&mut self) -> (Model, Model, Model) {
-        warn!("Using FedAdam now");
         let upd_model = self
             .base
             .avg(&self.features.locals, &self.features.prep_stakes());
