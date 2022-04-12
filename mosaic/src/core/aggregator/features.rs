@@ -4,30 +4,28 @@
 use crate::core::model::Model;
 use rayon::prelude::*;
 use rug::Float;
-use std::collections::VecDeque;
+use std::collections::HashMap;
 
 #[derive(Debug, Default, Clone)]
-// TODO: Probably hashmap might be beneficial.
-pub struct FeatureDeque {
-    pub queue: VecDeque<Features>,
+/// [`FeatureMap`]
+pub struct FeatureMap {
+    pub fmap: HashMap<u32, Features>,
 }
 
-impl FeatureDeque {
-    /// Provides a reference to the element at the given index.
-    ///
-    /// Element at index 0 is the front of the queue.
-    pub fn get(&self, index: usize) -> Option<&Features> {
-        self.queue.get(index)
+impl FeatureMap {
+    /// Returns a mutable reference to the value corresponding to the key.
+    pub fn get_mut(&mut self, index: &u32) -> Option<&mut Features> {
+        self.fmap.get_mut(index)
     }
-    /// Provides a mutable reference to the element at the given index.
-    ///
-    /// Element at index 0 is the front of the queue.
-    pub fn get_mut(&mut self, index: usize) -> Option<&mut Features> {
-        self.queue.get_mut(index)
+    pub fn insert_into(&mut self, index: u32, values: Features) -> Option<Features> {
+        self.fmap.insert(index, values)
     }
-    /// Removes the first element and returns it, or `None` if qeque is empty.
-    pub fn pop_front(&mut self) -> Option<Features> {
-        self.queue.pop_front()
+    // pub fn contains_key(&self, index: &u32) -> bool {
+    //     self.fmap.contains_key(index)
+    // }
+    /// Removes a key from the map and returning the value of the key.
+    pub fn remove(&mut self, index: &u32) -> Option<Features> {
+        self.fmap.remove(index)
     }
 }
 #[derive(Debug, Default, Clone)]

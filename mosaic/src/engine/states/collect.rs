@@ -1,9 +1,8 @@
 use async_trait::async_trait;
-// use tracing::warn;
 
 use crate::{
     core::{
-        aggregator::features::{FeatureDeque, Features},
+        aggregator::features::{FeatureMap, Features},
         model::Model,
     },
     engine::{
@@ -19,8 +18,7 @@ use crate::{
 /// [`Collect`] object representing the collect state.
 pub struct Collect {
     /// Caches all the incoming messages and their respective data.
-    // pub features: Features,
-    pub feature_deque: FeatureDeque,
+    pub feature_map: FeatureMap,
 }
 
 #[async_trait]
@@ -41,8 +39,7 @@ where
 
     async fn next(self) -> Option<Engine> {
         Some(
-            // StateCondition::<Aggregate>::new(self.shared, self.cache, self.private.features).into(),
-            StateCondition::<Aggregate>::new(self.shared, self.cache, self.private.feature_deque)
+            StateCondition::<Aggregate>::new(self.shared, self.cache, self.private.feature_map)
                 .into(),
         )
     }
@@ -50,28 +47,20 @@ where
 
 impl StateCondition<Collect> {
     /// Creates a new [`Collect`] state.
-    pub fn new(shared: ServerState, mut feature_deque: FeatureDeque, mut cache: Cache) -> Self {
+    pub fn new(shared: ServerState, mut feature_map: FeatureMap, mut cache: Cache) -> Self {
         cache.set_round_id(cache.get_round_id() + 1);
 
-        match feature_deque.get_mut(0) {
-            Some(features) => features.set_global_mt_vt(
+        if let Some(x) = feature_map.get_mut(&cache.get_round_id()) {
+                x.set_global_mt_vt(cache.global_model.clone(),cache.m_t.clone(),cache.v_t.clone());
+        } else {
+            feature_map.insert_into(cache.get_round_id(), Features::new_cached(
                 cache.global_model.clone(),
                 cache.m_t.clone(),
-                cache.v_t.clone(),
-            ),
-            None => feature_deque.queue.push_back(Features::new_cached(
-                cache.global_model.clone(),
-                cache.m_t.clone(),
-                cache.v_t.clone(),
-            )),
+                cache.v_t.clone()));
         }
-        // features: Features::new_cached(
-        //     cache.global_model.clone(),
-        //     cache.m_t.clone(),
-        //     cache.v_t.clone(),
 
         Self {
-            private: Collect { feature_deque },
+            private: Collect { feature_map },
             shared,
             cache,
         }
@@ -81,25 +70,12 @@ impl StateCondition<Collect> {
         let mut local_model: Model = Default::default();
         local_model.deserialize(req.data, &self.shared.round_params.dtype);
 
-        match self
-            .private
-            .feature_deque
-            .get_mut(req.model_version.try_into().unwrap())
-        {
-            Some(features) => {
-                features.locals.push(local_model);
-                features.stakes.push(req.stake);
-            }
-            None => {
-                self.private
-                    .feature_deque
-                    .queue
-                    .push_back(Features::new(vec![local_model], vec![req.stake]));
-            }
+        if let Some(features) = self.private.feature_map.get_mut(&req.model_version) {
+            features.locals.push(local_model);
+            features.stakes.push(req.stake);
+        } else {
+            self.private.feature_map.insert_into(req.model_version, Features::new(vec![local_model], vec![req.stake]));
         }
-
-        // self.private.features.locals.push(local_model);
-        // self.private.features.stakes.push(req.stake);
 
         self.cache.stats.msgs.push(Single::new(
             req.key,
@@ -125,27 +101,22 @@ mod tests {
     use rug::Float;
 
     fn modified_add(
-        mut feature_deque: FeatureDeque,
+        mut feature_map: FeatureMap,
         req: Message,
         local_model: Model,
-    ) -> FeatureDeque {
-        match feature_deque.get_mut(req.model_version.try_into().unwrap()) {
-            Some(features) => {
-                features.locals.push(local_model);
-                features.stakes.push(req.stake);
-            }
-            None => {
-                feature_deque
-                    .queue
-                    .push_back(Features::new(vec![local_model], vec![req.stake]));
-            }
+    ) -> FeatureMap {
+        if let Some(features) = feature_map.get_mut(&req.model_version) {
+            features.locals.push(local_model);
+            features.stakes.push(req.stake);
+        } else {
+            feature_map.insert_into(req.model_version, Features::new(vec![local_model], vec![req.stake]));
         }
-        feature_deque
+        feature_map
     }
 
     #[test]
     fn test_collect_add() {
-        let mut test_vec_deque = FeatureDeque::default();
+        let mut test_vec_map = FeatureMap::default();
         let msg_one = Message::new(
             1,
             1,
@@ -158,16 +129,20 @@ mod tests {
         let mut local_model: Model = Default::default();
         local_model.deserialize(msg_one.data.clone(), &msg_one.dtype);
 
-        test_vec_deque = modified_add(test_vec_deque, msg_one.clone(), local_model.clone());
+        test_vec_map = modified_add(test_vec_map, msg_one.clone(), local_model.clone());
         assert_eq!(
-            test_vec_deque.queue[0].locals[0],
+            test_vec_map.fmap.get(&1).unwrap().locals[0],
             Model(vec![Float::with_val(32, 0.25), Float::with_val(32, 0.25)])
         );
 
-        test_vec_deque = modified_add(test_vec_deque, msg_one.clone(), local_model.clone());
+        // println!("{:?}", &test_vec_map);
+
+        test_vec_map = modified_add(test_vec_map, msg_one.clone(), local_model.clone());
         assert_eq!(
-            test_vec_deque.queue[1].locals[0],
+            test_vec_map.fmap.get(&1).unwrap().locals[1],
             Model(vec![Float::with_val(32, 0.25), Float::with_val(32, 0.25)])
         );
+
+        // println!("{:?}", &test_vec_map);
     }
 }

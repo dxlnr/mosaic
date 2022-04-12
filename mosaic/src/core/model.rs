@@ -87,7 +87,7 @@ impl Model {
     pub fn iter_mut(&mut self) -> IterMut<Float> {
         self.0.iter_mut()
     }
-    fn from_bytes_array_f32(&mut self, bytes: Vec<u8>) {
+    fn bytes_to_primitive_f32(&mut self, bytes: Vec<u8>) {
         self.0 = bytes
             .par_chunks(4)
             .map(|x| Float::with_val(32, BigEndian::read_f32(x)))
@@ -95,7 +95,7 @@ impl Model {
             .to_vec()
     }
     /// Conversion from bytes to Ratio for DataType F64
-    fn from_bytes_array_f64(&mut self, bytes: Vec<u8>) {
+    fn bytes_to_primitive_f64(&mut self, bytes: Vec<u8>) {
         self.0 = bytes
             .par_chunks(8)
             .map(|x| Float::with_val(53, BigEndian::read_f64(x)))
@@ -104,8 +104,8 @@ impl Model {
     }
     pub fn deserialize(&mut self, bytes: Vec<u8>, dtype: &DataType) {
         match dtype {
-            DataType::F32 => self.from_bytes_array_f32(bytes),
-            DataType::F64 => self.from_bytes_array_f64(bytes),
+            DataType::F32 => self.bytes_to_primitive_f32(bytes),
+            DataType::F64 => self.bytes_to_primitive_f64(bytes),
         }
     }
     /// Conversion from Ratio to bytes for DataType F32

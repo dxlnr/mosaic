@@ -49,7 +49,7 @@ where
     }
     /// Handles the request for the latest global model from the ['Engine'].
     async fn handle_model(mut fetcher: F) -> Result<ModelUpdate, ServiceError> {
-        Ok(fetcher.fetch_model().await?)
+        fetcher.fetch_model().await
     }
     // async fn handle_meta(
     //     req: GlobalMeta,

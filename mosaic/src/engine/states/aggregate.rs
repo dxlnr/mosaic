@@ -4,7 +4,7 @@ use tracing::{info, warn};
 use crate::{
     core::{
         aggregator::{
-            features::{FeatureDeque, Features},
+            features::{FeatureMap, Features},
             traits::{Aggregator, FedAdaGrad, FedAdam, FedAvg, FedYogi, Scheme},
             Aggregation, Baseline,
         },
@@ -23,7 +23,7 @@ use crate::{
 /// [`Aggregation`] object representing the aggregation state via [`Aggregation`].
 pub struct Aggregate {
     aggregation: Aggregation,
-    pub feature_deque: FeatureDeque,
+    pub feature_map: FeatureMap,
 }
 
 #[async_trait]
@@ -66,7 +66,7 @@ where
             Some(StateCondition::<Shutdown>::new(self.shared, self.cache).into())
         } else {
             Some(
-                StateCondition::<Collect>::new(self.shared, self.private.feature_deque, self.cache)
+                StateCondition::<Collect>::new(self.shared, self.private.feature_map, self.cache)
                     .into(),
             )
         }
@@ -75,9 +75,9 @@ where
 
 impl StateCondition<Aggregate> {
     /// Creates a new [`Aggregate`] state which holdes an [`Aggregation`] object.
-    pub fn new(shared: ServerState, cache: Cache, mut feature_deque: FeatureDeque) -> Self {
+    pub fn new(shared: ServerState, cache: Cache, mut feature_map: FeatureMap) -> Self {
         let mut features = Features::default();
-        match feature_deque.pop_front() {
+        match feature_map.remove(&cache.round_id) {
             Some(values) => {
                 features = values;
             }
@@ -91,7 +91,7 @@ impl StateCondition<Aggregate> {
         Self {
             private: Aggregate {
                 aggregation: StateCondition::define_aggregation(&shared, features),
-                feature_deque,
+                feature_map,
             },
             shared,
             cache,
