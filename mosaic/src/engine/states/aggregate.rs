@@ -42,7 +42,7 @@ where
         self.shared.publisher.broadcast_model(model_wrapper);
 
         info!(
-            "updated global model in round {} was published.",
+            "updated global model in training round {} was published.",
             &self.cache.round_id
         );
         self.shared

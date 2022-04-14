@@ -109,7 +109,7 @@ where
     async fn process_single(&mut self, req: Message, tx: ResponseSender, counter: &mut Counter) {
         let response = self.handle_request(req).await;
         if response.is_ok() {
-            counter.increment_accepted();
+            counter.increment_accepted(&self.cache.round_id);
         } else {
             counter.increment_rejected();
         }
@@ -147,9 +147,9 @@ impl Counter {
         self.accepted >= self.kp
     }
     /// Increments the counter for accepted messages.
-    fn increment_accepted(&mut self) {
+    fn increment_accepted(&mut self, round_id: &u32) {
         self.accepted += 1;
-        info!("[{}/{}] messages accepted.", self.accepted, self.kp);
+        info!("[{}/{}] messages accepted in round {:?}.", self.accepted, self.kp, round_id);
     }
     /// Increments the counter for rejected messages.
     fn increment_rejected(&mut self) {

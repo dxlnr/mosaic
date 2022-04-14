@@ -102,7 +102,7 @@ impl Baseline {
     /// Performs FedAvg and returns an aggregated model.
     pub fn avg(&mut self, locals: &[Model], stakes: &[Float]) -> Result<Model, StateError> {
         if locals.is_empty() {
-            error!("No local models available for aggregating.");
+            error!("No local models available for aggregating. Please check whether the model version fits the current training round.");
             return Err(StateError::FeatureError(
                 "No aggregation for current training round. Transition to Collect state again.",
             ));
