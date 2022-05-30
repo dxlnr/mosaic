@@ -97,7 +97,7 @@ impl EngineInitializer {
 
         let shared = ServerState::new(
             RoundParams::new(
-                self.process_settings.rounds,
+                self.process_settings.training_rounds,
                 self.process_settings.participants,
                 self.model_settings.data_type,
                 self.process_settings.strategy,

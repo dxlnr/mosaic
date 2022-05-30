@@ -128,12 +128,12 @@ pub async fn start<F>(
 where
     F: Fetch + Sync + Send + 'static + Clone,
 {
-    info!("Communication Server listening on {}", api_settings.address);
+    info!("Communication Server listening on {}", api_settings.server_address);
 
     let com = Communicator::new(message_handler, fetcher);
     Server::builder()
         .add_service(CommunicationServer::new(com))
-        .serve(api_settings.address)
+        .serve(api_settings.server_address)
         .await?;
 
     Ok(())

@@ -5,24 +5,39 @@
 Mosaic Server which is the backbone of the Modalic MLOps platform designed for enabling Federated Learning.
 All the aggregation converges at Mosaic which aims for safety, reliability and performance.
 
-It currently implements the basic **FedAvg** algorithm proposed in McMahan *et al.* [Communication-Efficient Learning of Deep Networks from Decentralized Data](https://arxiv.org/abs/1602.05629).
+## Building
 
-## Installation
-```sh
+### Build from Source
+
+If the preferred choice is to build from source, first install Rust. PATH environment variable may be needed to add to Cargo's bin directory. Restarting your computer will do this automatically.
+
+```bash
 # Install rust and cargo
 $ curl --proto '=https' --tlsv1.2 https://sh.rustup.rs -sSf | sh
 ```
 
-## Running the Server
-```shell
-# First time running takes a while to download and compile
-cargo run -p mosaic -- -c configs/config.toml
+If you already have Rust installed, make sure you're using the latest version by running:
+
+```bash
+rustup update
 ```
 
-**Release Build && Run**
-```shell
-cargo build --release || cargo run -p mosaic --release -- -c configs/config.toml
+**Release Build** the aggregation server application by cloning this repository and running the following commands from the root
+directory of the repo:
+
+```bash
+cargo build --release
 ```
+
+This might take a while for the first time. Note that compilation is a memory intensive process. We recommend having 4 GiB of physical RAM or swap available.
+
+## Running the Server
+
+Start the server application by running: 
+```bash
+./target/release/mosaic -c configs/config.toml
+```
+
 
 ## Running MinIO
 ```shell

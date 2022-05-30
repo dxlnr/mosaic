@@ -77,7 +77,7 @@ impl Settings {
 impl Default for Settings {
     fn default() -> Self {
         let api = APISettings {
-            address: std::net::SocketAddr::new(
+            server_address: std::net::SocketAddr::new(
                 std::net::IpAddr::V4(std::net::Ipv4Addr::new(127, 0, 0, 1)),
                 8080,
             ),
@@ -97,7 +97,7 @@ impl Default for Settings {
             precision: 53,
         };
         let process = ProcessSettings {
-            rounds: 0,
+            training_rounds: 0,
             participants: 0,
             strategy: Scheme::FedAvg,
         };
@@ -159,9 +159,9 @@ pub struct APISettings {
     /// **TOML**
     /// ```text
     /// [api]
-    /// address = "127.0.0.1:8080"
+    /// server_address = "127.0.0.1:8080"
     /// ```
-    pub address: std::net::SocketAddr,
+    pub server_address: std::net::SocketAddr,
     /// Defines the Rest API where the server exposes data from the running process.
     ///
     /// # Example
@@ -211,9 +211,9 @@ pub struct ProcessSettings {
     /// **TOML**
     /// ```text
     /// [process]
-    /// rounds = 25
+    /// training_rounds = 25
     /// ```
-    pub rounds: u32,
+    pub training_rounds: u32,
     /// Sets the number of participants one global epoch should at least contain.
     ///
     /// # Example

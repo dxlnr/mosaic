@@ -1,5 +1,5 @@
 [api]
-address = "127.0.0.1:8080"
+server_address = "[::]:8080"
 rest_api = "127.0.0.1:8000"
 
 [model]
@@ -7,8 +7,8 @@ data_type = "F32"
 precision = 53
 
 [process]
-rounds = 25
-participants = 10
+training_rounds = 20
+participants = 5
 strategy = "FedAvg"
 
 [s3]

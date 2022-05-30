@@ -1,7 +1,16 @@
+[[bin]]
+name = "mosaic"
+path = "src/bin/main.rs"
+
 [package]
 name = "mosaic"
+authors = ["Daniel Illner <illner@modalic.ai>"]
+description = "Implementation of a general aggregation server sitting at the heart of a Federated Learning pipeline."
+license = "GPL-3.0-only"
 version = "0.1.0"
 edition = "2021"
+rust-version = "1.61.0" 
+readme = "README.md"
 
 [dependencies]
 anyhow = "1.0.53"
