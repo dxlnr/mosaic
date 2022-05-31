@@ -4,12 +4,11 @@ FROM rust:latest
 
 WORKDIR /usr/src/app
 COPY . .
-RUN chmod +x ./run.sh
+RUN chmod +x ./scripts/run.sh
 ENV CONFIG_TOML=
-
 
 RUN rustup component add rustfmt
 RUN cargo build --release
 
-CMD ["sh", "-c", "./run.sh"]
+CMD ["sh", "-c", "./scripts/run.sh"]
 

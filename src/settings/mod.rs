@@ -66,7 +66,7 @@ impl Settings {
 
         Config::builder()
             .add_source(config::File::from(
-                PathBuf::from("mosaic/src/settings/default.toml").as_ref(),
+                PathBuf::from("src/settings/default.toml").as_ref(),
             ))
             .add_source(config::File::from(path.as_ref()))
             .build()?

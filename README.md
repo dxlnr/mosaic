@@ -2,7 +2,7 @@
   <b>Mosaic</b><br>
 </h1>
 
-Mosaic Server which is the backbone of the Modalic MLOps platform designed for enabling Federated Learning.
+The *Mosaic* aggregation server is the backbone of the Modalic MLOps platform designed for enabling Federated Learning.
 All the aggregation converges at Mosaic which aims for safety, reliability and performance.
 
 ## Building
@@ -64,3 +64,7 @@ cargo doc --open
 - Establish default values for settings (done) & just include the most important in example .toml (rest will be covered in docu) but maybe without extra toml file but rather as default values in code.
 - get rid of code duplication in fedopt algos
 - error handling.
+
+## Contributing
+
+## License
