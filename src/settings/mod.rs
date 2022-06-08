@@ -9,7 +9,7 @@ use std::{
     path::{Path, PathBuf},
 };
 
-use config::{Config, ConfigError};
+use config::{Config, ConfigError, ValueKind};
 use displaydoc::Display;
 use s3::region::Region;
 use serde::{
@@ -55,71 +55,53 @@ impl Settings {
     /// # Errors
     /// Fails when the loading of the configuration file or its validation failed.
     pub fn new(path: impl AsRef<Path>) -> Result<Self, SettingsError> {
-        // let mut settings = Default::default();
         let settings = Self::load(path)?;
         settings.validate()?;
         Ok(settings)
     }
 
     fn load(path: impl AsRef<Path>) -> Result<Self, ConfigError> {
-        let _default_settings: Settings = Default::default();
-
         Config::builder()
+            .set_default(
+                "api.server_address",
+                ValueKind::String("[::]:8080".to_string()),
+            )?
+            .set_default(
+                "api.rest_api",
+                ValueKind::String("0.0.0.0:8000".to_string()),
+            )?
+            .set_default("job.job_id", ValueKind::I64(0))?
+            .set_default("job.job_token", ValueKind::String("".to_string()))?
+            .set_default("job.route", ValueKind::String("".to_string()))?
+            .set_default("model.data_type", ValueKind::String("F32".to_string()))?
+            .set_default("model.precision", ValueKind::I64(53))?
+            .set_default("process.training_rounds", ValueKind::I64(0))?
+            .set_default("process.participants", ValueKind::I64(0))?
+            .set_default("process.strategy", ValueKind::String("FedAvg".to_string()))?
+            .set_default(
+                "log.filter",
+                ValueKind::String("mosaic=debug,info".to_string()),
+            )?
+            .set_default("s3.access_key", ValueKind::String("".to_string()))?
+            .set_default("s3.secret_access_key", ValueKind::String("".to_string()))?
+            .set_default(
+                "s3.region",
+                ValueKind::Array(vec![
+                    config::Value::new(None, ValueKind::String("minio".to_string())),
+                    config::Value::new(
+                        None,
+                        ValueKind::String("http://localhost:9000".to_string()),
+                    ),
+                ]),
+            )?
+            .set_default("s3.bucket", ValueKind::String("".to_string()))?
+            .set_default("s3.global_model", ValueKind::String("".to_string()))?
             .add_source(config::File::from(
                 PathBuf::from("src/settings/default.toml").as_ref(),
             ))
             .add_source(config::File::from(path.as_ref()))
             .build()?
             .try_deserialize()
-    }
-}
-
-impl Default for Settings {
-    fn default() -> Self {
-        let api = APISettings {
-            server_address: std::net::SocketAddr::new(
-                std::net::IpAddr::V4(std::net::Ipv4Addr::new(127, 0, 0, 1)),
-                8080,
-            ),
-            rest_api: std::net::SocketAddr::new(
-                std::net::IpAddr::V4(std::net::Ipv4Addr::new(127, 0, 0, 1)),
-                8000,
-            ),
-        };
-        let job = JobSettings {
-            job_id: 0,
-            job_token: "modalic".to_string(),
-            route: "http://localhost:5000/api/communication_rounds/create_communication_round"
-                .to_string(),
-        };
-        let model = ModelSettings {
-            data_type: DataType::F32,
-            precision: 53,
-        };
-        let process = ProcessSettings {
-            training_rounds: 0,
-            participants: 0,
-            strategy: Scheme::FedAvg,
-        };
-        let log = Default::default();
-        let s3 = S3Settings {
-            access_key: "modalic".to_string(),
-            secret_access_key: "modalic".to_string(),
-            region: Region::Custom {
-                region: "minio".to_string(),
-                endpoint: "http://localhost:9000".to_string(),
-            },
-            bucket: "modalic-testing".to_string(),
-            global_model: "global_model".to_string(),
-        };
-        Self {
-            api,
-            job,
-            model,
-            process,
-            log,
-            s3,
-        }
     }
 }
 

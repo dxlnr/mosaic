@@ -1,5 +1,15 @@
+# Rust 
 target
 server/target
 Cargo.lock
-server/src/console-subscriber
-.vscode
+
+# VSCode
+.vscode/
+
+# Python: Byte-compiled / optimized / DLL files
+__pycache__/
+.pytest_cache/
+*.py[cod]
+
+# C extensions
+*.so

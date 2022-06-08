@@ -1,6 +1,5 @@
 [api]
 server_address = "[::]:8080"
-rest_api = "127.0.0.1:8000"
 
 [model]
 data_type = "F32"
