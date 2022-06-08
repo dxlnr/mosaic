@@ -25,9 +25,15 @@ struct Config {
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
-    let cfg = Config::from_args();
+    let path_buf = match Config::from_args_safe() {
+        Ok(path_buf) => Some(path_buf.config_path),
+        Err(_) => {
+            println!("\nAggregation Server runs without external configuration, default values are used.\n");
+            None
+        }
+    };
 
-    let settings = Settings::new(cfg.config_path).unwrap_or_else(|error| {
+    let settings = Settings::new(path_buf).unwrap_or_else(|error| {
         eprintln!("{}", error);
         process::exit(1);
     });

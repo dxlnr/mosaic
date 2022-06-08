@@ -4,10 +4,7 @@
 //! Therefore this module serves as an entry point to define specialised Federated Learning training processes without
 //! touching the code.
 
-use std::{
-    fmt,
-    path::{Path, PathBuf},
-};
+use std::{fmt, path::Path};
 
 use config::{Config, ConfigError, ValueKind};
 use displaydoc::Display;
@@ -54,36 +51,59 @@ impl Settings {
     ///
     /// # Errors
     /// Fails when the loading of the configuration file or its validation failed.
-    pub fn new(path: impl AsRef<Path>) -> Result<Self, SettingsError> {
+    pub fn new(path: Option<impl AsRef<Path>>) -> Result<Self, SettingsError> {
         let settings = Self::load(path)?;
         settings.validate()?;
         Ok(settings)
     }
 
-    fn load(path: impl AsRef<Path>) -> Result<Self, ConfigError> {
+    fn load(path: Option<impl AsRef<Path>>) -> Result<Self, ConfigError> {
+        match path {
+            None => Self::set_default().build()?.try_deserialize(),
+            Some(path) => Self::set_default()
+                .add_source(config::File::from(path.as_ref()))
+                .build()?
+                .try_deserialize(),
+        }
+    }
+
+    fn set_default() -> config::ConfigBuilder<config::builder::DefaultState> {
         Config::builder()
             .set_default(
                 "api.server_address",
                 ValueKind::String("[::]:8080".to_string()),
-            )?
+            )
+            .unwrap_or_default()
             .set_default(
                 "api.rest_api",
                 ValueKind::String("0.0.0.0:8000".to_string()),
-            )?
-            .set_default("job.job_id", ValueKind::I64(0))?
-            .set_default("job.job_token", ValueKind::String("".to_string()))?
-            .set_default("job.route", ValueKind::String("".to_string()))?
-            .set_default("model.data_type", ValueKind::String("F32".to_string()))?
-            .set_default("model.precision", ValueKind::I64(53))?
-            .set_default("process.training_rounds", ValueKind::I64(0))?
-            .set_default("process.participants", ValueKind::I64(0))?
-            .set_default("process.strategy", ValueKind::String("FedAvg".to_string()))?
+            )
+            .unwrap_or_default()
+            .set_default("job.job_id", ValueKind::I64(0))
+            .unwrap_or_default()
+            .set_default("job.job_token", ValueKind::String("".to_string()))
+            .unwrap_or_default()
+            .set_default("job.route", ValueKind::String("".to_string()))
+            .unwrap_or_default()
+            .set_default("model.data_type", ValueKind::String("F32".to_string()))
+            .unwrap_or_default()
+            .set_default("model.precision", ValueKind::I64(53))
+            .unwrap_or_default()
+            .set_default("process.training_rounds", ValueKind::I64(0))
+            .unwrap_or_default()
+            .set_default("process.participants", ValueKind::I64(0))
+            .unwrap_or_default()
+            .set_default("process.strategy", ValueKind::String("FedAvg".to_string()))
+            .unwrap_or_default()
             .set_default(
                 "log.filter",
                 ValueKind::String("mosaic=debug,info".to_string()),
-            )?
-            .set_default("s3.access_key", ValueKind::String("".to_string()))?
-            .set_default("s3.secret_access_key", ValueKind::String("".to_string()))?
+            )
+            .unwrap_or_default()
+            .set_default("s3.access_key", ValueKind::String("".to_string()))
+            .unwrap_or_default()
+            .set_default("s3.secret_access_key", ValueKind::String("".to_string()))
+            .unwrap_or_default()
             .set_default(
                 "s3.region",
                 ValueKind::Array(vec![
@@ -93,15 +113,12 @@ impl Settings {
                         ValueKind::String("http://localhost:9000".to_string()),
                     ),
                 ]),
-            )?
-            .set_default("s3.bucket", ValueKind::String("".to_string()))?
-            .set_default("s3.global_model", ValueKind::String("".to_string()))?
-            .add_source(config::File::from(
-                PathBuf::from("src/settings/default.toml").as_ref(),
-            ))
-            .add_source(config::File::from(path.as_ref()))
-            .build()?
-            .try_deserialize()
+            )
+            .unwrap_or_default()
+            .set_default("s3.bucket", ValueKind::String("".to_string()))
+            .unwrap_or_default()
+            .set_default("s3.global_model", ValueKind::String("".to_string()))
+            .unwrap_or_default()
     }
 }
 
@@ -238,6 +255,16 @@ pub struct ProcessSettings {
     /// strategy = "FedAvg"
     /// ```
     pub strategy: Scheme,
+}
+
+impl std::fmt::Display for ProcessSettings {
+    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+        write!(
+            f,
+            "[process]\n    training_rounds: {}\n    participants: {}\n    strategy: {}\n",
+            self.training_rounds, self.participants, self.strategy
+        )
+    }
 }
 
 #[derive(Debug, Deserialize, Clone)]
