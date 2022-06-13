@@ -1,5 +1,5 @@
 //! Modules implements a REST API which can be used to expose data of the running aggregation process.
-//! 
+//!
 pub mod client;
 pub mod stats;
 
@@ -8,7 +8,7 @@ use std::convert::Infallible;
 use tracing::warn;
 use warp::{reply::Reply, Filter};
 
-use crate::{service::fetch::Fetch, settings::APISettings};
+use crate::service::fetch::Fetch;
 
 /// fetching the stats
 async fn fetch_stats<F: Fetch>(mut fetcher: F) -> Result<impl warp::Reply, Infallible> {
@@ -28,25 +28,30 @@ async fn fetch_stats<F: Fetch>(mut fetcher: F) -> Result<impl warp::Reply, Infal
     })
 }
 
-pub async fn serve<F>(api_settings: &APISettings, fetcher: F) -> Result<(), Infallible>
+pub async fn serve<F>(rest_api: &Option<std::net::SocketAddr>, fetcher: F) -> Result<(), Infallible>
 where
     F: Fetch + Sync + Send + 'static + Clone,
 {
-    let entry = warp::path::end().map(|| "Rest API up & running.");
-    let stats = warp::path!("stats")
-        .and(warp::get())
-        .and(with_fetcher(fetcher.clone()))
-        .and_then(fetch_stats);
-    let routes = entry.or(stats).with(warp::log("http"));
-    return run_http(routes, api_settings).await;
+    match rest_api {
+        Some(addr) => {
+            let entry = warp::path::end().map(|| "Rest API up & running.");
+            let stats = warp::path!("stats")
+                .and(warp::get())
+                .and(with_fetcher(fetcher.clone()))
+                .and_then(fetch_stats);
+            let routes = entry.or(stats).with(warp::log("http"));
+            return run_http(routes, *addr).await;
+        }
+        None => Ok(()),
+    }
 }
 
-async fn run_http<F>(filter: F, api_settings: &APISettings) -> Result<(), Infallible>
+async fn run_http<F>(filter: F, rest_api: std::net::SocketAddr) -> Result<(), Infallible>
 where
     F: Filter + Clone + Send + Sync + 'static,
     F::Extract: Reply,
 {
-    warp::serve(filter).run(api_settings.rest_api).await;
+    warp::serve(filter).run(rest_api).await;
     Ok(())
 }
 

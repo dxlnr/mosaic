@@ -28,7 +28,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let path_buf = match Config::from_args_safe() {
         Ok(path_buf) => Some(path_buf.config_path),
         Err(_) => {
-            println!("\nAggregation Server runs without external configuration, default values are used.\n");
+            println!("\n    WARN: Aggregation Server runs without external configuration, default values are used.\n");
             None
         }
     };
@@ -63,19 +63,19 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         _ = engine.run() => {
             warn!("Training finished: Terminating the engine.")
         }
-        rest = serve(&api_settings, fetcher.clone()) => {
+        result = start(&api_settings, message_handler, fetcher.clone()) => {
+            match result {
+                Ok(()) => warn!("Shutting down: gRPC server terminated."),
+                Err(_) => {
+                    warn!("Shutting down the gRPC server as an error occured.");
+                },
+            }
+        }
+        rest = serve(&api_settings.rest_api, fetcher), if &api_settings.rest_api.is_some() => {
             match rest {
                 Ok(()) => warn!("Shutting down: rest http server terminated."),
                 Err(_) => {
                     warn!("Shutting down the rest http server as an error occured.");
-                },
-            }
-        }
-        result = start(&api_settings, message_handler, fetcher) => {
-            match result {
-                Ok(()) => warn!("Shutting down: gRPC server terminated."),
-                Err(_error) => {
-                    warn!("Shutting down the gRPC server as an error occured.");
                 },
             }
         }

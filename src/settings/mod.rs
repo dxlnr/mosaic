@@ -74,10 +74,7 @@ impl Settings {
                 ValueKind::String("[::]:8080".to_string()),
             )
             .unwrap_or_default()
-            .set_default(
-                "api.rest_api",
-                ValueKind::String("0.0.0.0:8000".to_string()),
-            )
+            .set_default("job.flag", ValueKind::Boolean(false))
             .unwrap_or_default()
             .set_default("job.job_id", ValueKind::I64(0))
             .unwrap_or_default()
@@ -141,9 +138,13 @@ pub struct LogSettings {
 #[derive(Debug, Deserialize, Clone)]
 /// General Settings regarding the Job. Only important if used in conjunction with the Modalic backend.
 pub struct JobSettings {
+    /// Boolean for using the POST request feature or not.
+    pub flag: bool,
     /// Defines the Job ID which is unique.
     pub job_id: u32,
+    /// Defines a specific token attached to the job.
     pub job_token: String,
+    /// Specific REST api route where to send the POST request.
     pub route: String,
 }
 
@@ -162,6 +163,7 @@ pub struct APISettings {
     /// ```
     pub server_address: std::net::SocketAddr,
     /// Defines the Rest API where the server exposes data from the running process.
+    /// Default is None. Leaving the Option None will disable the REST api.
     ///
     /// # Example
     ///
@@ -170,7 +172,7 @@ pub struct APISettings {
     /// [api]
     /// rest_api = "127.0.0.1:8000"
     /// ```
-    pub rest_api: std::net::SocketAddr,
+    pub rest_api: Option<std::net::SocketAddr>,
 }
 
 #[derive(Debug, Deserialize, Clone)]
