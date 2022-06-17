@@ -4,6 +4,7 @@
 //! and handling protocol errors.
 pub mod channel;
 pub mod states;
+mod utils;
 pub mod watch;
 
 use self::watch::{Publisher, Subscriber};
@@ -63,8 +64,11 @@ pub enum InitError {
     StorageInit(StorageError),
 }
 
-/// Handles the ['Engine'] initialization.
+/// Responsible for the initialization of the [`Engine`].
+///
+/// Takes various settings and links them to the process.
 pub struct EngineInitializer {
+    /// [`JobSettings`]
     job_settings: JobSettings,
     model_settings: ModelSettings,
     process_settings: ProcessSettings,
@@ -86,7 +90,7 @@ impl EngineInitializer {
             s3_settings,
         }
     }
-    /// Initializes the engine and the communication handler.
+    /// Initializes the [`Engine`] and the communication handlers.
     pub async fn init(self) -> Result<(Engine, RequestSender, Subscriber), InitError> {
         let (publisher, subscriber) = Publisher::new(ModelUpdate::None, StatsUpdate::None);
         let (rx, tx) = RequestSender::new();
@@ -110,6 +114,7 @@ impl EngineInitializer {
             subscriber,
         ))
     }
+    /// Establishes the storage connection via instantiation of [`S3Client`].
     pub async fn init_storage(&self, s3_settings: S3Settings) -> Result<S3Client, StorageError> {
         let s3 = S3Client::new(s3_settings).await?;
         match s3.check_conn().await {
@@ -209,6 +214,8 @@ impl Cache {
     }
 }
 
+/// [`RoundParams`] keeping the hyperparameters in cache.
+///
 pub struct RoundParams {
     /// States how many iterations should be made.
     pub training_rounds: u32,

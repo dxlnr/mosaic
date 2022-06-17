@@ -2,10 +2,13 @@ use async_trait::async_trait;
 use derive_more::Display;
 use futures::StreamExt;
 use tokio::signal;
-use tracing::{debug, info, warn};
+use tracing::{info, warn};
 
 use crate::{
-    engine::{channel::ResponseSender, states::error::StateError, Cache, Engine, ServerState},
+    engine::{
+        channel::ResponseSender, states::error::StateError, utils::MessageCounter, Cache, Engine,
+        ServerState,
+    },
     proxy::message::Message,
     service::error::ServiceError,
 };
@@ -88,7 +91,7 @@ where
 {
     /// Processes requests.
     pub async fn process(&mut self) -> Result<(), StateError> {
-        let mut counter = Counter::new(self.shared.round_params.per_round_participants);
+        let mut counter = MessageCounter::new(self.shared.round_params.per_round_participants);
         loop {
             tokio::select! {
                 biased;
@@ -98,62 +101,24 @@ where
                 }
                 next = self.next_request() => {
                     let (req, tx) = next?;
-                    self.process_single(req, tx, counter.as_mut()).await;
+                    self.process_single(req, tx, &mut counter).await;
                 }
             }
-            if counter.is_reached() {
+            if counter.reached_ceiling(&self.cache.round_id) {
                 break Ok(());
             }
         }
     }
-    async fn process_single(&mut self, req: Message, tx: ResponseSender, counter: &mut Counter) {
+    /// Processing a single request from client.
+    async fn process_single(
+        &mut self,
+        req: Message,
+        tx: ResponseSender,
+        counter: &mut MessageCounter,
+    ) {
+        let model_idx = req.model_version;
         let response = self.handle_request(req).await;
-        if response.is_ok() {
-            counter.increment_accepted(&self.cache.round_id);
-        } else {
-            counter.increment_rejected();
-        }
+        counter.include(&response, &model_idx);
         let _ = tx.send(response);
-    }
-}
-
-/// A counting object keep track of handled messages from participants.
-struct Counter {
-    /// The number of messages that should be processed to close the collect state.
-    kp: u32,
-    /// The number of messages successfully processed.
-    accepted: u32,
-    /// The number of messages failed to processed.
-    rejected: u32,
-}
-
-impl AsMut<Counter> for Counter {
-    fn as_mut(&mut self) -> &mut Self {
-        self
-    }
-}
-
-impl Counter {
-    /// Creates a new message counter.
-    fn new(kp: u32) -> Self {
-        Self {
-            kp,
-            accepted: 0,
-            rejected: 0,
-        }
-    }
-    /// Checks if the enough messages arrived from participants.
-    fn is_reached(&self) -> bool {
-        self.accepted >= self.kp
-    }
-    /// Increments the counter for accepted messages.
-    fn increment_accepted(&mut self, round_id: &u32) {
-        self.accepted += 1;
-        info!("[{}/{}] messages accepted in round {:?}.", self.accepted, self.kp, round_id);
-    }
-    /// Increments the counter for rejected messages.
-    fn increment_rejected(&mut self) {
-        self.rejected += 1;
-        debug!("{} messages rejected.", self.rejected);
     }
 }

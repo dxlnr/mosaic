@@ -1,4 +1,6 @@
-//! S3 connection for storing.
+//! S3 (Simple Storage Service) connection for storing objects regarding the process through a web service interface.
+//! 
+//! Storage Service is handled by [MinIO](https://github.com/minio/minio) which is also compatible with AWS.
 
 use async_trait::async_trait;
 use displaydoc::Display;
@@ -81,7 +83,7 @@ impl S3Client {
         })
     }
 
-    // Downloads the content of a requested object.
+    /// Downloads the content of a requested object.
     async fn download_object(&self, key: &str) -> ClientResult<Option<Vec<u8>>> {
         let (data, code) = self
             .bucket
@@ -95,7 +97,7 @@ impl S3Client {
         }
     }
 
-    // Uploads an object with the given key to the given bucket.
+    /// Uploads an object with the given key to the given bucket.
     async fn upload_object(&self, key: &str, data: &[u8]) -> ClientResult<()> {
         let (_, _code) = self
             .bucket
@@ -105,6 +107,7 @@ impl S3Client {
         Ok(())
     }
 
+    /// Checks if a connection to the storage bucket can be established.
     pub async fn check_conn(&self) -> ClientResult<()> {
         self.bucket.head_object("/").await.map_err(|_| {
             StorageError::ConnectionError(
@@ -115,7 +118,7 @@ impl S3Client {
         Ok(())
     }
 
-    // Creates a new bucket with the given bucket name.
+    /// Returns bucket and or creates a new bucket with the given bucket name.
     pub async fn create_bucket(self) -> ClientResult<()> {
         info!(
             "Instantiating S3 Bucket ['{}'] on {}",
@@ -138,6 +141,7 @@ impl S3Client {
 
 #[async_trait]
 impl ModelStorage for S3Client {
+    /// Downloads the global model from bucket.
     async fn get_global_model(&mut self) -> StorageResult<Option<Model>> {
         let data = self.download_object(&self.params.global_model_name).await?;
 
@@ -154,6 +158,7 @@ impl ModelStorage for S3Client {
         }
         Ok(Some(model))
     }
+    /// Uploads the global model to bucket.
     async fn set_global_model(&mut self, data: &[u8]) -> StorageResult<()> {
         self.upload_object(&self.params.global_model_name, data)
             .await?;
