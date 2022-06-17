@@ -102,7 +102,7 @@ impl EngineInitializer {
             rx,
             publisher,
             store,
-            HttpClient::new(self.job_settings),
+            HttpClient::new_with_flag(self.job_settings),
         );
         Ok((
             Engine::Idle(StateCondition::<Idle>::new(shared)),
@@ -134,9 +134,13 @@ pub struct ServerState {
     /// Server publishes latest updates.
     pub publisher: Publisher,
     /// Shared storage state. For now it is a s3 Client which holds the storage bucket.
+    ///
+    /// Option type for handling the case that MinIO connection cannot be established.
     pub store: Option<S3Client>,
     /// HTTP client.
-    pub http_client: HttpClient,
+    ///
+    /// Option type when flag is set to false, therefore Http Client is not used.
+    pub http_client: Option<HttpClient>,
 }
 
 impl ServerState {
@@ -146,7 +150,7 @@ impl ServerState {
         rx: RequestReceiver,
         publisher: Publisher,
         store: Option<S3Client>,
-        http_client: HttpClient,
+        http_client: Option<HttpClient>,
     ) -> Self {
         ServerState {
             round_params,

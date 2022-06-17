@@ -18,6 +18,17 @@ impl HttpClient {
             settings,
         }
     }
+    /// Returns an Option<Self> depending on the bool flag in settings variable.
+    pub fn new_with_flag(settings: JobSettings) -> Option<Self> {
+        if settings.flag {
+            Some(Self {
+                client: Client::new(),
+                settings,
+            })
+        } else {
+            None
+        }
+    }
 
     pub async fn release_stats(&mut self, stats: &Stats) -> Result<(), StateError> {
         let res_json = JobStats::new(

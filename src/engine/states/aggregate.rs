@@ -51,12 +51,13 @@ where
                 .map_err(StateError::AggregationError)?;
         }
 
-        let _ = self
-            .shared
-            .http_client
-            .release_stats(&self.cache.get_stats_with_round_id())
-            .await
-            .map_err(|e| warn!("Sending a post request failed: {}", e));
+        if let Some(http_cl) = &mut self.shared.http_client {
+            http_cl
+                .release_stats(&self.cache.get_stats_with_round_id())
+                .await
+                .map_err(|e| warn!("Sending a post request failed: {}", &e))
+                .ok();
+        }
 
         Ok(())
     }
