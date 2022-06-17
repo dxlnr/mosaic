@@ -1,4 +1,5 @@
 use async_trait::async_trait;
+use tracing::warn;
 
 use crate::{
     core::{aggregator::features::FeatureMap, model::ModelWrapper},
@@ -18,19 +19,24 @@ impl State for StateCondition<Idle> {
     const NAME: StateName = StateName::Idle;
 
     async fn perform(&mut self) -> Result<(), StateError> {
-        let global = self
-            .shared
-            .store
-            .get_global_model()
-            .await
-            .map_err(StateError::IdleError)?;
+        match &mut self.shared.store {
+            Some(s3c) => {
+                let global = s3c
+                    .get_global_model()
+                    .await
+                    .map_err(StateError::IdleError)?;
 
-        let model_wrapper = ModelWrapper::new(
-            global.unwrap(),
-            self.shared.round_params.dtype,
-            self.cache.round_id,
-        );
-        self.shared.publisher.broadcast_model(model_wrapper);
+                let model_wrapper = ModelWrapper::new(
+                    global.unwrap(),
+                    self.shared.round_params.dtype,
+                    self.cache.round_id,
+                );
+                self.shared.publisher.broadcast_model(model_wrapper);
+            }
+            _ => {
+                warn!("No global genesis model available for the initial trainings round.")
+            }
+        };
         Ok(())
     }
 

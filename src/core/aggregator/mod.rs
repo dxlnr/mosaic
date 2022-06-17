@@ -91,6 +91,7 @@ impl Default for AggregationParams {
 
 #[derive(Debug, Clone, Default, Copy)]
 pub struct Baseline {
+    /// Basic hyperparameters concerning the aggregation process. 
     pub params: AggregationParams,
 }
 

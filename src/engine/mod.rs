@@ -90,10 +90,7 @@ impl EngineInitializer {
     pub async fn init(self) -> Result<(Engine, RequestSender, Subscriber), InitError> {
         let (publisher, subscriber) = Publisher::new(ModelUpdate::None, StatsUpdate::None);
         let (rx, tx) = RequestSender::new();
-        let store = self
-            .init_storage(self.s3_settings.clone())
-            .await
-            .map_err(InitError::StorageInit)?;
+        let store = self.init_storage(self.s3_settings.clone()).await.ok();
 
         let shared = ServerState::new(
             RoundParams::new(
@@ -116,10 +113,15 @@ impl EngineInitializer {
     pub async fn init_storage(&self, s3_settings: S3Settings) -> Result<S3Client, StorageError> {
         let s3 = S3Client::new(s3_settings).await?;
         match s3.check_conn().await {
-            Ok(()) => s3.clone().create_bucket().await?,
-            Err(e) => warn!("{}", e),
+            Ok(()) => {
+                s3.clone().create_bucket().await?;
+                Ok(s3)
+            }
+            Err(e) => {
+                warn!("{}", e);
+                Err(e)
+            }
         }
-        Ok(s3)
     }
 }
 
@@ -132,7 +134,7 @@ pub struct ServerState {
     /// Server publishes latest updates.
     pub publisher: Publisher,
     /// Shared storage state. For now it is a s3 Client which holds the storage bucket.
-    pub store: S3Client,
+    pub store: Option<S3Client>,
     /// HTTP client.
     pub http_client: HttpClient,
 }
@@ -143,7 +145,7 @@ impl ServerState {
         round_params: RoundParams,
         rx: RequestReceiver,
         publisher: Publisher,
-        store: S3Client,
+        store: Option<S3Client>,
         http_client: HttpClient,
     ) -> Self {
         ServerState {

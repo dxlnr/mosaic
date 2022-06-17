@@ -45,11 +45,11 @@ where
             "updated global model in training round {} was published.",
             &self.cache.round_id
         );
-        self.shared
-            .store
-            .set_global_model(&Model::serialize(&self.cache.global_model, &DataType::F32))
-            .await
-            .map_err(StateError::AggregationError)?;
+        if let Some(s3c) = &mut self.shared.store {
+            s3c.set_global_model(&Model::serialize(&self.cache.global_model, &DataType::F32))
+                .await
+                .map_err(StateError::AggregationError)?;
+        }
 
         let _ = self
             .shared
