@@ -30,14 +30,14 @@ impl MessageCounter {
         }
     }
     /// Include the message to the counter.
-    pub fn include(&mut self, msg_result: &Result<(), ServiceError>, msg_idx: &u32) {
+    pub fn include(&mut self, msg_result: &Result<(), ServiceError>, msg_idx: &u32, cid: &u32) {
         if !self.counter.contains_key(msg_idx) {
             self.counter.insert(*msg_idx, Counter::default());
         }
 
         if let Some(c) = self.counter.get_mut(msg_idx) {
             match msg_result {
-                Ok(()) => c.increment_accepted(&self.ceiling, msg_idx),
+                Ok(()) => c.increment_accepted(&self.ceiling, msg_idx, cid),
                 _ => c.increment_rejected(msg_idx),
             }
         }
@@ -71,11 +71,11 @@ impl Default for Counter {
 
 impl Counter {
     /// Increments the counter for accepted messages.
-    pub fn increment_accepted(&mut self, ceiling: &u32, round_id: &u32) {
+    pub fn increment_accepted(&mut self, ceiling: &u32, round_id: &u32, cid: &u32) {
         self.accepted += 1;
         info!(
-            "[{}/{}] messages accepted for training round {}.",
-            self.accepted, ceiling, round_id
+            "[{}/{}] messages accepted for training round {}. Sent by client {}",
+            self.accepted, ceiling, round_id, cid
         );
     }
     /// Increments the counter for rejected messages.

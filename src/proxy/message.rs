@@ -12,8 +12,8 @@ use crate::core::model::DataType;
 /// [`Message`] object that gets sent from client to server to engine.
 /// 
 pub struct Message {
-    /// client key to check if message is authorized.
-    pub key: u32,
+    /// client cid to check if message is authorized.
+    pub cid: u32,
     /// version of the model (training round) that was sent.
     pub model_version: u32,
     /// actual model data.
@@ -28,7 +28,7 @@ pub struct Message {
 
 impl Message {
     pub fn new(
-        key: u32,
+        cid: u32,
         model_version: u32,
         data: Vec<u8>,
         dtype: DataType,
@@ -36,7 +36,7 @@ impl Message {
         loss: f32,
     ) -> Self {
         Message {
-            key,
+            cid,
             model_version,
             data,
             dtype,

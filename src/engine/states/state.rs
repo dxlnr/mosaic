@@ -117,8 +117,9 @@ where
         counter: &mut MessageCounter,
     ) {
         let model_idx = req.model_version;
+        let cid = req.cid;
         let response = self.handle_request(req).await;
-        counter.include(&response, &model_idx);
+        counter.include(&response, &model_idx, &cid);
         let _ = tx.send(response);
     }
 }

@@ -90,7 +90,7 @@ impl StateCondition<Collect> {
         }
 
         self.cache.stats.msgs.push(Single::new(
-            req.key,
+            req.cid,
             self.cache.round_id,
             req.loss,
             req.stake,
