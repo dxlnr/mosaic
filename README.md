@@ -1,9 +1,24 @@
+![Modalic Logo](https://github.com/modalic/mosaic/blob/main/public/mo-logo.png)
+
+--------------------------------------------------------------------------------
+
 <h1 align="center">
   <b>Mosaic</b><br>
 </h1>
 
-The *Mosaic* aggregation server is the backbone of the Modalic MLOps platform designed for enabling Federated Learning.
+<p align="center">
+    <a href="https://www.rust-lang.org/">
+      <img src="https://img.shields.io/badge/Rust-1.62.1-2F54D1.svg" /></a>
+    <a href="https://github.com/modalic/mosaic/blob/main/LICENSE">
+      <img src="https://img.shields.io/badge/license-apache2-351c75.svg" /></a>
+    <a href="https://github.com/modalic/mosaic/blob/main/CONTRIBUTING.md">
+      <img src="https://img.shields.io/badge/PRs-welcome-6834D5.svg" /></a>
+</p>
+
+The *Mosaic* aggregation server is the backbone of the Modalic FL Operations Platform designed for enabling Federated Learning in production.
 All the aggregation converges at Mosaic which aims for safety, reliability and performance.
+
+## Usage
 
 ## Building
 
@@ -33,7 +48,7 @@ This might take a while for the first time. Note that compilation is a memory in
 
 ## Running the Server
 
-Start the server application by running: 
+Start the server application by running:
 ```bash
 ./target/release/mosaic -c configs/config.toml
 ```

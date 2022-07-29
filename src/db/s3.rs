@@ -1,5 +1,5 @@
 //! S3 (Simple Storage Service) connection for storing objects regarding the process through a web service interface.
-//! 
+//!
 //! Storage Service is handled by [MinIO](https://github.com/minio/minio) which is also compatible with AWS.
 
 use async_trait::async_trait;
@@ -111,7 +111,7 @@ impl S3Client {
     pub async fn check_conn(&self) -> ClientResult<()> {
         self.bucket.head_object("/").await.map_err(|_| {
             StorageError::ConnectionError(
-                "Unable to establish connection to MinIO. Learning proceeds without storage",
+                "Unable to establish connection to MinIO. Learning proceeds without external storage",
             )
         })?;
 
