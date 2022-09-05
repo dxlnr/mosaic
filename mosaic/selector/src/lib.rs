@@ -7,7 +7,8 @@
 
 //! The `selector` is the only component that directly communicates with clients.
 //! When necessary, it forwards client requests to other components. The Selector has two
-//! main responsibilities. For client selection, it advertises available tasks to clients,
+//! main responsibilities.
+//! - **Client selection**. The Selector advertises available tasks to clients,
 //! and summarizes current client availability for the Coordinator.
-//! For client participation, the Selector routes client requests to the corresponding Aggregator.
+//! - **Client participation**. The Selector routes client requests to the corresponding Aggregator.
 pub mod proxy;

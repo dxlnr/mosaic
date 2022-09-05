@@ -1,6 +1,7 @@
 #[derive(Clone, Debug, PartialEq)]
 pub struct Aggregator {
-    pub progress: usize,
+    pub progress: u16,
+    /// Hyperparameter comprised in [`AggrParams`].
     pub params: AggrParams,
 }
 
@@ -19,19 +20,13 @@ pub struct AggrParams {
 
 impl AggrParams {
     /// Creates new [`AggrParams`] which allows altering the default parameters.
-    pub fn new(eta: f64, k) -> Self {
-        Self {
-            eta,
-            k,
-        }
+    pub fn new(eta: f64, k: u16) -> Self {
+        Self { eta, k }
     }
 }
 
 impl Default for AggrParams {
     fn default() -> Self {
-        Self {
-            eta: 1e-1,
-            k: 10,
-        }
+        Self { eta: 1e-1, k: 10 }
     }
 }
