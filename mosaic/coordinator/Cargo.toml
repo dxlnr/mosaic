@@ -1,0 +1,8 @@
+[package]
+name = "coordinator"
+authors = ["Daniel Illner <illner@modalic.ai>"]
+description = ""
+license = "Apache-2.0"
+version = "0.1.0"
+edition = "2021"
+rust-version = "1.61.0"

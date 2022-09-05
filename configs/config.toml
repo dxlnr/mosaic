@@ -6,7 +6,7 @@ data_type = "F32"
 precision = 53
 
 [process]
-training_rounds = 20
+training_rounds = 10
 participants = 5
 strategy = "FedAvg"
 

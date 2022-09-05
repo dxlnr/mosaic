@@ -1,0 +1,16 @@
+[package]
+name = "server"
+authors = ["Daniel Illner <illner@modalic.ai>"]
+description = "Implementation of a general aggregation server sitting at the heart of a Federated Learning pipeline."
+license = "Apache-2.0"
+version = "0.1.0"
+edition = "2021"
+rust-version = "1.61.0"
+readme = "README.md"
+
+[[bin]]
+name = "server"
+path = "src/bin/main.rs"
+
+[dependencies]
+tokio = { version = "1.2.1",features = ["full", "tracing"] }
