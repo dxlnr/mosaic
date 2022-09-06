@@ -1,8 +1,8 @@
 //! Settings module which allows to manipulate the server from the outside.
 //!
 //! Important settings regarding the training process can be configured using **.toml**.
-//! Therefore this module serves as an entry point to define specialised Federated Learning training processes without
-//! touching the code.
+//! Therefore this module serves as an entry point to define specialized Federated Learning
+//! training tasks.
 
 use std::{fmt, path::Path};
 

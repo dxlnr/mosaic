@@ -1,12 +1,13 @@
 #[derive(Clone, Debug, PartialEq)]
 pub struct Aggregator {
+    /// Current progress towards an aggregation goal.
     pub progress: u16,
     /// Hyperparameter comprised in [`AggrParams`].
     pub params: AggrParams,
 }
 
 /// Parameters necessary for performing an aggregation schema.
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, PartialEq)]
 pub struct AggrParams {
     /// Server-side learning rate. Defaults to 1e-1.
     pub eta: f64,

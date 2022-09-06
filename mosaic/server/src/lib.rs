@@ -8,3 +8,4 @@
 //!
 //! It uses the implementation of FL with buffered asynchronous aggregation
 //! that has been recently introduced in [Nguyen et al. 2021](https://arxiv.org/abs/2106.06639).
+pub mod settings;

@@ -13,4 +13,12 @@ name = "server"
 path = "src/bin/main.rs"
 
 [dependencies]
+config = "0.13.1"
+displaydoc = "0.2.3"
+serde = { version = "1.0.144", features = ["derive"] }
+thiserror = "1.0.34"
+
 tokio = { version = "1.2.1",features = ["full", "tracing"] }
+tracing = "0.1.36"
+tracing-subscriber = { version = "0.3.15", features = ["env-filter"] }
+validator = { version = "0.16.0", features = ["derive"] }

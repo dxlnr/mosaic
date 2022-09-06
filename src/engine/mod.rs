@@ -219,7 +219,7 @@ impl Cache {
 pub struct RoundParams {
     /// States how many iterations should be made.
     pub training_rounds: u32,
-    /// Sets the amount of participants in each iteratioin.
+    /// Sets the amount of participants in each iteration.
     pub per_round_participants: u32,
     /// Specifies the Data type of the model. Crucial for serde operations.
     pub dtype: DataType,
