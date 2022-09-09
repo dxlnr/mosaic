@@ -16,6 +16,7 @@ path = "src/bin/main.rs"
 config = "0.13.1"
 displaydoc = "0.2.3"
 serde = { version = "1.0.144", features = ["derive"] }
+structopt = "0.3.25"
 thiserror = "1.0.34"
 
 tokio = { version = "1.2.1",features = ["full", "tracing"] }

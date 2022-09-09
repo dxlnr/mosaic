@@ -1,0 +1,26 @@
+syntax = "proto3";
+
+// 
+enum DataType {
+  // Not a legal value for DataType.  Used to indicate a DataType field
+  // has not been set.
+  DT_INVALID = 0;
+
+  // Data types that all computation devices are expected to be
+  // capable to support.
+  DT_F16 = 1;
+  DT_F32 = 2;
+  DT_F64 = 3;
+
+  DT_INT8 = 4;
+  DT_INT16 = 5;
+  DT_INT32 = 6;
+  DT_INT64 = 7;
+
+  DT_UINT8 = 8;
+  DT_UINT16 = 9;
+  DT_UINT32 = 10;
+  DT_UINT64 = 11;
+
+  DT_STRING = 12;
+}

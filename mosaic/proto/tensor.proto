@@ -1,0 +1,35 @@
+syntax = "proto3";
+
+import "dtype.proto";
+import "tensor_shape.proto";
+
+// Protocol Buffer representing a Tensor.
+message TensorProto {
+    // 
+    DataType tensor_dtype = 1;
+
+    // Shape of the tensor.
+    TensorShape tensor_shape = 2;
+
+    // This is related to the specific model/tensor version
+    // when running the Federated Learning task. 
+    int32 tensor_version = 3;
+
+    // Serialized raw tensor content. This representation
+    // can be used for all tensor types.
+    bytes tensor_content = 4;
+
+    // Type specific representations that make it easy to create tensor protos in
+    // all languages.  Only the representation corresponding to "dtype" can
+    // be set.  The values hold the flattened representation of the tensor in
+    // row major order.
+    // 
+    // DT_F32.
+    repeated float f32_values = 5 [packed = true];
+    // DT_F64.
+    repeated double f64_values = 6 [packed = true];
+    // DT_INT32.
+    repeated int32 i32_values = 7 [packed = true];
+    // DT_INT64.
+    repeated int64 i64_values = 8 [packed = true];
+}

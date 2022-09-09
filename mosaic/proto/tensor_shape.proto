@@ -1,0 +1,30 @@
+syntax = "proto3";
+
+// Protocol buffer representing the shape of tensors.
+message TensorShape {
+  // One dimension of the tensor.
+  message Dim {
+    // Size of the tensor in that dimension.
+    // This value must be >= -1, but values of -1 are reserved for "unknown"
+    // shapes (values of -1 mean "unknown" dimension).
+    int32 size = 1;
+
+    // Optional name of the tensor dimension.
+    string name = 2;
+  };
+
+  // Dimensions of the tensor, such as {"input", 30}, {"output", 40}
+  // for a 30 x 40 2D tensor.  If an entry has size -1, this
+  // corresponds to a dimension of unknown size. The names are
+  // optional.
+  //
+  // The order of entries in "dim" matters: It indicates the layout of the
+  // values in the tensor in-memory representation.
+  //
+  // The first entry in "dim" is the outermost dimension used to layout the
+  // values, the last entry is the innermost dimension.
+  //
+  // Dimensions of a tensor.
+  repeated Dim dim = 2;
+
+};

@@ -28,7 +28,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let path_buf = match Config::from_args_safe() {
         Ok(path_buf) => Some(path_buf.config_path),
         Err(_) => {
-            println!("\n    WARN: Aggregation Server runs without external configuration, default values are used.\n");
+            println!("\n\tWARN: Aggregation Server runs without external configuration, default values are used.\n");
             None
         }
     };

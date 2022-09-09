@@ -3,7 +3,7 @@
 --------------------------------------------------------------------------------
 
 <h1 align="center">
-  <b>Mosaic</b><br>
+  <b>Mosaic: Aggregation Server</b><br>
 </h1>
 
 <p align="center">
