@@ -28,8 +28,10 @@ message TensorProto {
     repeated float f32_values = 5 [packed = true];
     // DT_F64.
     repeated double f64_values = 6 [packed = true];
-    // DT_INT32.
+    // DT_INT32. DT_INT16, DT_UINT16, DT_INT8, DT_UINT8.
     repeated int32 i32_values = 7 [packed = true];
     // DT_INT64.
     repeated int64 i64_values = 8 [packed = true];
+    // DT_STRING
+    repeated bytes string_val = 9;
 }

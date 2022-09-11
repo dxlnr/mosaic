@@ -12,3 +12,6 @@
 //! and summarizes current client availability for the Coordinator.
 //! - **Client participation**. The Selector routes client requests to the corresponding Aggregator.
 pub mod proxy;
+
+
+struct Selector {}

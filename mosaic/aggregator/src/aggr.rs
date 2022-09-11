@@ -1,7 +1,7 @@
 #[derive(Clone, Debug, PartialEq)]
 pub struct Aggregator {
     /// Current progress towards an aggregation goal.
-    pub progress: u16,
+    pub progress: u32,
     /// Hyperparameter comprised in [`AggrParams`].
     pub params: AggrParams,
 }
@@ -16,12 +16,12 @@ pub struct AggrParams {
     ///
     /// According to [Nguyen et al. 2021](https://arxiv.org/abs/2106.06639) k = 10 seems to be
     /// a good fit that needs no further tuning.
-    pub k: u16,
+    pub k: u32,
 }
 
 impl AggrParams {
     /// Creates new [`AggrParams`] which allows altering the default parameters.
-    pub fn new(eta: f64, k: u16) -> Self {
+    pub fn new(eta: f64, k: u32) -> Self {
         Self { eta, k }
     }
 }

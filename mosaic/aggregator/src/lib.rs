@@ -7,6 +7,10 @@
 //! The `Aggregator`
 //!
 //! [FedBuff](https://arxiv.org/abs/2106.06639) for buffered asynchronous aggregation is
-//! implemented as aggregation algorithm.
+//! the baseline algorithm that is implemented as raw framework.
+//! For avoiding a Trusted Execution Environment (TEE) and still performing secure aggregation,
+//! the [BASecAgg](https://arxiv.org/abs/2110.02177) protocol is choosen. 
+//! 
 pub mod aggr;
+pub mod state_engine;
 // pub mod buffer;
