@@ -6,6 +6,7 @@
 //! 
 //! # Engine states
 //!
+pub mod channel;
 pub mod states;
 
 use derive_more::From;
@@ -19,7 +20,7 @@ use crate::{
 #[derive(From)]
 /// [`StateEngine`] functions as the state machine which handles the progress of the `Aggregator`
 /// and keep its state.
-//
+///
 pub enum StateEngine {
     /// The [`Idle`] state.
     Idle,
