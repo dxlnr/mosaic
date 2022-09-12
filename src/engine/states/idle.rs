@@ -11,7 +11,7 @@ use crate::{
 };
 
 #[derive(Debug)]
-/// [`Idle`] object representing the idle state.
+/// [`Idle`] state of the [`StateEngine`].
 pub struct Idle;
 
 #[async_trait]

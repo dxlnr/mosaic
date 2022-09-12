@@ -7,13 +7,15 @@
 //! # Engine states
 //!
 pub mod channel;
+pub mod event;
+pub mod init;
 pub mod states;
 
 use derive_more::From;
 
 use crate::{
     state_engine::{
-        states::{Idle},
+        states::{Collect, Idle, StateCondition, Update},
     },
 };
 
@@ -22,8 +24,12 @@ use crate::{
 /// and keep its state.
 ///
 pub enum StateEngine {
-    /// The [`Idle`] state.
-    Idle,
+    /// [`Idle`] state.
+    Idle(StateCondition<Idle>),
+    /// [`Collect`] state.
+    Collect(StateCondition<Collect>),
+    /// [`Update`] state.
+    Update(StateCondition<Update>),
 }
 
 impl StateEngine {

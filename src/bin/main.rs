@@ -84,7 +84,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 }
 
 fn init_logging(settings: LogSettings) {
-    let _fmt_subscriber = FmtSubscriber::builder()
+    FmtSubscriber::builder()
         .with_env_filter(settings.filter)
         .with_ansi(true)
         .init();

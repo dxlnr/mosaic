@@ -40,7 +40,7 @@ where
                 .and(with_fetcher(fetcher.clone()))
                 .and_then(fetch_stats);
             let routes = entry.or(stats).with(warp::log("http"));
-            return run_http(routes, *addr).await;
+            run_http(routes, *addr).await
         }
         None => Ok(()),
     }
