@@ -2,6 +2,7 @@
 //!
 //! [`StateEngine`]: crate::state_engine::StateEngine.
 mod collect;
+mod failure;
 mod handler;
 mod idle;
 mod shutdown;

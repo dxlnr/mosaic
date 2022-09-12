@@ -5,33 +5,32 @@ import "tensor_shape.proto";
 
 // Protocol Buffer representing a Tensor.
 message TensorProto {
-    // 
+    // Stores the data type of the original tensor in order to 
+    // deserialize from raw bytes. 
     DataType tensor_dtype = 1;
 
-    // Shape of the tensor.
+    // Shape of the tensor. Attached as meta data as the tensor gets sent 
+    // as a 1-dim vector. Otherwise reconstructing the model would not be possible
+    // anymore. 
     TensorShape tensor_shape = 2;
-
-    // This is related to the specific model/tensor version
-    // when running the Federated Learning task. 
-    int32 tensor_version = 3;
 
     // Serialized raw tensor content. This representation
     // can be used for all tensor types.
-    bytes tensor_content = 4;
+    bytes tensor_content = 3;
 
     // Type specific representations that make it easy to create tensor protos in
     // all languages.  Only the representation corresponding to "dtype" can
     // be set.  The values hold the flattened representation of the tensor in
     // row major order.
-    // 
+
     // DT_F32.
-    repeated float f32_values = 5 [packed = true];
+    repeated float f32_values = 4 [packed = true];
     // DT_F64.
-    repeated double f64_values = 6 [packed = true];
+    repeated double f64_values = 5 [packed = true];
     // DT_INT32. DT_INT16, DT_UINT16, DT_INT8, DT_UINT8.
-    repeated int32 i32_values = 7 [packed = true];
+    repeated int32 i32_values = 6 [packed = true];
     // DT_INT64.
-    repeated int64 i64_values = 8 [packed = true];
+    repeated int64 i64_values = 7 [packed = true];
     // DT_STRING
-    repeated bytes string_val = 9;
+    repeated bytes string_val = 8;
 }

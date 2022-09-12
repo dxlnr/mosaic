@@ -26,5 +26,5 @@ message TensorShape {
   //
   // Dimensions of a tensor.
   repeated Dim dim = 2;
-
+  
 };
