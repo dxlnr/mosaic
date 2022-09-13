@@ -10,7 +10,4 @@
 pub mod crypto;
 pub mod message;
 pub mod model;
-
-pub mod protos {
-    include!(concat!(env!("OUT_DIR"), "/mosaic.rs"));
-}
+pub mod protos;

@@ -27,6 +27,7 @@
 pub struct TensorShape {
     // message fields
     pub dim: ::protobuf::RepeatedField<TensorShape_Dim>,
+    pub unknown_rank: bool,
     // special fields
     pub unknown_fields: ::protobuf::UnknownFields,
     pub cached_size: ::protobuf::CachedSize,
@@ -67,6 +68,21 @@ impl TensorShape {
     pub fn take_dim(&mut self) -> ::protobuf::RepeatedField<TensorShape_Dim> {
         ::std::mem::replace(&mut self.dim, ::protobuf::RepeatedField::new())
     }
+
+    // bool unknown_rank = 3;
+
+
+    pub fn get_unknown_rank(&self) -> bool {
+        self.unknown_rank
+    }
+    pub fn clear_unknown_rank(&mut self) {
+        self.unknown_rank = false;
+    }
+
+    // Param is passed by value, moved
+    pub fn set_unknown_rank(&mut self, v: bool) {
+        self.unknown_rank = v;
+    }
 }
 
 impl ::protobuf::Message for TensorShape {
@@ -86,6 +102,13 @@ impl ::protobuf::Message for TensorShape {
                 2 => {
                     ::protobuf::rt::read_repeated_message_into(wire_type, is, &mut self.dim)?;
                 },
+                3 => {
+                    if wire_type != ::protobuf::wire_format::WireTypeVarint {
+                        return ::std::result::Result::Err(::protobuf::rt::unexpected_wire_type(wire_type));
+                    }
+                    let tmp = is.read_bool()?;
+                    self.unknown_rank = tmp;
+                },
                 _ => {
                     ::protobuf::rt::read_unknown_or_skip_group(field_number, wire_type, is, self.mut_unknown_fields())?;
                 },
@@ -102,6 +125,9 @@ impl ::protobuf::Message for TensorShape {
             let len = value.compute_size();
             my_size += 1 + ::protobuf::rt::compute_raw_varint32_size(len) + len;
         };
+        if self.unknown_rank != false {
+            my_size += 2;
+        }
         my_size += ::protobuf::rt::unknown_fields_size(self.get_unknown_fields());
         self.cached_size.set(my_size);
         my_size
@@ -113,6 +139,9 @@ impl ::protobuf::Message for TensorShape {
             os.write_raw_varint32(v.get_cached_size())?;
             v.write_to_with_cached_sizes(os)?;
         };
+        if self.unknown_rank != false {
+            os.write_bool(3, self.unknown_rank)?;
+        }
         os.write_unknown_fields(self.get_unknown_fields())?;
         ::std::result::Result::Ok(())
     }
@@ -156,6 +185,11 @@ impl ::protobuf::Message for TensorShape {
                 |m: &TensorShape| { &m.dim },
                 |m: &mut TensorShape| { &mut m.dim },
             ));
+            fields.push(::protobuf::reflect::accessor::make_simple_field_accessor::<_, ::protobuf::types::ProtobufTypeBool>(
+                "unknown_rank",
+                |m: &TensorShape| { &m.unknown_rank },
+                |m: &mut TensorShape| { &mut m.unknown_rank },
+            ));
             ::protobuf::reflect::MessageDescriptor::new_pb_name::<TensorShape>(
                 "TensorShape",
                 fields,
@@ -173,6 +207,7 @@ impl ::protobuf::Message for TensorShape {
 impl ::protobuf::Clear for TensorShape {
     fn clear(&mut self) {
         self.dim.clear();
+        self.unknown_rank = false;
         self.unknown_fields.clear();
     }
 }
@@ -384,10 +419,11 @@ impl ::protobuf::reflect::ProtobufValue for TensorShape_Dim {
 }
 
 static file_descriptor_proto_data: &'static [u8] = b"\
-    \n\x19protos/tensor_shape.proto\x12\x06mosaic\"g\n\x0bTensorShape\x12)\n\
-    \x03dim\x18\x02\x20\x03(\x0b2\x17.mosaic.TensorShape.DimR\x03dim\x1a-\n\
-    \x03Dim\x12\x12\n\x04size\x18\x01\x20\x01(\x05R\x04size\x12\x12\n\x04nam\
-    e\x18\x02\x20\x01(\tR\x04nameb\x06proto3\
+    \n\x19protos/tensor_shape.proto\x12\x06mosaic\"\x8a\x01\n\x0bTensorShape\
+    \x12)\n\x03dim\x18\x02\x20\x03(\x0b2\x17.mosaic.TensorShape.DimR\x03dim\
+    \x12!\n\x0cunknown_rank\x18\x03\x20\x01(\x08R\x0bunknownRank\x1a-\n\x03D\
+    im\x12\x12\n\x04size\x18\x01\x20\x01(\x05R\x04size\x12\x12\n\x04name\x18\
+    \x02\x20\x01(\tR\x04nameb\x06proto3\
 ";
 
 static file_descriptor_proto_lazy: ::protobuf::rt::LazyV2<::protobuf::descriptor::FileDescriptorProto> = ::protobuf::rt::LazyV2::INIT;

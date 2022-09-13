@@ -2,50 +2,90 @@
 //! 
 use derive_more::{Display, From, Index, IndexMut, Into};
 use rug::Float;
+// use serde::{Deserialize, Serialize};
+use protobuf::ProtobufEnum;
 
-// use crate::protos;
+use crate::protos;
 
-/// The single underlying [`DataType`] of the Tensor elements.
-///
-#[derive(Copy, Clone, Debug, PartialEq, Eq, Display)]
-pub enum DataType {
-    DTf16 = 1,
-    DTf32 = 2,
-    DTf64 = 3,
-
-    DIint8 = 4,
-    DTint16 = 5,
-    DTint32 = 6,
-    DTint64 = 7,
-
-    DTuintT8 = 8,
-    DTuint16 = 9,
-    DTuint32 = 10,
-    DTuint64 = 11,
-
-    DTString = 12,
+/// Derive Convertion function as macro for DataType.
+/// 
+macro_rules! enum_derive {
+    (
+        #[repr($T: ident)]
+        $( #[$meta: meta] )*
+        $vis: vis enum $Name: ident {
+            $(
+                $Variant: ident = $value: expr
+            ),*
+            $( , )?
+        }
+    ) => {
+        #[repr($T)]
+        $( #[$meta] )*
+        $vis enum $Name {
+            $(
+                $Variant = $value
+            ),*
+        }
+        impl std::convert::From<$T> for $Name {
+            fn from(value: $T) -> $Name {
+                match value {
+                    $(
+                        $value => $Name::$Variant,
+                    )*
+                    _ => $Name::DTInvalid,
+                }
+            }
+        }
+        impl std::convert::Into<$T> for $Name {
+            fn into(self) -> $T {
+                match self {
+                    $(
+                        $Name::$Variant => $value,
+                    )*
+                }
+            }
+        }
+    }
 }
 
-impl Default for DataType {
-    fn default() -> DataType {
-        DataType::DTf32
+enum_derive! {
+    #[repr(i32)]
+    #[derive(Copy, Clone, Debug, PartialEq, Eq, Display)]
+    pub enum DataType {
+        DTInvalid = 0,
+    
+        DTf16 = 1,
+        DTf32 = 2,
+        DTf64 = 3,
+    
+        DTint8 = 4,
+        DTint16 = 5,
+        DTint32 = 6,
+        DTint64 = 7,
+    
+        DTuint8 = 8,
+        DTuint16 = 9,
+        DTuint32 = 10,
+        DTuint64 = 11,
+    
+        DTString = 12,
     }
 }
 
 impl DataType {
-    // We don't use Into, because we don't want this to be public API.
-    fn into_proto(self) -> protos::DataType {
-        if let Some(d) = protos::DataType::from_i32(self.to_int() as i32) {
+    /// Converts [`DataType`] into proto DataType.
+    fn into_proto(self) -> protos::dtype::DataType {
+        if let Some(d) = protos::dtype::DataType::from_i32(self.into()) {
             d
         } else {
             // This is unfortunate, but the protobuf crate doesn't support unrecognized enum values.
             panic!("Unable to convert {} to a protobuf DataType", self);
         }
     }
-
-    // We don't use From, because we don't want this to be public API.
-    fn from_proto(proto: protos::DataType) -> Self {
-        Self::from_int(proto.value() as c_uint)
+    /// Converts proto DataType into [`DataType`].
+    fn from_proto(proto: protos::dtype::DataType) -> Self {
+        Self::from(proto.value() as i32)
     }
 }
 
@@ -69,18 +109,18 @@ impl TensorShape {
     }
 
     /// Converts [`Tensorshape`] into proto message shape.
-    fn into_proto(self) -> protos::TensorShape {
+    fn into_proto(self) -> protos::tensor_shape::TensorShape {
         match self.0 {
             None => {
-                let mut shape = protos::TensorShape::new();
+                let mut shape = protos::tensor_shape::TensorShape::new();
                 shape.set_unknown_rank(true);
                 shape
             }
             Some(v) => {
-                let mut shape = protos::TensorShape::new();
+                let mut shape = protos::tensor_shape::TensorShape::new();
                 for in_dim in v {
                     shape.mut_dim().push({
-                        let mut out_dim = protos::TensorShapeProto_Dim::new();
+                        let mut out_dim = protos::tensor_shape::TensorShape_Dim::new();
                         out_dim.set_size(in_dim.unwrap_or(-1));
                         out_dim
                     });
@@ -90,7 +130,7 @@ impl TensorShape {
         }
     }
     /// Converts proto message shape into [`Tensorshape`].
-    fn from_proto(proto: &protos::TensorShape) -> Self {
+    fn from_proto(proto: &protos::tensor_shape::TensorShape) -> Self {
         TensorShape(if proto.get_unknown_rank() {
             None
         } else {
@@ -111,7 +151,7 @@ impl TensorShape {
     }
 }
 
-#[derive(Debug, Clone, PartialEq, From, Index, IndexMut, Into, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, From, Index, IndexMut, Into)]
 /// A numerical representation of the weights contained by a Machine Learning model.
 /// 
 /// The representation lays out each element of the tensor contiguously in memory.

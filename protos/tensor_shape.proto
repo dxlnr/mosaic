@@ -28,4 +28,8 @@ message TensorShape {
   // Dimensions of a tensor.
   repeated Dim dim = 2;
   
+  // If true, the number of dimensions in the shape is unknown.
+  //
+  // If true, "dim.size()" must be 0.
+  bool unknown_rank = 3;
 };
