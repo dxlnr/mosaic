@@ -1,6 +1,6 @@
 //! Module for publishing & subcribing to certain events when processing the [`StateEngine`].
-//! 
-//! Uses the [tokio watch](https://docs.rs/tokio/latest/tokio/sync/watch/index.html): 
+//!
+//! Uses the [tokio watch](https://docs.rs/tokio/latest/tokio/sync/watch/index.html):
 //! A single-producer, multi-consumer channel that only retains the last sent value.
 //!
 use tokio::sync::watch;

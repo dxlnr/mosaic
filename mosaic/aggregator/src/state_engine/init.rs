@@ -1,15 +1,13 @@
 //! Initializes the [`StateEngine`].
-//! 
+//!
 
 use derive_more::{Display, From};
 use thiserror::Error;
 
-use crate::{
-    state_engine::{
-        channel::{RequestReceiver, RequestSender},
-        event::EventSubscriber,
-        StateEngine,
-    },
+use crate::state_engine::{
+    channel::{RequestReceiver, RequestSender},
+    event::EventSubscriber,
+    StateEngine,
 };
 
 /// Errors occuring during the initialization process and the [`StateEngine`].
@@ -31,7 +29,9 @@ impl EngineInitializer {
         todo!()
     }
     /// Initializes the [`StateEngine`] and the communication handlers.
-    pub async fn init(self) -> Result<(StateEngine, RequestSender, EventSubscriber), EngineInitializationError> {
+    pub async fn init(
+        self,
+    ) -> Result<(StateEngine, RequestSender, EventSubscriber), EngineInitializationError> {
         todo!()
     }
     // /// Establishes the storage connection via instantiation of [`S3Client`].

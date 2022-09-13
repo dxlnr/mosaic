@@ -1,18 +1,15 @@
 use async_trait::async_trait;
 
-use crate::{
-    state_engine::{
-        states::{Collect, StateError, State, StateCondition, StateName},
-        StateEngine,
-    },
+use crate::state_engine::{
+    states::{Collect, State, StateCondition, StateError, StateName},
+    StateEngine,
 };
 
 #[derive(Debug)]
 /// [`Failure`] state of the [`StateEngine`]
-pub struct Failure{
+pub struct Failure {
     pub(in crate::state_engine) error: StateError,
 }
-
 
 #[async_trait]
 impl State for StateCondition<Failure> {

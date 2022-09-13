@@ -1,11 +1,9 @@
 use async_trait::async_trait;
 
-use crate::{
-    state_engine::{
-        channel::{StateEngineRequest, RequestError},
-        states::{StateHandler, State, StateCondition, StateError, StateName, Update},
-        StateEngine,
-    },
+use crate::state_engine::{
+    channel::{RequestError, StateEngineRequest},
+    states::{State, StateCondition, StateError, StateHandler, StateName, Update},
+    StateEngine,
 };
 
 #[derive(Debug)]
@@ -32,7 +30,7 @@ impl StateCondition<Collect> {
     pub fn new() -> Self {
         todo!()
     }
-    /// Add message to buffer for current training round described in 
+    /// Add message to buffer for current training round described in
     /// [FedBuff](https://arxiv.org/abs/2106.06639).
     ///
     fn add_to_buffer(&mut self) -> Result<(), StateError> {

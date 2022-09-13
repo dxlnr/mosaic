@@ -3,8 +3,9 @@ use derive_more::Display;
 use thiserror::Error;
 use tracing::{info, warn};
 
-use crate::{
-    state_engine::{channel::{ResponseSender, StateEngineRequest}, StateEngine},
+use crate::state_engine::{
+    channel::{ResponseSender, StateEngineRequest},
+    StateEngine,
 };
 
 /// Handling state errors when running ['StateEngine'].
@@ -68,7 +69,9 @@ where
         .await
     }
     /// Receives the next ['Request'].
-    pub async fn next_request(&mut self) -> Result<(StateEngineRequest, ResponseSender), StateError> {
+    pub async fn next_request(
+        &mut self,
+    ) -> Result<(StateEngineRequest, ResponseSender), StateError> {
         todo!()
     }
 }

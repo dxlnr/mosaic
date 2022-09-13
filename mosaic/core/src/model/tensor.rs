@@ -1,5 +1,5 @@
 //! Tensor library for Mosaic.
-//! 
+//!
 use derive_more::{Display, From, Index, IndexMut, Into};
 use rug::Float;
 // use serde::{Deserialize, Serialize};
@@ -8,7 +8,7 @@ use protobuf::ProtobufEnum;
 use crate::protos;
 
 /// Derive Convertion function as macro for DataType.
-/// 
+///
 macro_rules! enum_derive {
     (
         #[repr($T: ident)]
@@ -54,21 +54,21 @@ enum_derive! {
     #[derive(Copy, Clone, Debug, PartialEq, Eq, Display)]
     pub enum DataType {
         DTInvalid = 0,
-    
+
         DTf16 = 1,
         DTf32 = 2,
         DTf64 = 3,
-    
+
         DTint8 = 4,
         DTint16 = 5,
         DTint32 = 6,
         DTint64 = 7,
-    
+
         DTuint8 = 8,
         DTuint16 = 9,
         DTuint32 = 10,
         DTuint64 = 11,
-    
+
         DTString = 12,
     }
 }
@@ -88,7 +88,6 @@ impl DataType {
         Self::from(proto.value() as i32)
     }
 }
-
 
 /// A [`TensorShape`] is the shape of a tensor. A TensorShape may be an unknown rank, or it may
 /// have a known rank with each dimension being known or unknown.
@@ -153,7 +152,7 @@ impl TensorShape {
 
 #[derive(Debug, Clone, PartialEq, From, Index, IndexMut, Into)]
 /// A numerical representation of the weights contained by a Machine Learning model.
-/// 
+///
 /// The representation lays out each element of the tensor contiguously in memory.
 pub struct TensorStorage(Vec<Float>);
 

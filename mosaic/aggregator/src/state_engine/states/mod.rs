@@ -14,7 +14,7 @@ pub use self::{
     failure::Failure,
     handler::StateHandler,
     idle::Idle,
-    state::{State, StateCondition, StateError, StateName},
     shutdown::Shutdown,
+    state::{State, StateCondition, StateError, StateName},
     update::Update,
 };

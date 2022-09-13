@@ -34,12 +34,14 @@ impl RequestSender {
     }
     pub async fn send(&mut self, req: StateEngineRequest) -> Result<(), RequestError> {
         let (tx, rx) = oneshot::channel::<Result<(), RequestError>>();
-        self.0
-            .send((req, tx))
-            .map_err(|_| RequestError::InternalError(
+        self.0.send((req, tx)).map_err(|_| {
+            RequestError::InternalError(
                 "failed to send request to the state engine: state engine is down.",
-            ))?;
-        rx.await.map_err(|_| RequestError::InternalError("Unable to receive a response from the state engine."))?
+            )
+        })?;
+        rx.await.map_err(|_| {
+            RequestError::InternalError("Unable to receive a response from the state engine.")
+        })?
     }
 }
 

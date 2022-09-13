@@ -1,12 +1,10 @@
 use async_trait::async_trait;
 // use tracing::{info, warn};
 
-use crate::{
-    state_engine::{
-        channel::{StateEngineRequest, RequestError},
-        states::{Collect, State, StateCondition, StateError, StateHandler, StateName},
-        StateEngine
-    },
+use crate::state_engine::{
+    channel::{RequestError, StateEngineRequest},
+    states::{Collect, State, StateCondition, StateError, StateHandler, StateName},
+    StateEngine,
 };
 
 #[derive(Debug)]

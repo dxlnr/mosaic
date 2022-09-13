@@ -1,10 +1,9 @@
 use async_trait::async_trait;
 use tokio::signal;
 
-use crate::{
-    state_engine::{
-        channel::{RequestError, ResponseSender, StateEngineRequest}, states::{State, StateCondition, StateError}, 
-    },
+use crate::state_engine::{
+    channel::{RequestError, ResponseSender, StateEngineRequest},
+    states::{State, StateCondition, StateError},
 };
 
 /// A trait that must be implemented by a state to handle a request.
@@ -35,9 +34,7 @@ where
         }
     }
     /// Processing a single request from a client.
-    async fn process_single(
-        &mut self
-    ) {
+    async fn process_single(&mut self) {
         todo!()
     }
 }
