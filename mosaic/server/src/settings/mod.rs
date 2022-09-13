@@ -4,7 +4,7 @@
 use std::{fmt, path::Path};
 
 use config::{Config, ConfigError, ValueKind};
-use displaydoc::Display;
+use derive_more::Display;
 use serde::{
     de::{self, Deserializer, Visitor},
     Deserialize,

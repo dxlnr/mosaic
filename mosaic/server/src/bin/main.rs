@@ -13,6 +13,8 @@ use tokio::signal;
 use tracing::warn;
 use tracing_subscriber::*;
 
+use mosaic_core::message::Message;
+
 #[derive(Debug, StructOpt)]
 struct Config {
     #[structopt(short, parse(from_os_str))]

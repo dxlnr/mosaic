@@ -9,12 +9,18 @@ rust-version = "1.61.0"
 readme = "README.md"
 
 [[bin]]
-name = "server"
+name = "mosaic"
 path = "src/bin/main.rs"
 
 [dependencies]
+mosaic_core = { path = "../core" }
+
 config = "0.13.1"
-displaydoc = "0.2.3"
+derive_more = { version = "0.99.17", default-features = false, features = [
+    "display",
+    "from",
+]}
+
 serde = { version = "1.0.144", features = ["derive"] }
 structopt = "0.3.25"
 thiserror = "1.0.34"

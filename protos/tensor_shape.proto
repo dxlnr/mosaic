@@ -1,4 +1,5 @@
 syntax = "proto3";
+package mosaic;
 
 // Protocol buffer representing the shape of tensors.
 message TensorShape {

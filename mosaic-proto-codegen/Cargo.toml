@@ -1,0 +1,8 @@
+[package]
+name = "mosaic-proto-codegen"
+version = "0.1.0"
+authors = ["Daniel Illner <illner@modalic.ai>"]
+edition = "2021"
+
+[dependencies]
+protoc-rust = "2.24.1"

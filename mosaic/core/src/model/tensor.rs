@@ -1,37 +1,41 @@
 //! Tensor library for Mosaic.
+//! 
+use derive_more::{Display, From, Index, IndexMut, Into};
 use rug::Float;
+
+// use crate::protos;
 
 /// The single underlying [`DataType`] of the Tensor elements.
 ///
-#[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize, Display)]
+#[derive(Copy, Clone, Debug, PartialEq, Eq, Display)]
 pub enum DataType {
-    DT_F16 = 1,
-    DT_F32 = 2,
-    DT_F64 = 3,
+    DTf16 = 1,
+    DTf32 = 2,
+    DTf64 = 3,
 
-    DT_INT8 = 4,
-    DT_INT16 = 5,
-    DT_INT32 = 6,
-    DT_INT64 = 7,
+    DIint8 = 4,
+    DTint16 = 5,
+    DTint32 = 6,
+    DTint64 = 7,
 
-    DT_UINT8 = 8,
-    DT_UINT16 = 9,
-    DT_UINT32 = 10,
-    DT_UINT64 = 11,
+    DTuintT8 = 8,
+    DTuint16 = 9,
+    DTuint32 = 10,
+    DTuint64 = 11,
 
-    DT_STRING = 12,
+    DTString = 12,
 }
 
 impl Default for DataType {
     fn default() -> DataType {
-        DataType::Float
+        DataType::DTf32
     }
 }
 
 impl DataType {
     // We don't use Into, because we don't want this to be public API.
-    fn into_proto(self) -> protos::types::DataType {
-        if let Some(d) = protos::types::DataType::from_i32(self.to_int() as i32) {
+    fn into_proto(self) -> protos::DataType {
+        if let Some(d) = protos::DataType::from_i32(self.to_int() as i32) {
             d
         } else {
             // This is unfortunate, but the protobuf crate doesn't support unrecognized enum values.
@@ -40,7 +44,7 @@ impl DataType {
     }
 
     // We don't use From, because we don't want this to be public API.
-    fn from_proto(proto: protos::types::DataType) -> Self {
+    fn from_proto(proto: protos::DataType) -> Self {
         Self::from_int(proto.value() as c_uint)
     }
 }
@@ -65,18 +69,18 @@ impl TensorShape {
     }
 
     /// Converts [`Tensorshape`] into proto message shape.
-    fn into_proto(self) -> protos::tensor_shape::TensorShape {
+    fn into_proto(self) -> protos::TensorShape {
         match self.0 {
             None => {
-                let mut shape = protos::tensor_shape::TensorShape::new();
+                let mut shape = protos::TensorShape::new();
                 shape.set_unknown_rank(true);
                 shape
             }
             Some(v) => {
-                let mut shape = protos::tensor_shape::TensorShape::new();
+                let mut shape = protos::TensorShape::new();
                 for in_dim in v {
                     shape.mut_dim().push({
-                        let mut out_dim = protos::tensor_shape::TensorShapeProto_Dim::new();
+                        let mut out_dim = protos::TensorShapeProto_Dim::new();
                         out_dim.set_size(in_dim.unwrap_or(-1));
                         out_dim
                     });
@@ -86,7 +90,7 @@ impl TensorShape {
         }
     }
     /// Converts proto message shape into [`Tensorshape`].
-    fn from_proto(proto: &protos::tensor_shape::TensorShape) -> Self {
+    fn from_proto(proto: &protos::TensorShape) -> Self {
         TensorShape(if proto.get_unknown_rank() {
             None
         } else {
@@ -107,24 +111,24 @@ impl TensorShape {
     }
 }
 
-#[derive(Debug, Clone, PartialEq, Hash, From, Index, IndexMut, Into, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, From, Index, IndexMut, Into, Serialize, Deserialize)]
 /// A numerical representation of the weights contained by a Machine Learning model.
 /// 
 /// The representation lays out each element of the tensor contiguously in memory.
 pub struct TensorStorage(Vec<Float>);
 
 pub struct Tensor {
-    pub content: TensorStorage,
+    pub storage: TensorStorage,
     pub dtype: DataType,
     pub shape: TensorShape,
 }
 
 impl Tensor {
-    pub fn new(storage: TensorStorage, dtype: DataType, shape: Vec<u32>) -> Option<Self> {
+    pub fn new(storage: TensorStorage, dtype: DataType, shape: TensorShape) -> Self {
         Self {
             storage,
             dtype,
-            model_version,
+            shape,
         }
     }
 }
