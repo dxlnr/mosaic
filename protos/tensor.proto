@@ -15,8 +15,8 @@ syntax = "proto3";
 
 package mosaic.protos;
 
-import "protos/dtype.proto";
-import "protos/tensor_shape.proto";
+import "dtype.proto";
+import "tensor_shape.proto";
 
 // Protocol Buffer representing a Tensor.
 message TensorProto {

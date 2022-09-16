@@ -5,12 +5,19 @@
     issue_tracker_base_url = "https://github.com/modalic/mosaic/issues"
 )]
 
-//! The `selector` is the only component that directly communicates with clients.
-//! When necessary, it forwards client requests to other components. The Selector has two
-//! main responsibilities.
+//! The `selector` is responsible for accepting and forwarding device connections.
+//! It periodically receives information from the Coordinator about how many devices are needed, 
+//! which they use to make local decisions about whether or not to accept each device.
+//! 
+//! It is the only component that directly communicates with clients.
+//! 
+//! The Selector has two main responsibilities:
 //! - **Client selection**. The Selector advertises available tasks to clients,
 //! and summarizes current client availability for the Coordinator.
 //! - **Client participation**. The Selector routes client requests to the corresponding Aggregator.
+//! 
+//! Therefore, the `selector` can be interpreted as a proxy server.
+//! 
 pub mod proxy;
 
 

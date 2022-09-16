@@ -15,7 +15,7 @@ syntax = "proto3";
 
 package mosaic.protos;
 
-import "protos/tensor.proto";
+import "tensor.proto";
 
 // Mosaic Secure Federated Learning Protocol
 //
