@@ -44,7 +44,7 @@ impl TensorShape {
         ::std::default::Default::default()
     }
 
-    // repeated .mosaic.TensorShape.Dim dim = 2;
+    // repeated .mosaic.protos.TensorShape.Dim dim = 2;
 
 
     pub fn get_dim(&self) -> &[TensorShape_Dim] {
@@ -419,11 +419,11 @@ impl ::protobuf::reflect::ProtobufValue for TensorShape_Dim {
 }
 
 static file_descriptor_proto_data: &'static [u8] = b"\
-    \n\x19protos/tensor_shape.proto\x12\x06mosaic\"\x8a\x01\n\x0bTensorShape\
-    \x12)\n\x03dim\x18\x02\x20\x03(\x0b2\x17.mosaic.TensorShape.DimR\x03dim\
-    \x12!\n\x0cunknown_rank\x18\x03\x20\x01(\x08R\x0bunknownRank\x1a-\n\x03D\
-    im\x12\x12\n\x04size\x18\x01\x20\x01(\x05R\x04size\x12\x12\n\x04name\x18\
-    \x02\x20\x01(\tR\x04nameb\x06proto3\
+    \n\x19protos/tensor_shape.proto\x12\rmosaic.protos\"\x91\x01\n\x0bTensor\
+    Shape\x120\n\x03dim\x18\x02\x20\x03(\x0b2\x1e.mosaic.protos.TensorShape.\
+    DimR\x03dim\x12!\n\x0cunknown_rank\x18\x03\x20\x01(\x08R\x0bunknownRank\
+    \x1a-\n\x03Dim\x12\x12\n\x04size\x18\x01\x20\x01(\x05R\x04size\x12\x12\n\
+    \x04name\x18\x02\x20\x01(\tR\x04nameb\x06proto3\
 ";
 
 static file_descriptor_proto_lazy: ::protobuf::rt::LazyV2<::protobuf::descriptor::FileDescriptorProto> = ::protobuf::rt::LazyV2::INIT;

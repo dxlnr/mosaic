@@ -107,13 +107,13 @@ impl ::protobuf::reflect::ProtobufValue for DataType {
 }
 
 static file_descriptor_proto_data: &'static [u8] = b"\
-    \n\x12protos/dtype.proto\x12\x06mosaic*\xbf\x01\n\x08DataType\x12\x0e\n\
-    \nDT_INVALID\x10\0\x12\n\n\x06DT_F16\x10\x01\x12\n\n\x06DT_F32\x10\x02\
-    \x12\n\n\x06DT_F64\x10\x03\x12\x0b\n\x07DT_INT8\x10\x04\x12\x0c\n\x08DT_\
-    INT16\x10\x05\x12\x0c\n\x08DT_INT32\x10\x06\x12\x0c\n\x08DT_INT64\x10\
-    \x07\x12\x0c\n\x08DT_UINT8\x10\x08\x12\r\n\tDT_UINT16\x10\t\x12\r\n\tDT_\
-    UINT32\x10\n\x12\r\n\tDT_UINT64\x10\x0b\x12\r\n\tDT_STRING\x10\x0cb\x06p\
-    roto3\
+    \n\x12protos/dtype.proto\x12\rmosaic.protos*\xbf\x01\n\x08DataType\x12\
+    \x0e\n\nDT_INVALID\x10\0\x12\n\n\x06DT_F16\x10\x01\x12\n\n\x06DT_F32\x10\
+    \x02\x12\n\n\x06DT_F64\x10\x03\x12\x0b\n\x07DT_INT8\x10\x04\x12\x0c\n\
+    \x08DT_INT16\x10\x05\x12\x0c\n\x08DT_INT32\x10\x06\x12\x0c\n\x08DT_INT64\
+    \x10\x07\x12\x0c\n\x08DT_UINT8\x10\x08\x12\r\n\tDT_UINT16\x10\t\x12\r\n\
+    \tDT_UINT32\x10\n\x12\r\n\tDT_UINT64\x10\x0b\x12\r\n\tDT_STRING\x10\x0cb\
+    \x06proto3\
 ";
 
 static file_descriptor_proto_lazy: ::protobuf::rt::LazyV2<::protobuf::descriptor::FileDescriptorProto> = ::protobuf::rt::LazyV2::INIT;
