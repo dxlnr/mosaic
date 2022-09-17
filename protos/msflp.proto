@@ -28,15 +28,58 @@ service MSFLP {
 
 
 message ServerMessage {
-  message InvokeClient {}
   // Server distributes the configurations to the clients.
   //
   // These configurations contain the necessary information and hyperparameters
   // that define the Federated Learning process.
   message SetConfigs {}
+
+  // Reconnect Client
+  //
+  // If a device is not selected for participation, 
+  // the server responds with instructions to reconnect at a later point in time.
+  // 
+  message ReconnectClient { int64 time = 1; }
+
+  // Response to global model request.
+  //
+  // Redistributes the latestes global model.
+  message GlobalModelResponse {
+    // Model represented as a repreated stream of tensors.
+    repeated TensorProto model = 1;
+  }
+
+  // Placeholder
+  //
+  message ServerStatus { string status = 1; }
+
+  // `ServerMessage` implements many fields but at most one field 
+  // will be set at the same time.
+  //
+  // Setting any member of the oneof automatically clears all the other members.
+  oneof msg {
+    SetConfigs set_config = 1;
+    ReconnectClient reconnect = 2;
+    GlobalModelResponse global_model_ = 3;
+    ServerStatus status = 4;
+  }
 }
 
+// Reason
+//
+// Holds the various reasons when client will be rejected.
+enum Reason {
+  // Unknown reason.
+  NULL = 0;
+}
+
+// Composition of client communication within the msflp protocol 
+// bidirectional stream.
+//
 message ClientMessage {
+  // Disconnect from Stream.
+  //
+  message ClientDisconnect { Reason reason = 1; }
 
   // Model Update
   //
@@ -56,5 +99,16 @@ message ClientMessage {
   // any temporary resources.
   //
   message ClientReporting {}
+
+  // `ClientMessage` implements many fields but at most one field 
+  // will be set at the same time.
+  //
+  // Setting any member of the oneof automatically clears all the other members.
+  oneof msg {
+    ClientDisconnect disconnect = 1;
+    ClientUpdate update = 2;
+    GlobalModelRequest global_model_request = 3;
+    ClientReporting reporting = 4;
+  }
 
 }

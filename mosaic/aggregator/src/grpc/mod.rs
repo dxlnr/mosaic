@@ -4,13 +4,14 @@ pub mod msflp {
     tonic::include_proto!("mosaic.protos");
 }
 
-use std::{convert::Infallible, pin::Pin};
-
+use std::{convert::Infallible, error::Error, io::ErrorKind, pin::Pin};
+use tokio::sync::mpsc;
+use tokio_stream::{wrappers::ReceiverStream, StreamExt};
 use futures::Stream;
 use thiserror::Error;
-use tracing::info;
+use tracing::{info, warn};
 
-use tonic::{transport::Server, Status};
+use tonic::{transport::Server, Request, Response, Status, Streaming};
 
 use crate::{
     configs::APISettings,
@@ -18,9 +19,43 @@ use crate::{
 };
 
 use msflp::msflp_server::{Msflp, MsflpServer};
-use msflp::{ClientMessage, ServerMessage};
+use msflp::{ClientMessage, ServerMessage, server_message};
 
+use self::msflp::server_message::ServerStatus;
+
+/// Result type of handling the bidirectional stream 
+/// between client and server.
+/// 
+type HandleResult<T> = Result<Response<T>, Status>;
+/// Response type of handling the bidirectional stream 
+/// between client and server.
+/// 
 type ResponseStream = Pin<Box<dyn Stream<Item = Result<ServerMessage, Status>> + Send>>;
+
+/// Handling IO error while streaming.
+/// 
+fn match_for_io_error(err_status: &Status) -> Option<&std::io::Error> {
+    let mut err: &(dyn Error + 'static) = err_status;
+
+    loop {
+        if let Some(io_err) = err.downcast_ref::<std::io::Error>() {
+            return Some(io_err);
+        }
+
+        // // h2::Error do not expose std::io::Error with `source()`
+        // // https://github.com/hyperium/h2/pull/462
+        // if let Some(h2_err) = err.downcast_ref::<h2::Error>() {
+        //     if let Some(io_err) = h2_err.get_io() {
+        //         return Some(io_err);
+        //     }
+        // }
+
+        err = match err.source() {
+            Some(err) => err,
+            None => return None,
+        };
+    }
+}
 
 /// [`AggrServer`] Implements the MSFLP server trait.
 /// 
@@ -47,12 +82,53 @@ impl Msflp for AggrServer
 {   
     type HandleStream = ResponseStream;
 
+    /// Mosaic Secure Federated Learning Protocol.
+    /// 
+    /// `handle` implements the logic by which the bidirectional 
+    /// stream between client and server is defined.
+    /// 
+    /// Client: ClientDisconnect -- Server: ReconnectClient.
+    /// 
     async fn handle(
         &self,
-        request: tonic::Request<tonic::Streaming<ClientMessage>>,
-    ) -> Result<tonic::Response<Self::HandleStream>, tonic::Status>
+        request: Request<Streaming<ClientMessage>>,
+    ) -> HandleResult<Self::HandleStream>
     {
-        todo!()
+        let mut in_stream = request.into_inner();
+        let (tx, rx) = mpsc::channel(128);
+
+        tokio::spawn(async move {
+            while let Some(result) = in_stream.next().await {
+                match result {
+                    Ok(v) => tx
+                        .send(Ok(ServerMessage { msg: Some(server_message::Msg::Status(ServerStatus{ status: "OK".to_string()})) }))
+                        .await
+                        .expect("working rx"),
+                    Err(err) => {
+                        if let Some(io_err) = match_for_io_error(&err) {
+                            if io_err.kind() == ErrorKind::BrokenPipe {
+                                // here you can handle special case when client
+                                // disconnected in unexpected way
+                                warn!("\tclient disconnected: broken pipe");
+                                break;
+                            }
+                        }
+
+                        match tx.send(Err(err)).await {
+                            Ok(_) => (),
+                            Err(_err) => break, // response was droped
+                        }
+                    }
+                }
+            }
+            info!("Connection between client and aggregation server is finished.");
+        });
+
+        let out_stream = ReceiverStream::new(rx);
+
+        Ok(Response::new(
+            Box::pin(out_stream) as Self::HandleStream
+        ))
     }
 }
 

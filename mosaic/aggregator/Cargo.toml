@@ -34,6 +34,7 @@ thiserror = "1.0.34"
 # Tokio ecosystem.
 prost = "0.11.0"
 tokio = { version = "1.2.1",features = ["full", "tracing"] }
+tokio-stream = "0.1.9"
 tonic = "0.8.1"
 tower = "0.4.13"
 tracing = "0.1.36"
