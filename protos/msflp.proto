@@ -23,7 +23,7 @@ import "tensor.proto";
 // The stream is used to track liveness and orchestrate multi-step communication.
 //
 service MSFLP {
-  rpc Connect(stream ClientMessage) returns (stream ServerMessage) {}
+  rpc Handle(stream ClientMessage) returns (stream ServerMessage) {}
 }
 
 

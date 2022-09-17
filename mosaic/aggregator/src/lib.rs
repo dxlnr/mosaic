@@ -13,5 +13,7 @@
 //!
 pub mod aggr;
 pub mod configs;
+pub mod grpc;
+pub mod services;
 pub mod state_engine;
 // pub mod buffer;

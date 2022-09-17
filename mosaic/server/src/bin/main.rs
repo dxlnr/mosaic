@@ -10,10 +10,9 @@ use server::settings::{LogSettings, Settings};
 
 use structopt::StructOpt;
 use tokio::signal;
-use tracing::warn;
 use tracing_subscriber::*;
 
-use mosaic_core::message::Message;
+// use mosaic_core::message::Message;
 
 #[derive(Debug, StructOpt)]
 struct Config {
