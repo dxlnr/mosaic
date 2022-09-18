@@ -2,16 +2,14 @@
 //!
 use std::process;
 
-use aggregator::configs::{CliConfig, LogSettings, AggrSettings};
+use aggregator::configs::{AggrSettings, CliConfig, LogSettings};
 
 use structopt::StructOpt;
 use tokio::signal;
 use tracing::warn;
 use tracing_subscriber::*;
 
-use aggregator::{
-    state_engine::init::StateEngineInitializer,
-};
+use aggregator::state_engine::init::StateEngineInitializer;
 
 fn init_logging(settings: LogSettings) {
     let _fmt_subscriber = FmtSubscriber::builder()
@@ -42,10 +40,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     init_logging(logging);
 
-    let (engine, tx) =
-        StateEngineInitializer::new()
-            .init()
-            .await?;
+    let (engine, _tx) = StateEngineInitializer::new().init().await?;
 
     tokio::select! {
         biased;

@@ -7,7 +7,7 @@ use crate::state_engine::{
 
 #[derive(Debug)]
 /// [`Failure`] state of the [`StateEngine`]
-/// 
+///
 pub struct Failure {
     pub(in crate::state_engine) error: StateError,
 }

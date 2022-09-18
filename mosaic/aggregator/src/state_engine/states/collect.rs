@@ -2,7 +2,7 @@ use async_trait::async_trait;
 
 use crate::state_engine::{
     channel::{RequestError, StateEngineRequest},
-    states::{State, SharedState, StateCondition, StateError, StateHandler, StateName, Update},
+    states::{SharedState, State, StateCondition, StateError, StateHandler, StateName, Update},
     StateEngine,
 };
 

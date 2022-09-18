@@ -4,12 +4,7 @@ use thiserror::Error;
 use tracing::{info, warn};
 
 use crate::{
-    aggr::Aggregator,
-    state_engine::{
-        channel::{RequestReceiver, ResponseSender, StateEngineRequest},
-        event::EventPublisher,
-        StateEngine,
-    },
+    state_engine::StateEngine
 };
 
 /// Handling state errors when running ['StateEngine'].
@@ -24,14 +19,6 @@ pub enum StateError {
 pub enum StateName {
     #[display(fmt = "Idle")]
     Idle,
-    #[display(fmt = "Collect")]
-    Collect,
-    #[display(fmt = "Update")]
-    Update,
-    #[display(fmt = "Failure")]
-    Failure,
-    #[display(fmt = "Shutdown")]
-    Shutdown,
 }
 
 /// A trait that must be implemented by a state in order to perform its tasks and to move to a next state.
@@ -55,7 +42,7 @@ pub struct StateCondition<S> {
     /// Private Identifier of the state.
     /// 
     pub(in crate::state_engine) private: S,
-    /// [`SharedState`] that the Aggregator holds.
+    /// [`SharedState`] that the client holds.
     ///
     pub(in crate::state_engine) shared: SharedState,
 }
@@ -64,7 +51,7 @@ impl<S> StateCondition<S>
 where
     Self: State,
 {
-    /// Runs the current State to completion.
+    /// Runs the current [`State`] to completion.
     pub async fn run_state(mut self) -> Option<StateEngine> {
         info!("Server runs in state: {:?}", &Self::NAME);
         async move {
@@ -75,34 +62,14 @@ where
         }
         .await
     }
-    /// Receives the next ['Request'].
-    pub async fn next_request(
-        &mut self,
-    ) -> Result<(StateEngineRequest, ResponseSender), StateError> {
-        todo!()
-    }
 }
 
 /// [`SharedState`]
-pub struct SharedState {
-    /// [`Aggregator`]
-    pub aggr: Aggregator,
-    /// [`RequestReceiver`]
-    ///
-    /// Field for enabling receiving requests from the client.
-    pub rx: RequestReceiver,
-    /// [`EventPublisher`] responsible for publishing the latest updates.
-    ///
-    pub publisher: EventPublisher,
-}
+pub struct SharedState {}
 
 impl SharedState {
-    /// Init new [`SharedState`] for the aggregation server.
-    pub fn new(aggr: Aggregator, rx: RequestReceiver, publisher: EventPublisher) -> Self {
-        SharedState {
-            aggr,
-            rx,
-            publisher,
-        }
+    /// Init new [`SharedState`] for the client.
+    pub fn new() -> Self {
+        Self {}
     }
 }

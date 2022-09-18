@@ -4,8 +4,8 @@ use tower::Service;
 
 // use mosaic_core::message::Message;
 use crate::{
-    state_engine::channel::{StateEngineRequest, RequestSender},
     services::{error::ServiceError, messages::BoxedServiceFuture},
+    state_engine::channel::{RequestSender, StateEngineRequest},
 };
 
 /// [`StateEngineService`]
@@ -17,7 +17,7 @@ pub struct StateEngineService {
 impl StateEngineService {
     /// Create a new (tower) service with a handler for forwarding
     /// requests from gRPC [`AggrServer`] to the [`StateEngine`].
-    /// 
+    ///
     pub fn new(handle: RequestSender) -> Self {
         Self { handle }
     }

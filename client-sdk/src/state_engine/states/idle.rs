@@ -1,16 +1,14 @@
+use super::StateCondition;
+
 use async_trait::async_trait;
 // use tracing::warn;
 
 use crate::state_engine::{
-    states::{Collect, SharedState, State, StateCondition, StateError, StateName},
+    states::{SharedState, State, StateError, StateName},
     StateEngine,
 };
 
 #[derive(Debug)]
-/// [`Idle`] state of the [`StateEngine`]
-///
-/// The initialziation of supporting processes happens in the idle state.
-///
 pub struct Idle;
 
 #[async_trait]
@@ -22,7 +20,8 @@ impl State for StateCondition<Idle> {
     }
 
     async fn next(self) -> Option<StateEngine> {
-        Some(StateCondition::<Collect>::new(self.shared).into())
+        // Some(StateCondition::<Collect>::new(self.shared).into())
+        todo!()
     }
 }
 

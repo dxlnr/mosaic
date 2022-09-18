@@ -7,7 +7,7 @@ use protobuf::ProtobufEnum;
 
 use crate::protos;
 
-/// Derive Convertion function as macro for DataType.
+/// Derive conversion [`From`] and [`Into`] trait as macro for DataType.
 ///
 macro_rules! enum_derive {
     (

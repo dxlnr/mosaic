@@ -15,6 +15,6 @@ pub use self::{
     handler::StateHandler,
     idle::Idle,
     shutdown::Shutdown,
-    state::{State, SharedState, StateCondition, StateError, StateName},
+    state::{SharedState, State, StateCondition, StateError, StateName},
     update::Update,
 };

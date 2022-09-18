@@ -4,36 +4,33 @@ pub mod msflp {
     tonic::include_proto!("mosaic.protos");
 }
 
+use futures::Stream;
 use std::{convert::Infallible, error::Error, io::ErrorKind, pin::Pin};
+use thiserror::Error;
 use tokio::sync::mpsc;
 use tokio_stream::{wrappers::ReceiverStream, StreamExt};
-use futures::Stream;
-use thiserror::Error;
 use tracing::{info, warn};
 
 use tonic::{transport::Server, Request, Response, Status, Streaming};
 
-use crate::{
-    configs::APISettings,
-    services::messages::MessageHandler
-};
+use crate::{configs::APISettings, services::messages::MessageHandler};
 
 use msflp::msflp_server::{Msflp, MsflpServer};
-use msflp::{ClientMessage, ServerMessage, server_message};
+use msflp::{server_message, ClientMessage, ServerMessage};
 
 use self::msflp::server_message::ServerStatus;
 
-/// Result type of handling the bidirectional stream 
+/// Result type of handling the bidirectional stream
 /// between client and server.
-/// 
+///
 type HandleResult<T> = Result<Response<T>, Status>;
-/// Response type of handling the bidirectional stream 
+/// Response type of handling the bidirectional stream
 /// between client and server.
-/// 
+///
 type ResponseStream = Pin<Box<dyn Stream<Item = Result<ServerMessage, Status>> + Send>>;
 
 /// Handling IO error while streaming.
-/// 
+///
 fn match_for_io_error(err_status: &Status) -> Option<&std::io::Error> {
     let mut err: &(dyn Error + 'static) = err_status;
 
@@ -58,19 +55,18 @@ fn match_for_io_error(err_status: &Status) -> Option<&std::io::Error> {
 }
 
 /// [`AggrServer`] Implements the MSFLP server trait.
-/// 
+///
 /// The [`AggrServer`] has two main tasks:
 ///     - Implementing the service trait generated from our service definition.
 ///     - Running a gRPC server to listen for requests from clients.
-/// 
+///
 #[derive(Debug, Clone)]
 pub struct AggrServer {
     /// Shared handle for passing messages from participant to engine.
     handler: MessageHandler,
 }
 
-impl AggrServer
-{
+impl AggrServer {
     /// Constructs a new [`AggrServer`].
     fn new(handler: MessageHandler) -> Self {
         AggrServer { handler }
@@ -78,22 +74,20 @@ impl AggrServer
 }
 
 #[tonic::async_trait]
-impl Msflp for AggrServer
-{   
+impl Msflp for AggrServer {
     type HandleStream = ResponseStream;
 
     /// Mosaic Secure Federated Learning Protocol.
-    /// 
-    /// `handle` implements the logic by which the bidirectional 
+    ///
+    /// `handle` implements the logic by which the bidirectional
     /// stream between client and server is defined.
-    /// 
+    ///
     /// Client: ClientDisconnect -- Server: ReconnectClient.
-    /// 
+    ///
     async fn handle(
         &self,
         request: Request<Streaming<ClientMessage>>,
-    ) -> HandleResult<Self::HandleStream>
-    {
+    ) -> HandleResult<Self::HandleStream> {
         let mut in_stream = request.into_inner();
         let (tx, rx) = mpsc::channel(128);
 
@@ -101,7 +95,11 @@ impl Msflp for AggrServer
             while let Some(result) = in_stream.next().await {
                 match result {
                     Ok(v) => tx
-                        .send(Ok(ServerMessage { msg: Some(server_message::Msg::Status(ServerStatus{ status: "OK".to_string()})) }))
+                        .send(Ok(ServerMessage {
+                            msg: Some(server_message::Msg::Status(ServerStatus {
+                                status: "OK".to_string(),
+                            })),
+                        }))
                         .await
                         .expect("working rx"),
                     Err(err) => {
@@ -126,18 +124,18 @@ impl Msflp for AggrServer
 
         let out_stream = ReceiverStream::new(rx);
 
-        Ok(Response::new(
-            Box::pin(out_stream) as Self::HandleStream
-        ))
+        Ok(Response::new(Box::pin(out_stream) as Self::HandleStream))
     }
 }
 
 pub async fn start<F>(
     api_settings: &APISettings,
     message_handler: MessageHandler,
-) -> Result<(), Box<dyn std::error::Error>>
-{
-    info!("Aggregation Server listening on {}", api_settings.server_address);
+) -> Result<(), Box<dyn std::error::Error>> {
+    info!(
+        "Aggregation Server listening on {}",
+        api_settings.server_address
+    );
 
     let aggr_server = AggrServer::new(message_handler);
     Server::builder()

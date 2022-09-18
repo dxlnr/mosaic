@@ -4,12 +4,15 @@
 use derive_more::Display;
 use thiserror::Error;
 
-use crate::{state_engine::{
-    channel::{RequestReceiver, RequestSender},
-    event::{EventPublisher, EventSubscriber},
-    StateEngine,
-    states::{Idle, SharedState, StateCondition},
-}, aggr::Aggregator};
+use crate::{
+    aggr::Aggregator,
+    state_engine::{
+        channel::{RequestReceiver, RequestSender},
+        event::{EventPublisher, EventSubscriber},
+        states::{Idle, SharedState, StateCondition},
+        StateEngine,
+    },
+};
 
 /// Errors occuring during the initialization process and the [`StateEngine`].
 #[derive(Debug, Display, Error)]
@@ -27,21 +30,17 @@ pub struct StateEngineInitializer {}
 impl StateEngineInitializer {
     /// Creates a new [`EngineInitializer`] which sets up the engine running the aggregation algorithm.
     pub fn new() -> Self {
-        Self{}
+        Self {}
     }
     /// Initializes the [`StateEngine`] and the communication handlers.
     pub async fn init(
         self,
-    // ) -> Result<(StateEngine, RequestSender, EventSubscriber), StateEngineInitError> {
+        // ) -> Result<(StateEngine, RequestSender, EventSubscriber), StateEngineInitError> {
     ) -> Result<(StateEngine, RequestSender), StateEngineInitError> {
         let (publisher, _subscriber) = EventPublisher::new();
         let (rx, tx) = RequestSender::new();
 
-        let shared = SharedState::new(
-            Aggregator::new(),
-            rx,
-            publisher,
-        );
+        let shared = SharedState::new(Aggregator::new(), rx, publisher);
 
         Ok((
             StateEngine::Idle(StateCondition::<Idle>::new(shared)),

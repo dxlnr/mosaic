@@ -1,5 +1,5 @@
 //! Internal & External Configuration settings for the aggregator.
-//! 
+//!
 use std::{fmt, path::{Path, PathBuf}};
 
 use structopt::StructOpt;
@@ -15,7 +15,7 @@ use tracing_subscriber::filter::EnvFilter;
 use validator::{Validate, ValidationErrors};
 
 /// Data structure for external configs.
-/// 
+///
 #[derive(Debug, StructOpt)]
 pub struct CliConfig {
     #[structopt(short, parse(from_os_str))]

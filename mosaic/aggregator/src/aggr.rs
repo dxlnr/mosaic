@@ -8,7 +8,10 @@ pub struct Aggregator {
 
 impl Aggregator {
     pub fn new() -> Self {
-        Self { round_id: 0, params: AggrParams::default() }
+        Self {
+            round_id: 0,
+            params: AggrParams::default(),
+        }
     }
 }
 

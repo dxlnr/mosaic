@@ -13,9 +13,7 @@ pub mod states;
 
 use derive_more::From;
 
-use crate::state_engine::states::{Collect, Idle, Shutdown, StateCondition, Update};
-
-use self::states::Failure;
+use crate::state_engine::states::{Collect, Failure, Idle, Shutdown, StateCondition, Update};
 
 /// [`StateEngine`] functions as the state machine which handles the progress of the `Aggregator`
 /// and keep its state.
