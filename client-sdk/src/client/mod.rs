@@ -3,6 +3,7 @@ use tokio::{
     runtime::Runtime,
     sync::mpsc,
 };
+use tracing::debug;
 
 use crate::state_engine::StateEngine;
 
@@ -11,14 +12,39 @@ pub enum Event {
     Idle,
 }
 
-/// A receiver for events emitted by the clients internal [`StateEngine`].
-pub struct EventSubscriber(mpsc::Receiver<Event>);
+/// An [`EventReceiver`] for events emitted by the clients internal [`StateEngine`].
+pub struct EventReceiver(mpsc::Receiver<Event>);
 
-/// Storage API
+impl EventReceiver {
+    /// Create a new event sender and receiver.
+    fn new() -> (Self, EventSender) {
+        let (tx, rx) = mpsc::channel(10);
+        (Self(rx), EventSender(tx))
+    }
+}
+
+/// [`EventSender`] that is passed to the client internal [`StateEngine`].
+pub struct EventSender(mpsc::Sender<Event>);
+
+impl EventSender {
+    fn send(&mut self, event: Event) {
+        if let Err(err) = self.0.try_send(event) {
+            debug!("Emitting an event to the client failed: {}", err);
+        }
+    }
+}
+
+/// [`Store`]: API for external Storage.
 /// 
-#[derive(Clone)]
+#[derive(Default, Clone)]
 struct Store {}
 
+impl Store {
+    /// Init new [`Store`] API for the client.
+    pub fn new() -> Self {
+        Self {}
+    }
+}
 
 /// Clients task data structure.
 ///  
@@ -44,7 +70,7 @@ pub struct Client {
     /// Internal [`StateEngine`] of the client.
     engine: StateEngine,
     /// Receiver for the events emitted by the [`StateEngine`].
-    events: EventSubscriber,
+    event_recv: EventReceiver,
     /// Storage API for the external device storage where configs, model & 
     /// trainings data is fetched from.
     store: Store,
@@ -55,4 +81,37 @@ pub struct Client {
     runtime: Runtime,
     /// The participant current task
     task: Task,
+}
+
+impl Client {
+    pub fn init() -> Result<Self, ClientError> {
+        let (event_recv, event_sender) = EventReceiver::new();
+        let store = Store::new();
+        let engine = StateEngine::new();
+        Self::try_init(engine, event_recv, store)
+    }
+
+    pub fn restore() {}
+
+    fn try_init(
+        engine: StateEngine,
+        event_recv: EventReceiver,
+        store: Store,
+    ) -> Result<Self, ClientError> {
+        let mut client = Self {
+            runtime: Self::runtime()?,
+            engine,
+            event_recv,
+            store,
+            task: Task::None,
+        };
+        Ok(client)
+    }
+
+    fn runtime() -> Result<Runtime, ClientError> {
+        tokio::runtime::Builder::new_current_thread()
+            .enable_all()
+            .build()
+            .map_err(ClientError::Runtime)
+    }
 }

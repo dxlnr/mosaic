@@ -8,6 +8,23 @@ edition = "2021"
 rust-version = "1.61.0" 
 readme = "README.md"
 
+[package.metadata.maturin]
+classifiers = [
+        "Development Status :: 2 - Alpha",
+        "License :: OSI Approved :: Apache Software License",
+        "Programming Language :: Python :: 3 :: Only",
+        "Programming Language :: Python :: 3.8",
+        "Programming Language :: Python :: 3.9",
+        "Programming Language :: Python :: 3.10",
+        "Operating System :: MacOS :: MacOS X",
+        "Operating System :: POSIX :: Linux",
+]
+requires-python = ">=3.7"
+
+[package.metadata]
+# minimum supported rust version
+msrv = "1.51.0"
+
 [dependencies]
 # Internal Dependencies
 client-sdk = { path = "../../client-sdk", version = "0.1.0"}
@@ -15,5 +32,5 @@ client-sdk = { path = "../../client-sdk", version = "0.1.0"}
 pyo3 = { version = "0.17.1", features = ["extension-module"] }
 
 [lib]
-name = "python_client_sdk"
+name = "modalic_client_sdk"
 crate-type = ["cdylib"]

@@ -19,6 +19,10 @@ pub enum StateError {
 pub enum StateName {
     #[display(fmt = "Idle")]
     Idle,
+    #[display(fmt = "Train")]
+    Train,
+    #[display(fmt = "Stop")]
+    Stop,
 }
 
 /// A trait that must be implemented by a state in order to perform its tasks and to move to a next state.
@@ -53,7 +57,7 @@ where
 {
     /// Runs the current [`State`] to completion.
     pub async fn run_state(mut self) -> Option<StateEngine> {
-        info!("Server runs in state: {:?}", &Self::NAME);
+        info!("Client runs in state: {:?}", &Self::NAME);
         async move {
             if let Err(err) = self.perform().await {
                 warn!("{:?}", err);

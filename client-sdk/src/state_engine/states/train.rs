@@ -2,31 +2,31 @@ use async_trait::async_trait;
 // use tracing::warn;
 
 use crate::state_engine::{
-    states::{SharedState, State, StateCondition, StateError, StateName, Train},
+    states::{SharedState, State, StateCondition, StateError, StateName, Stop},
     StateEngine,
 };
 
 #[derive(Debug)]
-pub struct Idle;
+pub struct Train;
 
 #[async_trait]
-impl State for StateCondition<Idle> {
-    const NAME: StateName = StateName::Idle;
+impl State for StateCondition<Train> {
+    const NAME: StateName = StateName::Train;
 
     async fn perform(&mut self) -> Result<(), StateError> {
         Ok(())
     }
 
     async fn next(self) -> Option<StateEngine> {
-        Some(StateCondition::<Train>::new(self.shared).into())
+        Some(StateCondition::<Stop>::new(self.shared).into())
     }
 }
 
-impl StateCondition<Idle> {
-    /// Init a new [`Idle`] state.
+impl StateCondition<Train> {
+    /// Init a new [`Train`] state.
     pub fn new(shared: SharedState) -> Self {
         Self {
-            private: Idle,
+            private: Train,
             shared,
         }
     }
