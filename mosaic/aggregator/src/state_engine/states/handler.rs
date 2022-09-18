@@ -2,7 +2,7 @@ use async_trait::async_trait;
 use tokio::signal;
 
 use crate::state_engine::{
-    channel::{RequestError, ResponseSender, StateEngineRequest},
+    channel::{RequestError, StateEngineRequest},
     states::{State, StateCondition, StateError},
 };
 
@@ -33,8 +33,8 @@ where
             }
         }
     }
-    /// Processing a single request from a client.
-    async fn process_single(&mut self) {
-        todo!()
-    }
+    // /// Processing a single request from a client.
+    // async fn process_single(&mut self) {
+    //     todo!()
+    // }
 }

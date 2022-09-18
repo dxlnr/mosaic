@@ -18,10 +18,16 @@ pub struct EventPublisher {}
 
 impl EventPublisher {
     pub fn new() -> (EventPublisher, EventSubscriber) {
-        todo!()
+        // let (model_tx, model_rx) = watch::channel::<Event<ModelUpdate>>(Event { event: model });
+        // let (stats_tx, stats_rx) = watch::channel::<Event<StatsUpdate>>(Event { event: stats });
+        let publisher = EventPublisher {};
+        let subscriber = EventSubscriber {};
+
+        (publisher, subscriber)
     }
+
     /// prepares and provides an event object E.
-    fn event<E>(&self, event: E) -> Event<E> {
+    fn _event<E>(&self, event: E) -> Event<E> {
         Event { event }
     }
 }

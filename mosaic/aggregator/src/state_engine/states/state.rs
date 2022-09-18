@@ -3,10 +3,12 @@ use derive_more::Display;
 use thiserror::Error;
 use tracing::{info, warn};
 
-use crate::state_engine::{
-    channel::{ResponseSender, StateEngineRequest},
+use crate::{aggr::Aggregator,
+    state_engine::{
+    channel::{RequestReceiver, ResponseSender, StateEngineRequest},
+    event::EventPublisher,
     StateEngine,
-};
+}};
 
 /// Handling state errors when running ['StateEngine'].
 #[derive(Debug, Display, Error)]
@@ -49,8 +51,9 @@ pub trait State {
 #[allow(dead_code)]
 pub struct StateCondition<S> {
     pub(in crate::state_engine) private: S,
-    // /// Shared state that the Aggregator holds.
-    // pub shared: ServerState,
+    /// [`SharedState`] that the Aggregator holds.
+    /// 
+    pub shared: SharedState,
 }
 
 impl<S> StateCondition<S>
@@ -73,5 +76,33 @@ where
         &mut self,
     ) -> Result<(StateEngineRequest, ResponseSender), StateError> {
         todo!()
+    }
+}
+
+/// [`SharedState`]
+pub struct SharedState {
+    /// [`Aggregator`]
+    pub aggr: Aggregator,
+    /// [`RequestReceiver`] 
+    /// 
+    /// Field for enabling receiving requests from the client.
+    pub rx: RequestReceiver,
+    /// [`EventPublisher`] responsible for publishing the latest updates.
+    /// 
+    pub publisher: EventPublisher,
+}
+
+impl SharedState {
+    /// Init new shared server state.
+    pub fn new(
+        aggr: Aggregator,
+        rx: RequestReceiver,
+        publisher: EventPublisher,
+    ) -> Self {
+        SharedState {
+            aggr,
+            rx,
+            publisher,
+        }
     }
 }

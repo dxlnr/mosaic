@@ -1,7 +1,7 @@
 use async_trait::async_trait;
 
 use crate::state_engine::{
-    states::{Collect, State, StateCondition, StateError, StateName},
+    states::{SharedState, State, StateCondition, StateError, StateName},
     StateEngine,
 };
 
@@ -14,7 +14,7 @@ impl State for StateCondition<Shutdown> {
     const NAME: StateName = StateName::Shutdown;
 
     async fn perform(&mut self) -> Result<(), StateError> {
-        todo!()
+        Ok(())
     }
 
     async fn next(self) -> Option<StateEngine> {
@@ -23,7 +23,10 @@ impl State for StateCondition<Shutdown> {
 }
 
 impl StateCondition<Shutdown> {
-    pub fn new() -> Self {
-        todo!()
+    pub fn new(shared: SharedState) -> Self {
+        Self {
+            private: Shutdown,
+            shared,
+        }
     }
 }

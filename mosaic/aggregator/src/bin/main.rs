@@ -6,8 +6,12 @@ use aggregator::configs::{CliConfig, LogSettings, AggrSettings};
 
 use structopt::StructOpt;
 use tokio::signal;
-// use tracing::warn;
+use tracing::warn;
 use tracing_subscriber::*;
+
+use aggregator::{
+    state_engine::init::StateEngineInitializer,
+};
 
 fn init_logging(settings: LogSettings) {
     let _fmt_subscriber = FmtSubscriber::builder()
@@ -38,10 +42,18 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     init_logging(logging);
 
+    let (engine, tx) =
+        StateEngineInitializer::new()
+            .init()
+            .await?;
+
     tokio::select! {
         biased;
 
         _ =  signal::ctrl_c() => {}
+        _ = engine.run() => {
+            warn!("Training finished: Terminating the engine.")
+        }
     }
 
     Ok(())
