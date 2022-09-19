@@ -8,4 +8,9 @@
 //!
 //! It uses the implementation of FL with buffered asynchronous aggregation
 //! that has been recently introduced in [Nguyen et al. 2021](https://arxiv.org/abs/2106.06639).
+//! 
+//! # Configurations
+//! - Mode:
+//!     Standalone: Only the Aggregator is used as this should serve as a 
+//!     quick way to test a FL setup.
 pub mod settings;

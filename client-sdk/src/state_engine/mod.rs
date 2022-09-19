@@ -1,5 +1,5 @@
 //! StateEngine implements the clients protocol logic.
-//!  
+//!
 pub mod states;
 
 use derive_more::From;

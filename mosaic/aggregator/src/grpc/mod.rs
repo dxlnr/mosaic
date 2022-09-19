@@ -9,16 +9,17 @@ use std::{convert::Infallible, error::Error, io::ErrorKind, pin::Pin};
 use thiserror::Error;
 use tokio::sync::mpsc;
 use tokio_stream::{wrappers::ReceiverStream, StreamExt};
-use tracing::{info, warn};
-
 use tonic::{transport::Server, Request, Response, Status, Streaming};
+use tracing::{info, warn};
 
 use crate::{configs::APISettings, services::messages::MessageHandler};
 
-use msflp::msflp_server::{Msflp, MsflpServer};
-use msflp::{server_message, ClientMessage, ServerMessage};
-
-use self::msflp::server_message::ServerStatus;
+use msflp::{
+    msflp_server::{Msflp, MsflpServer},
+    server_message,
+    server_message::ServerStatus,
+    ClientMessage, ServerMessage,
+};
 
 /// Result type of handling the bidirectional stream
 /// between client and server.
@@ -54,27 +55,27 @@ fn match_for_io_error(err_status: &Status) -> Option<&std::io::Error> {
     }
 }
 
-/// [`AggrServer`] Implements the MSFLP server trait.
+/// [`GRPCServer`] Implements the MSFLP server trait.
 ///
-/// The [`AggrServer`] has two main tasks:
+/// The [`GRPCServer`] has two main tasks:
 ///     - Implementing the service trait generated from our service definition.
 ///     - Running a gRPC server to listen for requests from clients.
 ///
 #[derive(Debug, Clone)]
-pub struct AggrServer {
+pub struct GRPCServer {
     /// Shared handle for passing messages from participant to engine.
     handler: MessageHandler,
 }
 
-impl AggrServer {
-    /// Constructs a new [`AggrServer`].
+impl GRPCServer {
+    /// Constructs a new [`GRPCServer`].
     fn new(handler: MessageHandler) -> Self {
-        AggrServer { handler }
+        GRPCServer { handler }
     }
 }
 
 #[tonic::async_trait]
-impl Msflp for AggrServer {
+impl Msflp for GRPCServer {
     type HandleStream = ResponseStream;
 
     /// Mosaic Secure Federated Learning Protocol.
@@ -137,7 +138,7 @@ pub async fn start<F>(
         api_settings.server_address
     );
 
-    let aggr_server = AggrServer::new(message_handler);
+    let aggr_server = GRPCServer::new(message_handler);
     Server::builder()
         .add_service(MsflpServer::new(aggr_server))
         .serve(api_settings.server_address)

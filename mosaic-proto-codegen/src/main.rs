@@ -19,6 +19,8 @@ fn main() -> Result<(), Box<dyn Error>> {
         .inputs([
             &format!("{}/protos/dtype.proto", project_dir),
             &format!("{}/protos/tensor_shape.proto", project_dir),
+            &format!("{}/protos/tensor.proto", project_dir),
+            &format!("{}/protos/msflp.proto", project_dir),
         ])
         .include(project_dir)
         .run()

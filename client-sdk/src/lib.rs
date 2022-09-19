@@ -6,7 +6,8 @@
 )]
 //! SDK for implementing the protocol on the client side.
 //!
-pub mod client; 
+pub mod client;
+pub mod configs; 
 pub mod state_engine;
 
 pub use self::client::Client;
