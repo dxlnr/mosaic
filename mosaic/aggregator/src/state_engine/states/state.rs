@@ -87,9 +87,8 @@ where
 pub struct SharedState {
     /// [`Aggregator`]
     pub aggr: Aggregator,
-    /// [`RequestReceiver`]
-    ///
-    /// Field for enabling receiving requests from the client.
+    /// [`RequestReceiver`] for enabling receiving requests from the client.
+    /// 
     pub rx: RequestReceiver,
     /// [`EventPublisher`] responsible for publishing the latest updates.
     ///

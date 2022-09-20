@@ -9,8 +9,20 @@ use crate::{client::grpc::GRPCClient, configs::Conf, state_engine::StateEngine};
 use self::grpc::GRPCClientError;
 
 pub enum Event {
-    /// Event emitted when the client is done with its task.
+    /// Client is on hold and waiting for instruction.
     Idle,
+    /// Connect
+    Connect,
+    /// Client device has been selected for plan-determined model updates and metrics.
+    /// 
+    NewTask,
+    /// Get the latest global model when selected for participation in the next
+    /// training round.
+    GetGlobalModel,
+    /// Update
+    Update,
+    /// Stops the client and shuts it down.
+    Shutdown
 }
 
 /// An [`EventReceiver`] for events emitted by the clients internal [`StateEngine`].
@@ -22,6 +34,12 @@ impl EventReceiver {
         let (tx, rx) = mpsc::channel(10);
         (Self(rx), EventSender(tx))
     }
+
+    /// Pop the next event. If no event has been received, return `ClientError::EventsError`.
+    fn next(&mut self) -> Result<Event, ClientError> {
+        let next = self.0.try_recv().map_err(|err| ClientError::EventsError(err))?;
+        Ok(next)
+    }
 }
 
 /// [`EventSender`] that is passed to the client internal [`StateEngine`].
@@ -32,6 +50,21 @@ impl EventSender {
         if let Err(err) = self.0.try_send(event) {
             debug!("Emitting an event to the client failed: {}", err);
         }
+    }
+    fn new_task(&mut self) {
+        self.send(Event::NewTask)
+    }
+    fn update(&mut self) {
+        self.send(Event::Update)
+    }
+    fn get_global_model(&mut self) {
+        self.send(Event::GetGlobalModel)
+    }
+    fn idle(&mut self) {
+        self.send(Event::Idle)
+    }
+    fn shutdown(&mut self) {
+        self.send(Event::Shutdown)
     }
 }
 
@@ -51,8 +84,10 @@ impl Store {
 ///
 #[derive(Clone, Debug, Copy)]
 pub enum Task {
+    ///
+    Connect,
     /// The client performs model training.
-    Train,
+    Update,
     /// No task is currently on the line.
     None,
 }
@@ -63,6 +98,8 @@ pub enum ClientError {
     Runtime(std::io::Error),
     #[error("gRPC client initialization failed: {:?}", _0)]
     Grpc(GRPCClientError),
+    #[error("Communication channel is dropped for client.")]
+    EventsError(mpsc::error::TryRecvError)
 }
 
 /// [`Client`]
@@ -91,13 +128,17 @@ pub struct Client {
 }
 
 impl Client {
-    pub async fn init(conf: Conf) -> Result<Self, ClientError> {
+    pub fn init(conf: Conf) -> Result<Self, ClientError> {
+        let server_endpoint = conf.api.server_address.to_string();
+
         let (event_recv, event_sender) = EventReceiver::new();
         let store = Store::new();
-        let engine = StateEngine::new();
-        let grpc_client = GRPCClient::new(conf.api.server_address)
-            .await
-            .map_err(|err| ClientError::Grpc(err))?;
+        let grpc_client = GRPCClient::new(conf.api.server_address.to_string());
+        // let grpc_client = GRPCClient::new(conf.api.server_address)
+        //     .await
+        //     .map_err(|err| ClientError::Grpc(err))?;
+        let engine = StateEngine::new(event_sender);
+
         Self::try_init(engine, event_recv, store, grpc_client)
     }
 
@@ -117,6 +158,7 @@ impl Client {
             task: Task::None,
             grpc_client,
         };
+        client.process();
         Ok(client)
     }
 
@@ -126,4 +168,34 @@ impl Client {
             .build()
             .map_err(ClientError::Runtime)
     }
+
+    /// Return the participant current task
+    pub fn task(&self) -> Task {
+        self.task
+    }
+
+    /// Loop incoming [`Event`] calls.
+    fn process(&mut self) {
+        loop {
+            match self.event_recv.next() {
+                Ok(Event::Idle) => {
+                    self.task = Task::None;
+                }
+                Ok(Event::Connect) => {
+                    self.task = Task::Connect;
+                }
+                Ok(Event::Update) => {
+                    self.task = Task::Update;
+                }
+                Ok(Event::NewTask) => {}
+                Ok(Event::GetGlobalModel) => {}
+                Ok(Event::Shutdown) => {}
+                Err(err) => debug!("{:?}", err),
+            }
+        }
+    }
+
+    // pub fn set_model(&mut self) {
+    //     todo!()
+    // }
 }

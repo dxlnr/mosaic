@@ -4,7 +4,7 @@ use thiserror::Error;
 use tracing::{info, warn};
 
 use crate::{
-    state_engine::StateEngine
+    state_engine::StateEngine, client::EventSender
 };
 
 /// Handling state errors when running ['StateEngine'].
@@ -14,35 +14,35 @@ pub enum StateError {
     RequestChannel(&'static str),
 }
 
-#[derive(Clone, Copy, Debug, Display, Eq, PartialEq)]
-/// The name of the current state.
-pub enum StateName {
-    #[display(fmt = "Idle")]
-    Idle,
-    #[display(fmt = "Train")]
-    Train,
-    #[display(fmt = "Stop")]
-    Stop,
-}
+// #[derive(Clone, Copy, Debug, Display, Eq, PartialEq)]
+// /// The name of the current state.
+// pub enum StateName {
+//     #[display(fmt = "Idle")]
+//     Idle,
+//     #[display(fmt = "Train")]
+//     Train,
+//     #[display(fmt = "Stop")]
+//     Stop,
+// }
 
-/// A trait that must be implemented by a state in order to perform its tasks and to move to a next state.
-#[async_trait]
-pub trait State {
-    /// The name of the current state.
-    const NAME: StateName;
+// /// A trait that must be implemented by a state in order to perform its tasks and to move to a next state.
+// #[async_trait]
+// pub trait State {
+//     /// The name of the current state.
+//     const NAME: StateName;
 
-    /// Performs the attached tasks of current state.
-    async fn perform(&mut self) -> Result<(), StateError>;
+//     /// Performs the attached tasks of current state.
+//     async fn perform(&mut self) -> Result<(), StateError>;
 
-    /// Publishes data of current state (Default: None).
-    fn publish(&mut self) {}
+//     /// Publishes data of current state (Default: None).
+//     fn publish(&mut self) {}
 
-    /// Moves from the current state to the next state.
-    async fn next(self) -> Option<StateEngine>;
-}
+//     /// Moves from the current state to the next state.
+//     async fn next(self) -> Option<StateEngine>;
+// }
 
 #[allow(dead_code)]
-pub struct StateCondition<S> {
+pub struct State<S> {
     /// Private Identifier of the state.
     /// 
     pub(in crate::state_engine) private: S,
@@ -51,29 +51,33 @@ pub struct StateCondition<S> {
     pub(in crate::state_engine) shared: SharedState,
 }
 
-impl<S> StateCondition<S>
-where
-    Self: State,
-{
-    /// Runs the current [`State`] to completion.
-    pub async fn run_state(mut self) -> Option<StateEngine> {
-        info!("Client runs in state: {:?}", &Self::NAME);
-        async move {
-            if let Err(err) = self.perform().await {
-                warn!("{:?}", err);
-            }
-            self.next().await
-        }
-        .await
-    }
-}
+// impl<S> State<S>
+
+// {
+//     /// Runs the current [`State`] to completion.
+//     pub async fn run_state(mut self) -> Option<StateEngine> {
+//         info!("Client runs in state: {:?}", &Self::NAME);
+//         async move {
+//             if let Err(err) = self.perform().await {
+//                 warn!("{:?}", err);
+//             }
+//             self.next().await
+//         }
+//         .await
+//     }
+// }
 
 /// [`SharedState`]
-pub struct SharedState {}
+pub struct SharedState {
+    /// [`EventSender`]
+    event_sender: EventSender,
+}
 
 impl SharedState {
     /// Init new [`SharedState`] for the client.
-    pub fn new() -> Self {
-        Self {}
+    pub fn new(event_sender: EventSender) -> Self {
+        Self {
+            event_sender
+        }
     }
 }

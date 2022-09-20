@@ -10,4 +10,4 @@ pub mod client;
 pub mod configs; 
 pub mod state_engine;
 
-pub use self::client::Client;
+pub use self::{configs::Conf, client::Client};

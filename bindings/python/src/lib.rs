@@ -3,6 +3,7 @@ use pyo3::create_exception;
 use pyo3::exceptions::PyException;
 
 create_exception!(xaynet_sdk, ClientInit, PyException);
+create_exception!(xaynet_sdk, ParticipantInit, PyException);
 
 /// Python module created by decorating a Rust function with #[pymodule].
 /// 
@@ -26,11 +27,17 @@ struct Client {
 #[pymethods]
 impl Client {
     #[new]
-    pub fn new() -> PyResult<Self> {
+    pub fn new(py: Python) -> PyResult<Self> {
 
-        let inner = client_sdk::Client::init().map_err(|err| {
+        let conf = client_sdk::Conf::init_from_path(None).map_err(|err| {
+            ClientInit::new_err(format!("Conf could not be read: {}", err))
+        })?;
+
+        let inner = client_sdk::Client::init(conf).map_err(|err| {
             ClientInit::new_err(format!("Client Initialization failed: {}", err))
         })?;
+
         Ok(Self { inner: Some(inner) })
+
     }
 }

@@ -3,12 +3,10 @@
 //! [`StateEngine`]: crate::state_engine::StateEngine.
 mod idle;
 mod state;
-mod stop;
-mod train;
+mod update;
 
 pub use self::{
     idle::Idle,
-    state::{SharedState, State, StateCondition, StateError, StateName},
-    stop::Stop,
-    train::Train,
+    state::{SharedState, State, StateError},
+    update::Update,
 };

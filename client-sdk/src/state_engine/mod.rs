@@ -4,31 +4,28 @@ pub mod states;
 
 use derive_more::From;
 
-use crate::state_engine::states::{Idle, SharedState, StateCondition, Stop, Train};
+use crate::{client::EventSender, state_engine::states::{Idle, Update, SharedState, State}};
 
 /// [`StateEngine`]
 #[derive(From)]
 pub enum StateEngine {
     /// [`Idle`] state of client.
-    Idle(StateCondition<Idle>),
-    /// [`Idle`] state of client.
-    Train(StateCondition<Train>),
-    /// [`Idle`] state of client.
-    Stop(StateCondition<Stop>),
+    Idle(State<Idle>),
+    /// [`Update`] state of client.
+    Update(State<Update>),
 }
 
 impl StateEngine {
-    pub fn new() -> Self {
-        let shared = SharedState::new();
+    pub fn new(event_sender: EventSender) -> Self {
+        let shared = SharedState::new(event_sender);
 
-        StateEngine::Idle(StateCondition::<Idle>::new(shared))
+        StateEngine::Idle(State::<Idle>::new(shared))
     }
 
     pub async fn next(self) -> Option<Self> {
         match self {
-            StateEngine::Idle(state) => state.run_state().await,
-            StateEngine::Train(state) => state.run_state().await,
-            StateEngine::Stop(state) => state.run_state().await,
+            StateEngine::Idle(mut state) => state.run_state().await,
+            StateEngine::Update(mut state) => state.run_state().await,
         }
     }
 

@@ -29,7 +29,8 @@ msrv = "1.51.0"
 # Internal Dependencies
 client-sdk = { path = "../../client-sdk", version = "0.1.0"}
 # External Crates
-pyo3 = { version = "0.17.1", features = ["extension-module"] }
+pyo3 = { version = "0.16.0", features = ["extension-module"] }
+pyo3-asyncio = { version = "0.16.0", features = ["tokio-runtime"] }
 
 [lib]
 name = "modalic_client_sdk"
