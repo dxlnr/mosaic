@@ -1,5 +1,5 @@
 [package]
-name = "python-client-sdk"
+name = "mosaic_sdk"
 authors = ["Daniel Illner <illner@modalic.ai>"]
 description = ""
 license = "Apache-2.0"
@@ -20,18 +20,15 @@ classifiers = [
         "Operating System :: POSIX :: Linux",
 ]
 requires-python = ">=3.7"
+python-source = "test"
 
-[package.metadata]
-# minimum supported rust version
-msrv = "1.51.0"
+[lib]
+name = "mosaic_sdk"
+crate-type = ["cdylib"]
 
 [dependencies]
 # Internal Dependencies
 client-sdk = { path = "../../client-sdk", version = "0.1.0"}
 # External Crates
-pyo3 = { version = "0.16.0", features = ["extension-module"] }
-pyo3-asyncio = { version = "0.16.0", features = ["tokio-runtime"] }
-
-[lib]
-name = "modalic_client_sdk"
-crate-type = ["cdylib"]
+pyo3 = { version = "0.16.3", features = ["extension-module"] }
+# pyo3-asyncio = { version = "0.16.0", features = ["tokio-runtime"] }

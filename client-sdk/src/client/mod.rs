@@ -108,7 +108,7 @@ pub enum ClientError {
 ///
 pub struct Client {
     /// Internal [`StateEngine`] of the client.
-    engine: StateEngine,
+    engine: Option<StateEngine>,
     /// Receiver for the events emitted by the [`StateEngine`].
     event_recv: EventReceiver,
     /// Storage API for the external device storage where configs, model &
@@ -152,7 +152,7 @@ impl Client {
     ) -> Result<Self, ClientError> {
         let mut client = Self {
             runtime: Self::runtime()?,
-            engine,
+            engine: Some(engine),
             event_recv,
             store,
             task: Task::None,
@@ -173,6 +173,10 @@ impl Client {
     pub fn task(&self) -> Task {
         self.task
     }
+
+    // pub fn set_model(&mut self) {
+    //     todo!()
+    // }
 
     /// Loop incoming [`Event`] calls.
     fn process(&mut self) {
@@ -195,7 +199,12 @@ impl Client {
         }
     }
 
-    // pub fn set_model(&mut self) {
-    //     todo!()
-    // }
+    pub fn go(&mut self) {
+        let state_engine = self.engine.take().expect("unexpected engine failure.");
+        let progress = self
+            .runtime
+            .block_on(async { state_engine.next().await });
+
+        self.process();
+    }
 }
