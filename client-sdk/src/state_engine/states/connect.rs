@@ -2,22 +2,22 @@ use async_trait::async_trait;
 // use tracing::warn;
 
 use crate::state_engine::{
-    states::{Idle, State, StateCondition, StateError},
+    states::{State, StateCondition, StateError, Update},
     StateEngine,
 };
 
 #[derive(Debug)]
-pub struct Update;
+pub struct Connect;
 
 #[async_trait]
-impl StateCondition<Update> for State<Update> {
+impl StateCondition<Connect> for State<Connect> {
 
     async fn perform(&mut self) -> Result<(), StateError> {
-        println!("\t\tClient Engine : Update state");
+        println!("\t\tClient Engine : Connect state");
         Ok(())
     }
 
     async fn next(self) -> Option<StateEngine> {
-        Some(State::<Idle>::new(self.shared, Idle).into())
+        Some(State::<Update>::new(self.shared, Update).into())
     }
 }

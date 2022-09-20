@@ -8,6 +8,7 @@ use crate::{
     state_engine::{
         channel::{RequestReceiver, ResponseSender, StateEngineRequest},
         event::EventPublisher,
+        Failure,
         StateEngine,
     },
 };
@@ -69,7 +70,8 @@ where
         info!("Server runs in state: {:?}", &Self::NAME);
         async move {
             if let Err(err) = self.perform().await {
-                warn!("{:?}", err);
+                warn!("server failed to perform task of state {:?}", &Self::NAME);
+                return Some(self.into_failure_state(err));
             }
             self.next().await
         }
@@ -80,6 +82,10 @@ where
         &mut self,
     ) -> Result<(StateEngineRequest, ResponseSender), StateError> {
         todo!()
+    }
+
+    fn into_failure_state(self, err: StateError) -> StateEngine {
+        StateCondition::<Failure>::new(err, self.shared).into()
     }
 }
 

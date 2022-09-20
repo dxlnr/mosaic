@@ -1,29 +1,33 @@
-// use async_trait::async_trait;
+use async_trait::async_trait;
+use tokio::signal;
 // use tracing::warn;
 
 use crate::state_engine::{
-    states::{SharedState, State, StateError},
+    states::{Connect, State, StateCondition, StateError},
     StateEngine,
 };
 
 #[derive(Debug)]
 pub struct Idle;
 
-impl State<Idle> {
-    /// Init a new [`Idle`] state.
-    pub fn new(shared: SharedState) -> Self {
-        Self {
-            private: Idle,
-            shared,
+#[async_trait]
+impl StateCondition<Idle> for State<Idle> {
+
+    async fn perform(&mut self) -> Result<(), StateError> {
+        println!("\t\tClient Engine : Idle state");
+
+        loop {
+            tokio::select! {
+                biased;
+
+                _ =  signal::ctrl_c() => {
+                    break Ok(())
+                }
+            }
         }
     }
-    pub async fn run_state(&mut self) -> Option<StateEngine> {
-        todo!()
-    }
-    // async fn run_state(&mut self) -> Result<(), StateError> {
-    //     Ok(())
-    // }
-    pub async fn next(self) -> Option<StateEngine> {
-        todo!()
+
+    async fn next(self) -> Option<StateEngine> {
+        Some(State::<Connect>::new(self.shared, Connect).into())
     }
 }

@@ -87,7 +87,7 @@ impl Store {
 ///
 #[derive(Clone, Debug, Copy)]
 pub enum Task {
-    ///
+    /// Connect
     Connect,
     /// The client performs model training.
     Update,
@@ -132,15 +132,20 @@ pub struct Client {
 
 impl Client {
     pub fn init(conf: Conf) -> Result<Self, ClientError> {
-        let server_endpoint = conf.api.server_address.to_string();
+        // let server_endpoint = conf.api.server_address.to_string();
+        println!("\tClient::init : start.");
 
         let (event_recv, event_sender) = EventReceiver::new();
+        println!("\tClient::init : EventReceiver ready.");
         let store = Store::new();
+        println!("\tClient::init : Store ready.");
         let grpc_client = GRPCClient::new(conf.api.server_address.to_string());
+        println!("\tClient::init : GRPC wrapper ready.");
         // let grpc_client = GRPCClient::new(conf.api.server_address)
         //     .await
         //     .map_err(|err| ClientError::Grpc(err))?;
         let engine = StateEngine::new(event_sender);
+        println!("\tClient::init : Engine ready.");
 
         Self::try_init(engine, event_recv, store, grpc_client)
     }
@@ -161,6 +166,7 @@ impl Client {
             task: Task::None,
             grpc_client,
         };
+        println!("\tClient::try_init : Client object instantiated.");
         client.process();
         Ok(client)
     }
@@ -184,6 +190,8 @@ impl Client {
     /// Loop incoming [`Event`] calls.
     fn process(&mut self) {
         loop {
+            println!("\t  Client::process : In process loop.");
+            // println!("\t  Client::process : Match: ");
             match self.event_recv.next() {
                 Ok(Event::Idle) => {
                     self.task = Task::None;
@@ -197,12 +205,17 @@ impl Client {
                 Ok(Event::NewTask) => {}
                 Ok(Event::GetGlobalModel) => {}
                 Ok(Event::Shutdown) => {}
-                Err(err) => debug!("{:?}", err),
+                Err(err) => {
+                    println!("\t  Client::process : error matched: {:?}.", &err);
+                    debug!("{:?}", err);
+                    break
+                }
             }
         }
     }
 
-    pub fn go(&mut self) {
+    pub fn step(&mut self) {
+        println!("\t  Client::step : .");
         let state_engine = self.engine.take().expect("unexpected engine failure.");
         let progress = self.runtime.block_on(async { state_engine.next().await });
 
