@@ -14,7 +14,7 @@ pub enum Event {
     /// Connect
     Connect,
     /// Client device has been selected for plan-determined model updates and metrics.
-    /// 
+    ///
     NewTask,
     /// Get the latest global model when selected for participation in the next
     /// training round.
@@ -22,7 +22,7 @@ pub enum Event {
     /// Update
     Update,
     /// Stops the client and shuts it down.
-    Shutdown
+    Shutdown,
 }
 
 /// An [`EventReceiver`] for events emitted by the clients internal [`StateEngine`].
@@ -37,7 +37,10 @@ impl EventReceiver {
 
     /// Pop the next event. If no event has been received, return `ClientError::EventsError`.
     fn next(&mut self) -> Result<Event, ClientError> {
-        let next = self.0.try_recv().map_err(|err| ClientError::EventsError(err))?;
+        let next = self
+            .0
+            .try_recv()
+            .map_err(|err| ClientError::EventsError(err))?;
         Ok(next)
     }
 }
@@ -99,7 +102,7 @@ pub enum ClientError {
     #[error("gRPC client initialization failed: {:?}", _0)]
     Grpc(GRPCClientError),
     #[error("Communication channel is dropped for client.")]
-    EventsError(mpsc::error::TryRecvError)
+    EventsError(mpsc::error::TryRecvError),
 }
 
 /// [`Client`]
@@ -201,9 +204,7 @@ impl Client {
 
     pub fn go(&mut self) {
         let state_engine = self.engine.take().expect("unexpected engine failure.");
-        let progress = self
-            .runtime
-            .block_on(async { state_engine.next().await });
+        let progress = self.runtime.block_on(async { state_engine.next().await });
 
         self.process();
     }

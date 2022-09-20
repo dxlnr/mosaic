@@ -1,3 +1,4 @@
+from http import server
 import threading
 import time
 from typing import Optional
@@ -8,7 +9,7 @@ print(mosaic_sdk.__all__)
 
 class MosaicClient(threading.Thread):
     def __init__(self, server_address: str, client):
-        self._mosaic_client = mosaic_sdk.Client()
+        self._mosaic_client = mosaic_sdk.Client(server_address)
 
         # https://github.com/python/cpython/blob/3.9/Lib/multiprocessing/process.py#L80
         # stores the Client class with its args and kwargs
@@ -20,6 +21,8 @@ class MosaicClient(threading.Thread):
         self._tick_lock = threading.Lock()
         super().__init__(daemon=True)
 
+        print(f"MosaicClient init done.")
+
 
     def run(self):
         self._client = self._client()
@@ -27,7 +30,6 @@ class MosaicClient(threading.Thread):
         try:
             self._run()
         except Exception as err:
-            print(f"Some error: {err}. Client is shutdown.")
             self._exit_event.set()
 
     def _run(self):
@@ -46,7 +48,7 @@ class MosaicClient(threading.Thread):
         except:
             print("Failure in train.")
 
-
+# Endpoint.
 class PyClient():
     def __init__(self, model: list) -> None:
         self.model = model

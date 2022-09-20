@@ -64,7 +64,8 @@ where
     impl<'de> Visitor<'de> for EnvFilterVisitor {
         type Value = EnvFilter;
         fn expecting(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
-            write!(formatter, "check for valid tracing filter: https://docs.rs/tracing-subscriber/0.2.6/tracing_subscriber/filter/struct.EnvFilter.html#directives")
+            write!(formatter, "check for valid tracing filter: \
+            https://docs.rs/tracing-subscriber/0.2.6/tracing_subscriber/filter/struct.EnvFilter.html#directives")
         }
         fn visit_str<E>(self, value: &str) -> Result<Self::Value, E>
         where
@@ -98,13 +99,16 @@ impl Conf {
     /// Constructs the [`Conf`] from external params
     ///
     /// # Errors
-    pub fn init_from_params(
-        api_server_address: String,
-        log_filter: String,
-    ) -> Result<Self, ConfError> {
-        let builder = Config::builder()
-            .set_override("api.server_address", ValueKind::String(api_server_address))?
-            .set_override("log.filter", ValueKind::String(log_filter))?;
+    pub fn init_from_params(api_server_address: Option<String>) -> Result<Self, ConfError> {
+        let builder = if api_server_address.is_some() {
+            Self::set_default().set_override(
+                "api.server_address",
+                ValueKind::String(api_server_address.unwrap()),
+            )?
+        } else {
+            Self::set_default()
+        };
+
         let conf = builder.build()?.try_deserialize()?;
 
         Ok(conf)

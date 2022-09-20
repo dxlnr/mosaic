@@ -8,3 +8,6 @@ Cargo.lock
 
 # Compiled
 *.so
+
+# Python 
+__pycache__
