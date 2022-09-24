@@ -18,6 +18,6 @@ impl StateCondition<Update> for State<Update> {
     }
 
     async fn next(self) -> Option<StateEngine> {
-        Some(State::<Idle>::new(self.shared, Idle).into())
+        Some(State::<Idle>::new(self.shared, self.smpc, Idle).into())
     }
 }

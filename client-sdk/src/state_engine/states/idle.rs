@@ -28,6 +28,8 @@ impl StateCondition<Idle> for State<Idle> {
     }
 
     async fn next(self) -> Option<StateEngine> {
-        Some(State::<Connect>::new(self.shared, Connect).into())
+        Some(State::<Connect>::new(self.shared, self.smpc, Connect).into())
     }
+
+    
 }

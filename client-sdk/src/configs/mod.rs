@@ -55,6 +55,12 @@ pub struct APIConf {
     pub server_address: std::net::SocketAddr,
 }
 
+impl APIConf {
+    pub fn addr_as_str(self) -> std::borrow::Cow<'static, str> {
+        todo!()
+    }
+}
+
 // https://serde.rs/impl-deserialize.html
 fn deserialize_env_filter<'de, D>(deserializer: D) -> Result<EnvFilter, D::Error>
 where

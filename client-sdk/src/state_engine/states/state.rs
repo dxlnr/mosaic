@@ -4,7 +4,7 @@ use thiserror::Error;
 use tracing::warn;
 
 use crate::{
-    state_engine::StateEngine, client::EventSender
+    state_engine::{StateEngine, mpc::Smpc},
 };
 
 /// Handling state errors when running ['StateEngine'].
@@ -43,14 +43,17 @@ pub struct State<S> {
     /// [`SharedState`] that the client holds.
     ///
     pub(in crate::state_engine) shared: SharedState,
+    /// .
+    pub (in crate::state_engine) smpc: Smpc,
 }
 
 impl<S> State<S> {
     /// Create a new [`State`].
-    pub fn new(shared: SharedState, private: S) -> Self {
+    pub fn new(shared: SharedState, smpc: Smpc, private: S) -> Self {
         Self {
             private,
             shared,
+            smpc,
         }
     }
 }
@@ -72,16 +75,11 @@ where
 }
 
 /// [`SharedState`]
-pub struct SharedState {
-    /// [`EventSender`]
-    event_sender: EventSender,
-}
+pub struct SharedState {}
 
 impl SharedState {
     /// Init new [`SharedState`] for the client.
-    pub fn new(event_sender: EventSender) -> Self {
-        Self {
-            event_sender
-        }
+    pub fn new() -> Self {
+        Self {}
     }
 }

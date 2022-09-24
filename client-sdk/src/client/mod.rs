@@ -30,9 +30,9 @@ pub struct EventReceiver(mpsc::Receiver<Event>);
 
 impl EventReceiver {
     /// Create a new event sender and receiver.
-    fn new() -> (Self, EventSender) {
+    fn new() -> (Self, Notifier) {
         let (tx, rx) = mpsc::channel(10);
-        (Self(rx), EventSender(tx))
+        (Self(rx), Notifier(tx))
     }
 
     /// Pop the next event. If no event has been received, return `ClientError::EventsError`.
@@ -45,28 +45,31 @@ impl EventReceiver {
     }
 }
 
-/// [`EventSender`] that is passed to the client internal [`StateEngine`].
-pub struct EventSender(mpsc::Sender<Event>);
+/// [`Notifier`] that is passed to the client internal [`StateEngine`].
+pub struct Notifier(mpsc::Sender<Event>);
 
-impl EventSender {
+impl Notifier {
     fn send(&mut self, event: Event) {
         if let Err(err) = self.0.try_send(event) {
             debug!("Emitting an event to the client failed: {}", err);
         }
     }
-    fn new_task(&mut self) {
+    pub fn connect(&mut self) {
+        self.send(Event::Connect)
+    }
+    pub fn new_task(&mut self) {
         self.send(Event::NewTask)
     }
-    fn update(&mut self) {
+    pub fn update(&mut self) {
         self.send(Event::Update)
     }
-    fn get_global_model(&mut self) {
+    pub fn get_global_model(&mut self) {
         self.send(Event::GetGlobalModel)
     }
-    fn idle(&mut self) {
+    pub fn idle(&mut self) {
         self.send(Event::Idle)
     }
-    fn shutdown(&mut self) {
+    pub fn shutdown(&mut self) {
         self.send(Event::Shutdown)
     }
 }
@@ -128,12 +131,16 @@ pub struct Client {
     ///
     /// Implements the underlying msflp protocol for the client side.
     grpc_client: GRPCClient,
+    // /// address
+    // server_address: &'static str,
+    conf: Conf,
 }
 
 impl Client {
     pub fn init(conf: Conf) -> Result<Self, ClientError> {
-        // let server_endpoint = conf.api.server_address.to_string();
+        let server_endpoint = std::borrow::Cow::from(conf.api.server_address.to_string());
         println!("\tClient::init : start.");
+
 
         let (event_recv, event_sender) = EventReceiver::new();
         println!("\tClient::init : EventReceiver ready.");
@@ -144,10 +151,11 @@ impl Client {
         // let grpc_client = GRPCClient::new(conf.api.server_address)
         //     .await
         //     .map_err(|err| ClientError::Grpc(err))?;
-        let engine = StateEngine::new(event_sender);
+        let engine = StateEngine::new(grpc_client.clone(), event_sender);
         println!("\tClient::init : Engine ready.");
 
-        Self::try_init(engine, event_recv, store, grpc_client)
+        // Self::try_init(engine, event_recv, store, grpc_client, conf)
+        Self::try_init(engine, event_recv, store, grpc_client, conf)
     }
 
     pub fn restore() {}
@@ -157,6 +165,7 @@ impl Client {
         event_recv: EventReceiver,
         store: Store,
         grpc_client: GRPCClient,
+        conf: Conf,
     ) -> Result<Self, ClientError> {
         let mut client = Self {
             runtime: Self::runtime()?,
@@ -165,6 +174,7 @@ impl Client {
             store,
             task: Task::None,
             grpc_client,
+            conf,
         };
         println!("\tClient::try_init : Client object instantiated.");
         client.process();
