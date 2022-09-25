@@ -1,20 +1,24 @@
 use std::error::Error;
 
-use crate::{client::grpc::{GRPCClient, GRPCClientError}, state_engine::Notifier};
+use crate::{
+    client::grpc::{GRPCClient, GRPCClientError},
+    state_engine::EventSender,
+};
 
+#[derive(Debug)]
 /// [`Smpc`]: Message Passing Communication for State Engine.
-/// 
+///
 pub struct Smpc {
     grpc_client: GRPCClient,
-    notifier: Notifier,
+    event_sender: EventSender,
     // store: S,
 }
 
 impl Smpc {
-    pub fn new(grpc_client: GRPCClient, notifier: Notifier) -> Self {
+    pub fn new(grpc_client: GRPCClient, event_sender: EventSender) -> Self {
         Self {
             grpc_client,
-            notifier,
+            event_sender,
         }
     }
 }
@@ -26,6 +30,9 @@ impl Smpc {
     }
 
     fn notify_connect(&mut self) {
-        self.notifier.connect()
+        self.event_sender.connect()
+    }
+    pub fn notify_idle(&mut self) {
+        self.event_sender.idle()
     }
 }

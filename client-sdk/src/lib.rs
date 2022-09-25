@@ -7,7 +7,10 @@
 //! SDK for implementing the protocol on the client side.
 //!
 pub mod client;
-pub mod configs; 
+pub mod configs;
 pub mod state_engine;
 
-pub use self::{configs::Conf, client::{Client, Task}};
+pub use self::{
+    client::{Client, Task},
+    configs::Conf,
+};

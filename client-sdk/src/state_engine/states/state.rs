@@ -1,11 +1,9 @@
 use async_trait::async_trait;
 use derive_more::Display;
 use thiserror::Error;
-use tracing::warn;
+// use tracing::warn;
 
-use crate::{
-    state_engine::{StateEngine, mpc::Smpc},
-};
+use crate::state_engine::{smpc::Smpc, TransitionState};
 
 /// Handling state errors when running ['StateEngine'].
 #[derive(Debug, Display, Error)]
@@ -14,40 +12,36 @@ pub enum StateError {
     RequestChannel(&'static str),
 }
 
-// #[derive(Clone, Copy, Debug, Display, Eq, PartialEq)]
-// /// The name of the current state.
-// pub enum StateName {
-//     #[display(fmt = "Idle")]
-//     Idle,
-//     #[display(fmt = "Train")]
-//     Train,
-//     #[display(fmt = "Stop")]
-//     Stop,
-// }
-
 /// A trait that must be implemented by a state in order to perform its tasks and to move to a next state.
 #[async_trait]
 pub trait StateCondition<S> {
     /// Performs the attached tasks of current state.
-    async fn perform(&mut self) -> Result<(), StateError>;
+    async fn proceed(mut self) -> TransitionState;
+}
 
+pub trait IntoNextState<S> {
     /// Moves from the current state to the next state.
-    async fn next(self) -> Option<StateEngine>;
+    fn into_next_state(self) -> State<S>;
 }
 
 #[allow(dead_code)]
+#[derive(Debug)]
 pub struct State<S> {
     /// Private Identifier of the state.
-    /// 
-    pub(in crate::state_engine) private: S,
+    ///
+    pub(super) private: S,
     /// [`SharedState`] that the client holds.
     ///
-    pub(in crate::state_engine) shared: SharedState,
-    /// .
-    pub (in crate::state_engine) smpc: Smpc,
+    pub(super) shared: SharedState,
+    /// StateEngine Message Passing Communication object.
+    /// 
+    pub(super) smpc: Smpc,
 }
 
-impl<S> State<S> {
+impl<S> State<S>
+// where 
+//     State<S>: Into<StateEngine>,
+{
     /// Create a new [`State`].
     pub fn new(shared: SharedState, smpc: Smpc, private: S) -> Self {
         Self {
@@ -58,22 +52,7 @@ impl<S> State<S> {
     }
 }
 
-impl<S> State<S>
-where
-    Self: StateCondition<S>
-{
-    /// Runs the current [`State`] to completion.
-    pub async fn run_state(mut self) -> Option<StateEngine> {
-        async move {
-            if let Err(err) = self.perform().await {
-                warn!("client error : {:?}", err);
-            }
-            self.next().await
-        }
-        .await
-    }
-}
-
+#[derive(Debug)]
 /// [`SharedState`]
 pub struct SharedState {}
 
