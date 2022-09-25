@@ -1,7 +1,7 @@
 use async_trait::async_trait;
 
 use crate::state_engine::{
-    states::{IntoNextState, State, StateCondition},
+    states::{IntoState, State, StateCondition},
     TransitionState,
 };
 
@@ -15,8 +15,8 @@ impl StateCondition<Idle> for State<Idle> {
     }
 }
 
-impl IntoNextState<Idle> for State<Idle> {
-    fn into_next_state(mut self) -> State<Idle> {
+impl IntoState<Idle> for State<Idle> {
+    fn into_state(mut self) -> State<Idle> {
         self.smpc.notify_idle();
         State::<Idle>::new(self.shared, self.smpc, Idle).into()
     }

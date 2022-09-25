@@ -9,7 +9,7 @@ use crate::{
     client::{grpc::GRPCClient, EventSender},
     state_engine::{
         smpc::Smpc,
-        states::{IntoNextState, Idle, NewTask, SharedState, State, StateCondition, Update},
+        states::{IntoState, Idle, NewTask, SharedState, State, StateCondition, Update},
     },
 };
 
@@ -42,7 +42,7 @@ impl StateEngine {
 
         // StateEngine::Idle(State::<Idle>::new(shared, smpc, Idle))
         let state = State::new(SharedState::new(), smpc, Idle);
-        state.into_next_state().into()
+        state.into_state().into()
     }
 
     pub async fn next(self) -> TransitionState {

@@ -1,5 +1,3 @@
-use std::error::Error;
-
 use crate::{
     client::grpc::{GRPCClient, GRPCClientError},
     state_engine::EventSender,

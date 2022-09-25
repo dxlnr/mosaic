@@ -9,6 +9,6 @@ mod update;
 pub use self::{
     new_task::NewTask,
     idle::Idle,
-    state::{IntoNextState, SharedState, State, StateCondition, StateError},
+    state::{IntoState, SharedState, State, StateCondition, StateError},
     update::Update,
 };

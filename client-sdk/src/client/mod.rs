@@ -4,7 +4,7 @@ use thiserror::Error;
 use tokio::{runtime::Runtime, sync::mpsc};
 use tracing::debug;
 
-use crate::{client::grpc::GRPCClient, configs::Conf, state_engine::StateEngine};
+use crate::{client::grpc::GRPCClient, configs::Conf, state_engine::{StateEngine, TransitionState}};
 
 use self::grpc::GRPCClientError;
 
@@ -36,12 +36,12 @@ impl EventReceiver {
     }
 
     /// Pop the next event. If no event has been received, return `ClientError::EventsError`.
-    fn next(&mut self) -> Result<Event, ClientError> {
+    fn next(&mut self) -> Option<Event> {
         let next = self
             .0
             .try_recv()
-            .map_err(|err| ClientError::EventsError(err))?;
-        Ok(next)
+            .ok();
+        next
     }
 }
 
@@ -99,6 +99,19 @@ pub enum Task {
     None,
 }
 
+#[derive(Default)]
+pub struct Internals {
+    progress_made: bool,
+}
+
+impl Internals {
+    pub fn new() -> Self {
+        Self {
+            progress_made: false,
+        }
+    }
+}
+
 #[derive(Error, Debug)]
 pub enum ClientError {
     #[error("The initialization of the clients runtime {:?} failed.", _0)]
@@ -114,6 +127,8 @@ pub enum ClientError {
 /// The client holds an internal [`StateEngine`] that executes the FL protocol.
 ///
 pub struct Client {
+    /// Client Identifier.
+    client_id: u32,
     /// Internal [`StateEngine`] of the client.
     engine: Option<StateEngine>,
     /// Receiver for the events emitted by the [`StateEngine`].
@@ -132,6 +147,8 @@ pub struct Client {
     ///
     /// Implements the underlying msflp protocol for the client side.
     grpc_client: GRPCClient,
+    /// [`Internals`]_ Interal State Variables.
+    internals: Internals
 }
 
 impl Client {
@@ -157,12 +174,14 @@ impl Client {
         grpc_client: GRPCClient,
     ) -> Result<Self, ClientError> {
         let mut client = Self {
+            client_id: 0,
             runtime: Self::runtime()?,
             engine: Some(engine),
             event_recv,
             store,
             task: Task::None,
             grpc_client,
+            internals: Internals::new(),
         };
         println!("\tClient::try_init : Client object instantiated.");
         client.process();
@@ -181,6 +200,10 @@ impl Client {
         self.task
     }
 
+    pub fn progress_made(&self) -> bool {
+        self.internals.progress_made
+    }
+
     // pub fn set_model(&mut self) {
     //     todo!()
     // }
@@ -191,21 +214,20 @@ impl Client {
             println!("\t  Client::process : In process loop.");
             // println!("\t  Client::process : Match: ");
             match self.event_recv.next() {
-                Ok(Event::Idle) => {
+                Some(Event::Idle) => {
                     self.task = Task::None;
                 }
-                Ok(Event::Connect) => {
+                Some(Event::Connect) => {
                     self.task = Task::Connect;
                 }
-                Ok(Event::Update) => {
+                Some(Event::Update) => {
                     self.task = Task::Update;
                 }
-                Ok(Event::NewTask) => {}
-                Ok(Event::GetGlobalModel) => {}
-                Ok(Event::Shutdown) => {}
-                Err(err) => {
-                    println!("\t  Client::process : error matched: {:?}.", &err);
-                    debug!("{:?}", err);
+                Some(Event::NewTask) => {}
+                Some(Event::GetGlobalModel) => {}
+                Some(Event::Shutdown) => {}
+                None => {
+                    println!("\t  Client::process : None.");
                     break;
                 }
             }
@@ -216,6 +238,17 @@ impl Client {
         println!("\t  Client::step : .");
         let state_engine = self.engine.take().expect("unexpected engine failure.");
         let progress = self.runtime.block_on(async { state_engine.next().await });
+
+        match progress  {
+            TransitionState::Pending(new_engine) => {
+                self.internals.progress_made = false;
+                self.engine = Some(new_engine);
+            }
+            TransitionState::Complete(new_engine) => {
+                self.internals.progress_made = true;
+                self.engine = Some(new_engine)
+            }
+        };
 
         self.process();
     }

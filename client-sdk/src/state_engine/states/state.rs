@@ -19,9 +19,9 @@ pub trait StateCondition<S> {
     async fn proceed(mut self) -> TransitionState;
 }
 
-pub trait IntoNextState<S> {
+pub trait IntoState<S> {
     /// Moves from the current state to the next state.
-    fn into_next_state(self) -> State<S>;
+    fn into_state(self) -> State<S>;
 }
 
 #[allow(dead_code)]
