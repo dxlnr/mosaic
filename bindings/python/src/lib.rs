@@ -1,6 +1,11 @@
-use pyo3::{create_exception, exceptions::PyException, prelude::*};
+use pyo3::{
+    create_exception,
+    exceptions::PyException,
+    prelude::*,
+    types::{PyList, PyLong},
+};
 
-
+use mosaic_core::model::Model;
 
 create_exception!(mosaic_sdk, ClientInit, PyException);
 create_exception!(mosaic_sdk, ClientNotFound, PyException);
@@ -74,5 +79,30 @@ impl Client {
         Ok(())
     }
 
+    pub fn set_model(&mut self, tensor_list: &PyList, model_version: &PyLong) -> PyResult<PyAny> {
+        let inner = match self.inner {
+            Some(ref mut inner) => inner,
+            None => {
+                return Err(ClientNotFound::new_err(
+                    "Client not found. Unable to perform task.",
+                ))
+            }
+        };
+        let model: Vec<$data_type> = $local_model.extract()
+                .map_err(|err| LocalModelDataTypeMisMatch::new_err(format!("{}", err)))?;
+            let converted_model = Model::from_primitives(model.into_iter());
+            if let Ok(converted_model) = converted_model {
+                $participant.set_model(converted_model);
+                Ok(())
+            } else {
+                Err(LocalModelDataTypeMisMatch::new_err(
+                    "the local model data type is incompatible with the data type of the current model configuration"
+                ))
+            }}
 
+        Model {
+            tensors: tensor_list,
+            model_version,
+        }
+    }
 }

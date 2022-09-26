@@ -8,6 +8,8 @@ use crate::{client::grpc::GRPCClient, configs::Conf, state_engine::{StateEngine,
 
 use self::grpc::GRPCClientError;
 
+use mosaic_core::model::Model;
+
 pub enum Event {
     /// Client is on hold and waiting for instruction.
     Idle,
@@ -251,5 +253,16 @@ impl Client {
         };
 
         self.process();
+    }
+
+    /// Load the given model into the store, so that the participant internal state
+    /// machine can process it.
+    pub fn set_local_model(&mut self, _model: Model) {
+        todo!()
+    }
+
+    /// Retrieve the current global model, if available.
+    pub fn get_global_model(&mut self) -> Result<Option<Model>, Box<dyn std::error::Error>> {
+        todo!()
     }
 }

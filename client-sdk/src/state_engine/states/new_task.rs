@@ -20,8 +20,8 @@ impl StateCondition<NewTask> for State<NewTask> {
 }
 
 impl IntoState<NewTask> for State<NewTask> {
-    fn into_state(self) -> State<NewTask> {
-        // self.smpc.notify_idle();
+    fn into_state(mut self) -> State<NewTask> {
+        self.smpc.notify_new_task();
         State::<NewTask>::new(self.shared, self.smpc, NewTask).into()
     }
 }

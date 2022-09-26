@@ -26,11 +26,13 @@ impl Smpc {
         self.grpc_client.try_connect().await?;
         Ok(())
     }
-
-    fn notify_connect(&mut self) {
-        self.event_sender.connect()
-    }
     pub fn notify_idle(&mut self) {
         self.event_sender.idle()
+    }
+    pub fn notify_new_task(&mut self) {
+        self.event_sender.new_task()
+    }
+    pub fn notify_update(&mut self) {
+        self.event_sender.update()
     }
 }

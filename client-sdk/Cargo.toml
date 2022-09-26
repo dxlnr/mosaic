@@ -9,6 +9,8 @@ rust-version = "1.61.0"
 readme = "README.md"
 
 [dependencies]
+# Internal crates.
+mosaic_core = { path = "../mosaic/core" }
 
 # External crates.
 async-trait = "0.1.51"

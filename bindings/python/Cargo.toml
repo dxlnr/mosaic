@@ -5,7 +5,7 @@ description = ""
 license = "Apache-2.0"
 version = "0.1.0"
 edition = "2021"
-rust-version = "1.61.0" 
+rust-version = "1.61.0"
 readme = "README.md"
 
 [package.metadata.maturin]
@@ -28,6 +28,7 @@ crate-type = ["cdylib"]
 
 [dependencies]
 # Internal Dependencies
+mosaic_core = { path = "../../mosaic/core" }
 client-sdk = { path = "../../client-sdk", version = "0.1.0"}
 # External Crates
 pyo3 = { version = "0.16.3", features = ["extension-module"] }
