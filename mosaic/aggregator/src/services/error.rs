@@ -15,7 +15,7 @@ pub enum ServiceError {
     /// Internal error: {0}
     InternalError(String),
     /// Fetching error: {0}
-    FetchError(anyhow::Error),
+    FetchError(Box<dyn std::error::Error>),
 }
 
 impl From<Box<dyn std::error::Error>> for ServiceError {
@@ -36,5 +36,5 @@ impl From<Box<dyn std::error::Error + Sync + Send>> for ServiceError {
 pub fn into_service_error<E: Into<Box<dyn std::error::Error + 'static + Sync + Send>>>(
     e: E,
 ) -> ServiceError {
-    ServiceError::FetchError(anyhow::anyhow!("Fetcher failed: {:?}", e.into()))
+    ServiceError::FetchError(e.into())
 }

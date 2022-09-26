@@ -5,19 +5,36 @@ use pyo3::{
     types::{PyList, PyLong},
 };
 
-use mosaic_core::model::Model;
+use mosaic_core::model::{
+    tensor::{FromPrimitives, Tensor, TensorStorage},
+    Model,
+};
 
 create_exception!(mosaic_sdk, ClientInit, PyException);
 create_exception!(mosaic_sdk, ClientNotFound, PyException);
+create_exception!(xaynet_sdk, ModelError, PyException);
+create_exception!(xaynet_sdk, TensorsError, PyException);
+create_exception!(xaynet_sdk, TensorDataTypeMismatch, PyException);
+create_exception!(xaynet_sdk, TensorDataTypeError, PyException);
+create_exception!(xaynet_sdk, TensorShapeError, PyException);
 
 /// Python module created by decorating a Rust function with #[pymodule].
 ///
 #[pymodule]
 fn mosaic_sdk(py: Python, m: &PyModule) -> PyResult<()> {
     m.add_class::<Client>()?;
+    m.add_class::<MosaicTensor>()?;
 
     m.add("ClientInit", py.get_type::<ClientInit>())?;
     m.add("ClientNotFound", py.get_type::<ClientNotFound>())?;
+    m.add("ModelError", py.get_type::<ModelError>())?;
+    m.add("TensorsError", py.get_type::<TensorsError>())?;
+    m.add(
+        "TensorDataTypeMismatch",
+        py.get_type::<TensorDataTypeMismatch>(),
+    )?;
+    m.add("TensorDataTypeError", py.get_type::<TensorDataTypeError>())?;
+    m.add("TensorShapeError", py.get_type::<TensorShapeError>())?;
 
     Ok(())
 }
@@ -79,7 +96,7 @@ impl Client {
         Ok(())
     }
 
-    pub fn set_model(&mut self, tensor_list: &PyList, model_version: &PyLong) -> PyResult<PyAny> {
+    pub fn set_model(&mut self, tensors: &PyList, model_version: &PyLong) -> PyResult<()> {
         let inner = match self.inner {
             Some(ref mut inner) => inner,
             None => {
@@ -88,21 +105,62 @@ impl Client {
                 ))
             }
         };
-        let model: Vec<$data_type> = $local_model.extract()
-                .map_err(|err| LocalModelDataTypeMisMatch::new_err(format!("{}", err)))?;
-            let converted_model = Model::from_primitives(model.into_iter());
-            if let Ok(converted_model) = converted_model {
-                $participant.set_model(converted_model);
-                Ok(())
-            } else {
-                Err(LocalModelDataTypeMisMatch::new_err(
-                    "the local model data type is incompatible with the data type of the current model configuration"
-                ))
-            }}
+        let mosaic_tensors: Vec<MosaicTensor> = tensors
+            .extract()
+            .map_err(|err| TensorsError::new_err(format!("{}", err)))?;
+        let model_tensors = mosaic_tensors
+            .iter()
+            .map(|mt| mt.inner.to_owned().unwrap())
+            .collect();
 
-        Model {
-            tensors: tensor_list,
-            model_version,
-        }
+        let model_version = model_version
+            .extract()
+            .map_err(|err| ModelError::new_err(format!("{}", err)))?;
+
+        let model = Model::new(model_tensors, model_version);
+        inner.set_model(model);
+        Ok(())
     }
+}
+
+/// Python Class managed behind a single decorator.
+///
+#[pyclass]
+#[allow(dead_code)]
+struct MosaicTensor {
+    inner: Option<Tensor>,
+}
+
+#[pymethods]
+impl MosaicTensor {
+    #[new]
+    pub fn new(storage: &PyList, dtype: &PyLong, shape: &PyList) -> PyResult<Self> {
+        let tensor_storage = from_primitives!(storage, f32);
+        let tensor_shape: Vec<i32> = shape
+            .extract()
+            .map_err(|err| TensorShapeError::new_err(format!("{}", err)))?;
+        let tensor_dtype: i32 = dtype
+            .extract()
+            .map_err(|err| TensorDataTypeError::new_err(format!("{}", err)))?;
+
+        let inner = Tensor::init(tensor_storage, tensor_dtype, tensor_shape);
+        Ok(Self { inner: Some(inner) })
+    }
+}
+
+impl<'source> FromPyObject<'source> for MosaicTensor {
+    fn extract(ob: &'source PyAny) -> PyResult<Self> {
+        let motens = ob.extract()?;
+        Ok(motens)
+    }
+}
+
+#[macro_export]
+macro_rules! from_primitives {
+    ($tensor_storage:expr, $data_type:ty) => {{
+        let tensor_storage: Vec<$data_type> = $tensor_storage
+            .extract()
+            .map_err(|err| TensorDataTypeMismatch::new_err(format!("{}", err)))?;
+        TensorStorage::from_primitives(tensor_storage.into_iter())
+    }};
 }

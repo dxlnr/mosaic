@@ -1,8 +1,8 @@
 //! Tensor library for Mosaic.
 //!
-use std::{fmt::Debug, slice::Iter};
 use derive_more::{Display, From, Index, IndexMut, Into};
 use rug::Float;
+use std::{fmt::Debug, slice::Iter};
 // use serde::{Deserialize, Serialize};
 use protobuf::ProtobufEnum;
 
@@ -76,12 +76,13 @@ enum_derive! {
 
 impl DataType {
     /// Creates new DataType from `i32`.
-    /// 
+    ///
     fn new(variant: i32) -> Self {
         Self::from(variant)
     }
+
     /// Converts [`DataType`] into proto DataType.
-    /// 
+    ///
     fn into_proto(self) -> protos::dtype::DataType {
         if let Some(d) = protos::dtype::DataType::from_i32(self.into()) {
             d
@@ -91,7 +92,7 @@ impl DataType {
         }
     }
     /// Converts proto DataType into [`DataType`].
-    /// 
+    ///
     fn from_proto(proto: protos::dtype::DataType) -> Self {
         Self::from(proto.value() as i32)
     }
@@ -108,7 +109,7 @@ impl TensorShape {
         Self(s)
     }
 
-    fn init (s: Vec<i32>) -> Self {
+    fn init(s: Vec<i32>) -> Self {
         let dims = s.iter().map(|s| Some(*s)).collect::<Vec<_>>();
         Self(Some(dims))
     }
@@ -171,7 +172,7 @@ pub struct TensorStorage(Vec<Float>);
 
 impl Default for TensorStorage {
     fn default() -> Self {
-        Self( Vec::new() )
+        Self(Vec::new())
     }
 }
 
@@ -179,7 +180,7 @@ impl Default for TensorStorage {
 ///
 /// By implementing `IntoIterator`, [`Iterator::collect()`] method is enabled
 /// which allows to create a collection from the contents of an iterator.
-/// 
+///
 impl FromIterator<Float> for TensorStorage {
     fn from_iter<T: IntoIterator<Item = Float>>(iter: T) -> Self {
         let mut tstore = TensorStorage::default();
@@ -193,7 +194,7 @@ impl FromIterator<Float> for TensorStorage {
 /// An interface to convert a collection of primitive values into an iterator of numerical values.
 ///
 /// This trait is used to convert primitive types ([`f32`], [`f64`], [`i32`], [`i64`]) into a
-/// [`Model`], which has its own internal representation of the weights. The opposite trait is 
+/// [`Model`], which has its own internal representation of the weights. The opposite trait is
 /// [`IntoPrimitives`].
 pub trait FromPrimitives<N: Debug>: Sized {
     /// Creates an iterator from primitive values that yields converted numerical values.
@@ -205,7 +206,7 @@ pub trait FromPrimitives<N: Debug>: Sized {
 }
 
 impl FromPrimitives<f32> for TensorStorage {
-    fn from_primitives<I>(iter: I) -> Self 
+    fn from_primitives<I>(iter: I) -> Self
     where
         I: Iterator<Item = f32>,
     {
@@ -214,7 +215,7 @@ impl FromPrimitives<f32> for TensorStorage {
 }
 
 impl FromPrimitives<f64> for TensorStorage {
-    fn from_primitives<I>(iter: I) -> Self 
+    fn from_primitives<I>(iter: I) -> Self
     where
         I: Iterator<Item = f64>,
     {
@@ -223,7 +224,7 @@ impl FromPrimitives<f64> for TensorStorage {
 }
 
 /// Single Model [`Tensor`].
-/// 
+///
 #[derive(Debug, Clone)]
 pub struct Tensor {
     /// [`TensorStorage`]
@@ -235,26 +236,23 @@ pub struct Tensor {
 }
 
 impl Tensor {
-    fn new(storage: TensorStorage, dtype: DataType, shape: TensorShape) -> Self {
+    pub fn new(storage: TensorStorage, dtype: DataType, shape: TensorShape) -> Self {
         Self {
             storage,
             dtype,
             shape,
         }
     }
-    pub fn create<I>(storage: I, dtype: i32, shape: Vec<i32>) -> Self 
-    where
-        I: Iterator<Item = f32>,
-    {
+    pub fn init(storage: TensorStorage, dtype: i32, shape: Vec<i32>) -> Self {
         Self {
-            storage: TensorStorage::from_primitives(storage),
+            storage,
             dtype: DataType::new(dtype),
             shape: TensorShape::init(shape),
         }
     }
-    /// Creates an iterator that yields references to the weights/parameters 
+    /// Creates an iterator that yields references to the weights/parameters
     /// of this [`Tensor`].
-    /// 
+    ///
     pub fn iter(&self) -> Iter<Float> {
         self.storage.0.iter()
     }

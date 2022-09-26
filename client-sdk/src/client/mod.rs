@@ -1,7 +1,8 @@
 pub mod grpc;
 
+use std::sync::Arc;
 use thiserror::Error;
-use tokio::{runtime::Runtime, sync::mpsc};
+use tokio::{runtime::Runtime, sync::{mpsc, Mutex}};
 use tracing::debug;
 
 use crate::{client::grpc::GRPCClient, configs::Conf, state_engine::{StateEngine, TransitionState}};
@@ -79,13 +80,13 @@ impl EventSender {
 
 /// [`Store`]: API for external Storage.
 ///
-#[derive(Default, Clone)]
-struct Store {}
+#[derive(Clone)]
+struct Store(Arc<Mutex<Option<Model>>>);
 
 impl Store {
-    /// Init new [`Store`] API for the client.
-    pub fn new() -> Self {
-        Self {}
+    /// Create a new model store.
+    fn new() -> Self {
+        Self(Arc::new(Mutex::new(None)))
     }
 }
 
@@ -253,6 +254,21 @@ impl Client {
         };
 
         self.process();
+    }
+
+    /// Load the given model into the store, so that it can be processed internally.
+    /// 
+    pub fn set_model(&mut self, model: Model) {
+        let Self {
+            ref mut runtime,
+            ref store,
+            ..
+        } = self;
+
+        runtime.block_on(async {
+            let mut stored_model = store.0.lock().await;
+            *stored_model = Some(model)
+        });
     }
 
     /// Load the given model into the store, so that the participant internal state

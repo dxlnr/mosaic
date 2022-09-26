@@ -18,7 +18,7 @@ mosaic_core = { path = "../core" }
 
 # External crates.
 async-trait = "0.1.51"
-anyhow = "1.0.53"
+# anyhow = "1.0.53"
 config = "0.13.1"
 derive_more = { version = "0.99.17", default-features = false, features = [
     "display",
