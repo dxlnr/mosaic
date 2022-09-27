@@ -1,10 +1,9 @@
 //! Tensor library for Mosaic.
 //!
 use derive_more::{Display, From, Index, IndexMut, Into};
-use rug::Float;
-use std::{fmt::Debug, slice::Iter};
-// use serde::{Deserialize, Serialize};
 use protobuf::ProtobufEnum;
+use serde::{Deserialize, Serialize};
+use std::{fmt::Debug, slice::Iter, vec::Vec};
 
 use crate::protos;
 
@@ -164,15 +163,35 @@ impl TensorShape {
     }
 }
 
-#[derive(Debug, Clone, PartialEq, From, Index, IndexMut, Into)]
+#[derive(Debug, Clone, PartialEq, From, Index, IndexMut, Into, Serialize, Deserialize)]
 /// A numerical representation of the weights contained by a Machine Learning model.
 ///
 /// The representation lays out each element of the tensor contiguously in memory.
-pub struct TensorStorage(Vec<Float>);
+pub struct TensorStorage<T>(Vec<T>);
 
-impl Default for TensorStorage {
+impl<T> Default for TensorStorage<T> {
     fn default() -> Self {
         Self(Vec::new())
+    }
+}
+
+impl TensorStorage<f32> {
+    fn to_bytes(&mut self) -> Vec<u8> {
+        self.0
+            .iter()
+            .map(|x| x.to_be_bytes())
+            .flatten()
+            .collect::<Vec<_>>()
+    }
+}
+
+impl TensorStorage<f64> {
+    fn to_bytes(&mut self) -> Vec<u8> {
+        self.0
+            .iter()
+            .map(|x| x.to_be_bytes())
+            .flatten()
+            .collect::<Vec<_>>()
     }
 }
 
@@ -181,8 +200,8 @@ impl Default for TensorStorage {
 /// By implementing `IntoIterator`, [`Iterator::collect()`] method is enabled
 /// which allows to create a collection from the contents of an iterator.
 ///
-impl FromIterator<Float> for TensorStorage {
-    fn from_iter<T: IntoIterator<Item = Float>>(iter: T) -> Self {
+impl<T> FromIterator<T> for TensorStorage<T> {
+    fn from_iter<I: IntoIterator<Item = T>>(iter: I) -> Self {
         let mut tstore = TensorStorage::default();
 
         for i in iter {
@@ -191,6 +210,7 @@ impl FromIterator<Float> for TensorStorage {
         tstore
     }
 }
+
 /// An interface to convert a collection of primitive values into an iterator of numerical values.
 ///
 /// This trait is used to convert primitive types ([`f32`], [`f64`], [`i32`], [`i64`]) into a
@@ -205,45 +225,56 @@ pub trait FromPrimitives<N: Debug>: Sized {
     fn from_primitives<I: Iterator<Item = N>>(iter: I) -> Self;
 }
 
-impl FromPrimitives<f32> for TensorStorage {
+impl FromPrimitives<f32> for TensorStorage<f32> {
     fn from_primitives<I>(iter: I) -> Self
     where
         I: Iterator<Item = f32>,
     {
-        iter.map(|n| Float::with_val(53, n)).collect()
+        iter.map(|n| n).collect()
     }
 }
 
-impl FromPrimitives<f64> for TensorStorage {
+impl FromPrimitives<f64> for TensorStorage<f64> {
     fn from_primitives<I>(iter: I) -> Self
     where
         I: Iterator<Item = f64>,
     {
-        iter.map(|n| Float::with_val(53, n)).collect()
+        iter.map(|n| n).collect()
     }
 }
 
 /// Single Model [`Tensor`].
 ///
+/// It is not an exact copy of various Tensor implementation like
+/// in Torch or Tensorflow but an approximation which is sufficient for
+/// performing Federated Learning.
+///
 #[derive(Debug, Clone)]
-pub struct Tensor {
+pub struct Tensor<T> {
     /// [`TensorStorage`]
-    pub storage: TensorStorage,
+    ///
+    /// Underlying data structure of [`Tensor`].
+    ///
+    /// A [`TensorStorage`] is a contiguous, one-dimensional array of elements of a
+    /// particular Rust data type <T>.  Any type out of [`DataType`] is possible,
+    /// and the internal data will be interpretted appropriately.
+    ///
+    pub storage: TensorStorage<T>,
     /// [`DataType`]
     pub dtype: DataType,
     /// [`TensorShape`]
     pub shape: TensorShape,
 }
 
-impl Tensor {
-    pub fn new(storage: TensorStorage, dtype: DataType, shape: TensorShape) -> Self {
+impl<T> Tensor<T> {
+    pub fn new(storage: TensorStorage<T>, dtype: DataType, shape: TensorShape) -> Self {
         Self {
             storage,
             dtype,
             shape,
         }
     }
-    pub fn init(storage: TensorStorage, dtype: i32, shape: Vec<i32>) -> Self {
+    pub fn init(storage: TensorStorage<T>, dtype: i32, shape: Vec<i32>) -> Self {
         Self {
             storage,
             dtype: DataType::new(dtype),
@@ -253,7 +284,40 @@ impl Tensor {
     /// Creates an iterator that yields references to the weights/parameters
     /// of this [`Tensor`].
     ///
-    pub fn iter(&self) -> Iter<Float> {
+    pub fn iter(&self) -> Iter<T> {
         self.storage.0.iter()
+    }
+}
+
+impl Tensor<f32> {
+    fn into_proto(mut self) -> protos::tensor::TensorProto {
+        let mut proto_tensor = protos::tensor::TensorProto::new();
+        proto_tensor.set_tensor_dtype(self.dtype.into_proto());
+        proto_tensor.set_tensor_shape(self.shape.into_proto());
+        proto_tensor.set_tensor_content(self.storage.to_bytes());
+
+        proto_tensor
+    }
+}
+
+impl Tensor<f64> {
+    fn into_proto(mut self) -> protos::tensor::TensorProto {
+        let mut proto_tensor = protos::tensor::TensorProto::new();
+        proto_tensor.set_tensor_dtype(self.dtype.into_proto());
+        proto_tensor.set_tensor_shape(self.shape.into_proto());
+        proto_tensor.set_tensor_content(self.storage.to_bytes());
+
+        proto_tensor
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    // use serde::Serializer;
+
+    #[test]
+    fn test_model_f32() {
+        let _tensor_content = vec![-1_f32, 0_f32, 1_f32];
     }
 }
