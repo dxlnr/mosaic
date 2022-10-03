@@ -14,7 +14,10 @@ use crate::state_engine::{
 pub struct Idle;
 
 #[async_trait]
-impl State for StateCondition<Idle> {
+impl<T> State<T> for StateCondition<Idle, T> 
+where
+    T: Send,
+{
     const NAME: StateName = StateName::Idle;
 
     async fn perform(&mut self) -> Result<(), StateError> {
@@ -22,13 +25,13 @@ impl State for StateCondition<Idle> {
     }
 
     async fn next(self) -> Option<StateEngine> {
-        Some(StateCondition::<Collect>::new(self.shared).into())
+        Some(StateCondition::<Collect, T>::new(self.shared).into())
     }
 }
 
-impl StateCondition<Idle> {
+impl<T> StateCondition<Idle, T> {
     /// Init a new [`Idle`] state.
-    pub fn new(shared: SharedState) -> Self {
+    pub fn new(shared: SharedState<T>) -> Self {
         Self {
             private: Idle,
             shared,

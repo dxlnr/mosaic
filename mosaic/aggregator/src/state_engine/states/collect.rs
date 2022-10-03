@@ -11,8 +11,9 @@ use crate::state_engine::{
 pub struct Collect;
 
 #[async_trait]
-impl State for StateCondition<Collect>
+impl<T> State<T> for StateCondition<Collect, T>
 where
+    T: Send,
     Self: StateHandler,
 {
     const NAME: StateName = StateName::Collect;
@@ -22,12 +23,12 @@ where
     }
 
     async fn next(self) -> Option<StateEngine> {
-        Some(StateCondition::<Update>::new(self.shared).into())
+        Some(StateCondition::<Update, T>::new(self.shared).into())
     }
 }
 
-impl StateCondition<Collect> {
-    pub fn new(shared: SharedState) -> Self {
+impl<T> StateCondition<Collect, T> {
+    pub fn new(shared: SharedState<T>) -> Self {
         Self {
             private: Collect,
             shared,
@@ -43,7 +44,10 @@ impl StateCondition<Collect> {
 }
 
 #[async_trait]
-impl StateHandler for StateCondition<Collect> {
+impl<T> StateHandler for StateCondition<Collect, T>
+where
+    T: Send
+{
     async fn handle_request(&mut self, _req: StateEngineRequest) -> Result<(), RequestError> {
         // TODO: use different error
         todo!()

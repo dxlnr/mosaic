@@ -12,8 +12,9 @@ use crate::state_engine::{
 pub struct Update;
 
 #[async_trait]
-impl State for StateCondition<Update>
+impl<T> State<T> for StateCondition<Update, T>
 where
+    T: Send,
     Self: StateHandler,
 {
     const NAME: StateName = StateName::Update;
@@ -23,12 +24,12 @@ where
     }
 
     async fn next(self) -> Option<StateEngine> {
-        Some(StateCondition::<Shutdown>::new(self.shared).into())
+        Some(StateCondition::<Shutdown, T>::new(self.shared).into())
     }
 }
 
-impl StateCondition<Update> {
-    pub fn new(shared: SharedState) -> Self {
+impl<T> StateCondition<Update, T> {
+    pub fn new(shared: SharedState<T>) -> Self {
         Self {
             private: Update,
             shared,
@@ -37,7 +38,10 @@ impl StateCondition<Update> {
 }
 
 #[async_trait]
-impl StateHandler for StateCondition<Update> {
+impl<T> StateHandler for StateCondition<Update, T> 
+where
+    T: Send,
+{
     async fn handle_request(&mut self, _req: StateEngineRequest) -> Result<(), RequestError> {
         Ok(())
     }

@@ -37,7 +37,7 @@ pub enum StateName {
 
 /// A trait that must be implemented by a state in order to perform its tasks and to move to a next state.
 #[async_trait]
-pub trait State {
+pub trait State<T> {
     /// The name of the current state.
     const NAME: StateName;
 
@@ -52,21 +52,21 @@ pub trait State {
 }
 
 #[allow(dead_code)]
-pub struct StateCondition<S> {
+pub struct StateCondition<S, T> {
     /// Private Identifier of the state.
     /// 
     pub(in crate::state_engine) private: S,
     /// [`SharedState`] that the Aggregator holds.
     ///
-    pub(in crate::state_engine) shared: SharedState,
+    pub(in crate::state_engine) shared: SharedState<T>,
 }
 
-impl<S> StateCondition<S>
+impl<S, T> StateCondition<S, T>
 where
-    Self: State,
+    Self: State<T>,
 {
     /// Runs the current State to completion.
-    pub async fn run_state(mut self) -> Option<StateEngine> {
+    pub async fn run_state(mut self) -> Option<StateEngine<T>> {
         info!("Server runs in state: {:?}", &Self::NAME);
         async move {
             if let Err(err) = self.perform().await {
@@ -85,14 +85,14 @@ where
     }
 
     fn into_failure_state(self, err: StateError) -> StateEngine {
-        StateCondition::<Failure>::new(err, self.shared).into()
+        StateCondition::<Failure, T>::new(err, self.shared).into()
     }
 }
 
 /// [`SharedState`]
-pub struct SharedState {
+pub struct SharedState<T> {
     /// [`Aggregator`]
-    pub aggr: Aggregator,
+    pub aggr: Aggregator<T>,
     /// [`RequestReceiver`] for enabling receiving requests from the client.
     /// 
     pub rx: RequestReceiver,
@@ -101,9 +101,9 @@ pub struct SharedState {
     pub publisher: EventPublisher,
 }
 
-impl SharedState {
+impl<T> SharedState<T> {
     /// Init new [`SharedState`] for the aggregation server.
-    pub fn new(aggr: Aggregator, rx: RequestReceiver, publisher: EventPublisher) -> Self {
+    pub fn new(aggr: Aggregator<T>, rx: RequestReceiver, publisher: EventPublisher) -> Self {
         SharedState {
             aggr,
             rx,

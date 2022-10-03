@@ -24,4 +24,6 @@ protobuf = "2.27.1"
 thiserror = "1.0.34"
 serde = { version = "1.0.144", features = ["derive"] }
 
+rug = "1.17.0"
+
 [build-dependencies]

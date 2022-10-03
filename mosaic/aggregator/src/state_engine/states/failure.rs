@@ -13,7 +13,10 @@ pub struct Failure {
 }
 
 #[async_trait]
-impl State for StateCondition<Failure> {
+impl<T> State<T> for StateCondition<Failure, T> 
+where
+    T: Send,
+{
     const NAME: StateName = StateName::Failure;
 
     async fn perform(&mut self) -> Result<(), StateError> {
@@ -25,8 +28,8 @@ impl State for StateCondition<Failure> {
     }
 }
 
-impl StateCondition<Failure> {
-    pub fn new(error: StateError, shared: SharedState) -> Self {
+impl<T> StateCondition<Failure, T> {
+    pub fn new(error: StateError, shared: SharedState<T>) -> Self {
         Self {
             private: Failure { error },
             shared,

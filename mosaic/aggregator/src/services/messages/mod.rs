@@ -29,7 +29,7 @@ impl MessageHandler {
         }
     }
     // /// parsing the incoming client requests.
-    // async fn parse(&mut self, req: ClientUpdate) -> Result<Message, ServiceError> {
+    // async fn parse(&mut self, req: StateEngineRequest) -> Result<Message, ServiceError> {
     //     poll_fn(|cx| self.parser.poll_ready(cx)).await?;
     //     self.parser.call(req).await
     // }
@@ -39,7 +39,7 @@ impl MessageHandler {
         self.state_engine_service.call(req).await
     }
     // /// handles all incoming client requests.
-    // pub async fn handle(&mut self, req: ClientUpdate) -> Result<(), ServiceError> {
+    // pub async fn handle(&mut self, req: StateEngineRequest) -> Result<(), ServiceError> {
     //     let message = self.parse(req).await?;
     //     self.forward(message).await
     // }

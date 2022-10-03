@@ -311,6 +311,18 @@ impl Tensor<f64> {
     }
 }
 
+pub struct Testing(Vec<rug::Float>);
+
+impl Testing {
+    fn to_bytes(&mut self, dtype: DataType) -> Vec<u8> {
+        self.0
+            .iter()
+            .map(|x| x.to_f32().to_be_bytes())
+            .flatten()
+            .collect::<Vec<_>>()
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

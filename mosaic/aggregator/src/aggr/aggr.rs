@@ -1,22 +1,27 @@
-#[derive(Clone, Debug, PartialEq)]
-pub struct Aggregator {
+use super::buffer::FedBuffer;
+
+#[derive(Clone, Debug)]
+pub struct Aggregator<T> {
     /// Current progress towards an aggregation goal.
     pub round_id: u32,
     /// Hyperparameter comprised in [`AggrParams`].
     pub params: AggrParams,
+    /// [`FedBuffer`]
+    pub buffer: FedBuffer<T>,
 }
 
-impl Aggregator {
+impl<T> Aggregator<T> {
     pub fn new() -> Self {
         Self {
             round_id: 0,
             params: AggrParams::default(),
+            buffer: FedBuffer::default(),
         }
     }
 }
 
 /// Parameters necessary for performing an aggregation schema.
-#[derive(Debug, Clone, Copy, PartialEq)]
+#[derive(Debug, Clone)]
 pub struct AggrParams {
     /// Server-side learning rate. Defaults to 1e-1.
     pub eta: f64,

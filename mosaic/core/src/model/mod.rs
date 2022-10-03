@@ -8,7 +8,7 @@ use std::slice::Iter;
 
 /// [`Model`] represents a Machine Learning model, adapted to FL.
 ///
-#[derive(Default)]
+#[derive(Debug, Clone, Default)]
 pub struct Model<T> {
     /// Actual ['Model'] content.
     pub tensors: Vec<Tensor<T>>,
