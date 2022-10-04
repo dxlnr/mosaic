@@ -13,15 +13,28 @@ use std::{
 use thiserror::Error;
 use tokio::sync::{mpsc, oneshot};
 
+use mosaic_core::{model::Model, crypto::PublicSigningKey, mask::MaskSeed};
+
 /// Errors which can occur while the state engine handles a request.
 #[derive(Debug, Display, Error)]
 pub enum RequestError {
     /// The request could not be processed due to an internal error: {0}.
     InternalError(&'static str),
+    /// The message was rejected.
+    MessageRejected,
 }
 
 #[derive(Debug)]
-pub struct StateEngineRequest {}
+pub struct StateEngineRequest {
+    /// The Client Identifier.
+    pub client_id: Option<u32>,
+    /// The public key of the client.
+    pub client_pk: PublicSigningKey,
+    /// The local seed defines the seed used to mask `masked_model`.
+    pub local_seed: Option<MaskSeed>,
+    /// The masked model trained by the participant.
+    pub model: Model,
+}
 
 #[derive(Clone, From, Debug)]
 /// A handle to send requests to the ['StateEngine'].

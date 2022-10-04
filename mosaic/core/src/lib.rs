@@ -8,6 +8,7 @@
 //! The `core` provides basic building blocks for implementing the aggregation procedure.
 //! It serves also as a common crate.
 pub mod crypto;
+pub mod mask;
 pub mod message;
 pub mod model;
 pub mod protos;

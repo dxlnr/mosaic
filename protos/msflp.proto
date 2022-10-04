@@ -81,11 +81,21 @@ message ClientMessage {
   //
   message ClientDisconnect { Reason reason = 1; }
 
-  // Model Update
+  // ClientUpdate providing a model update.
   //
   message ClientUpdate {
+    // Client Identifier that will be sent additionally to a public key.
+    //
+    // Optional as the pk identifies the client but client_id is more
+    // human readable.
+    uint32 client_id = 1;
+    // The public key of the client.
+    //
+    bytes client_pk = 2;
     // Model represented as a repreated stream of tensors.
-    repeated TensorProto model = 1;
+    //
+    // For more information have a look at `TensorProto`.
+    repeated TensorProto model = 3;
   };
 
   // Client request for the latest global model.

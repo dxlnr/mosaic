@@ -37,7 +37,7 @@ pub enum StateName {
 
 /// A trait that must be implemented by a state in order to perform its tasks and to move to a next state.
 #[async_trait]
-pub trait State<T> {
+pub trait State {
     /// The name of the current state.
     const NAME: StateName;
 
@@ -52,21 +52,21 @@ pub trait State<T> {
 }
 
 #[allow(dead_code)]
-pub struct StateCondition<S, T> {
+pub struct StateCondition<S> {
     /// Private Identifier of the state.
     /// 
     pub(in crate::state_engine) private: S,
     /// [`SharedState`] that the Aggregator holds.
     ///
-    pub(in crate::state_engine) shared: SharedState<T>,
+    pub(in crate::state_engine) shared: SharedState,
 }
 
-impl<S, T> StateCondition<S, T>
+impl<S> StateCondition<S>
 where
-    Self: State<T>,
+    Self: State,
 {
     /// Runs the current State to completion.
-    pub async fn run_state(mut self) -> Option<StateEngine<T>> {
+    pub async fn run_state(mut self) -> Option<StateEngine> {
         info!("Server runs in state: {:?}", &Self::NAME);
         async move {
             if let Err(err) = self.perform().await {
@@ -85,14 +85,14 @@ where
     }
 
     fn into_failure_state(self, err: StateError) -> StateEngine {
-        StateCondition::<Failure, T>::new(err, self.shared).into()
+        StateCondition::<Failure>::new(err, self.shared).into()
     }
 }
 
 /// [`SharedState`]
-pub struct SharedState<T> {
+pub struct SharedState {
     /// [`Aggregator`]
-    pub aggr: Aggregator<T>,
+    pub aggr: Aggregator,
     /// [`RequestReceiver`] for enabling receiving requests from the client.
     /// 
     pub rx: RequestReceiver,
@@ -101,9 +101,9 @@ pub struct SharedState<T> {
     pub publisher: EventPublisher,
 }
 
-impl<T> SharedState<T> {
+impl SharedState {
     /// Init new [`SharedState`] for the aggregation server.
-    pub fn new(aggr: Aggregator<T>, rx: RequestReceiver, publisher: EventPublisher) -> Self {
+    pub fn new(aggr: Aggregator, rx: RequestReceiver, publisher: EventPublisher) -> Self {
         SharedState {
             aggr,
             rx,

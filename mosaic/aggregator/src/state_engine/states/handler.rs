@@ -16,9 +16,9 @@ pub trait StateHandler {
     async fn handle_request(&mut self, req: StateEngineRequest) -> Result<(), RequestError>;
 }
 
-impl<S, T> StateCondition<S, T>
+impl<S> StateCondition<S>
 where
-    Self: State<T> + StateHandler,
+    Self: State + StateHandler,
 {
     /// Processes requests.
     pub async fn process(&mut self) -> Result<(), StateError> {

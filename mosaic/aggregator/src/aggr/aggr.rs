@@ -1,16 +1,16 @@
 use super::buffer::FedBuffer;
 
 #[derive(Clone, Debug)]
-pub struct Aggregator<T> {
+pub struct Aggregator {
     /// Current progress towards an aggregation goal.
     pub round_id: u32,
     /// Hyperparameter comprised in [`AggrParams`].
     pub params: AggrParams,
     /// [`FedBuffer`]
-    pub buffer: FedBuffer<T>,
+    pub buffer: FedBuffer,
 }
 
-impl<T> Aggregator<T> {
+impl Aggregator {
     pub fn new() -> Self {
         Self {
             round_id: 0,

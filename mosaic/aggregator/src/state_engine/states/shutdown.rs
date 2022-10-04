@@ -10,10 +10,7 @@ use crate::state_engine::{
 pub struct Shutdown;
 
 #[async_trait]
-impl<T> State<T> for StateCondition<Shutdown, T> 
-where
-    T: Send,
-{
+impl State for StateCondition<Shutdown> {
     const NAME: StateName = StateName::Shutdown;
 
     async fn perform(&mut self) -> Result<(), StateError> {
@@ -25,8 +22,8 @@ where
     }
 }
 
-impl<T> StateCondition<Shutdown, T> {
-    pub fn new(shared: SharedState<T>) -> Self {
+impl StateCondition<Shutdown> {
+    pub fn new(shared: SharedState) -> Self {
         Self {
             private: Shutdown,
             shared,
