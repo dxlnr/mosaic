@@ -6,7 +6,7 @@ pub mod tensor;
 use crate::model::tensor::Tensor;
 use std::slice::Iter;
 
-use crate::message::grpc::mosaic::protos::TensorProto;
+use crate::protos::mosaic::protos::TensorProto;
 
 /// [`Model`] represents a Machine Learning model, adapted to FL.
 ///

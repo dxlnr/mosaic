@@ -1,8 +1,8 @@
 //! Implements the `Aggregator` as an independent GRPC server application.
 //!
-pub mod msflp {
-    tonic::include_proto!("mosaic.protos");
-}
+// pub mod msflp {
+//     tonic::include_proto!("mosaic.protos");
+// }
 
 use futures::Stream;
 use std::{convert::Infallible, error::Error, io::ErrorKind, pin::Pin};
@@ -14,7 +14,14 @@ use tracing::{info, warn};
 
 use crate::{configs::APISettings, services::messages::MessageHandler};
 
-use msflp::{
+// use msflp::{
+//     msflp_server::{Msflp, MsflpServer},
+//     server_message,
+//     server_message::ServerStatus,
+//     ClientMessage, ServerMessage,
+// };
+
+use mosaic_core::protos::mosaic::protos::{
     msflp_server::{Msflp, MsflpServer},
     server_message,
     server_message::ServerStatus,

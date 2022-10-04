@@ -1,3 +1,5 @@
-pub mod dtype;
-pub mod tensor_shape;
-pub mod tensor;
+pub mod mosaic {
+    pub mod protos {
+        include!("mosaic.protos.rs");
+    }
+}

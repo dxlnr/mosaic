@@ -8,8 +8,8 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     tonic_build::configure()
         .build_server(true)
         .build_client(true)
-        .out_dir(format!("{}/mosaic/core/src/message/grpc/", project_dir))
-        .include_file(format!("{}/mosaic/core/src/message/grpc/mod.rs", project_dir))
+        .out_dir(format!("{}/mosaic/core/src/protos/", project_dir))
+        .include_file(format!("{}/mosaic/core/src/protos/mod.rs", project_dir))
         // .protoc_arg("--experimental_allow_proto3_optional")
         .compile(
             &[

@@ -12,9 +12,7 @@ use std::{
 use thiserror::Error;
 use tokio::sync::{mpsc, oneshot};
 
-use mosaic_core::message::grpc::mosaic::protos::client_message::ClientUpdate;
-// use crate::grpc::msflp::client_message::ClientUpdate;
-// use msflp::client_message::ClientUpdate;
+use mosaic_core::protos::mosaic::protos::client_message::ClientUpdate;
 
 use mosaic_core::{model::Model, crypto::{PublicSigningKey, ByteObject}, mask::MaskSeed};
 

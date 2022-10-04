@@ -6,8 +6,8 @@ use rug::Float;
 // use serde::{Deserialize, Serialize};
 use std::{fmt::Debug, slice::Iter, vec::Vec};
 
-use crate::protos;
-use crate::message::grpc;
+use crate::protos::mosaic::protos;
+// use crate::message::grpc;
 
 /// Derive conversion [`From`] and [`Into`] trait as macro for DataType.
 ///
@@ -84,30 +84,22 @@ impl DataType {
 
     /// Converts [`DataType`] into proto DataType.
     ///
-    fn into_proto(self) -> protos::dtype::DataType {
-        if let Some(d) = protos::dtype::DataType::from_i32(self.into()) {
+    fn into_proto(self) -> protos::DataType {
+        if let Some(d) = protos::DataType::from_i32(self.into()) {
             d
         } else {
             // This is unfortunate, but the protobuf crate doesn't support unrecognized enum values.
             panic!("Unable to convert {} to a protobuf DataType", self);
         }
     }
-
-    fn into_mosaic_proto(self) -> grpc::mosaic::protos::DataType {
-        if let Some(d) = grpc::mosaic::protos::DataType::from_i32(self.into()) {
-            d
-        } else {
-            // This is unfortunate, but the protobuf crate doesn't support unrecognized enum values.
-            panic!("Unable to convert {} to a protobuf DataType", self);
-        }
+    /// Converts [`DataType`] into proto DataType.
+    ///
+    fn into_i32(self) -> i32 {
+        self.into()
     }
     /// Converts proto DataType into [`DataType`].
     ///
-    fn from_proto(proto: protos::dtype::DataType) -> Self {
-        Self::from(proto.value() as i32)
-    }
-
-    fn from_mosaic_proto(proto: grpc::mosaic::protos::DataType) -> Self {
+    fn from_proto(proto: protos::DataType) -> Self {
         Self::from(proto as i32)
     }
 }
@@ -136,30 +128,11 @@ impl TensorShape {
     }
 
     /// Converts [`Tensorshape`] into proto message shape.
-    fn into_proto(self) -> protos::tensor_shape::TensorShape {
+    /// 
+    fn into_proto(mut self) -> protos::TensorShape {
         match self.0 {
             None => {
-                let mut shape = protos::tensor_shape::TensorShape::new();
-                shape.set_unknown_rank(true);
-                shape
-            }
-            Some(v) => {
-                let mut shape = protos::tensor_shape::TensorShape::new();
-                for in_dim in v {
-                    shape.mut_dim().push({
-                        let mut out_dim = protos::tensor_shape::TensorShape_Dim::new();
-                        out_dim.set_size(in_dim.unwrap_or(-1));
-                        out_dim
-                    });
-                }
-                shape
-            }
-        }
-    }
-    fn into_mosaic_proto(mut self) -> grpc::mosaic::protos::TensorShape {
-        match self.0 {
-            None => {
-                grpc::mosaic::protos::TensorShape {
+                protos::TensorShape {
                     dim: Vec::new(),
                     unknown_rank: true,
                 }
@@ -168,13 +141,13 @@ impl TensorShape {
                 let mut shape = Vec::new();
                 for in_dim in v {
                     shape.push({
-                        grpc::mosaic::protos::tensor_shape::Dim {
+                        protos::tensor_shape::Dim {
                             size: in_dim.unwrap_or(-1),
                             name: "".to_string(),
                         }
                     });
                 }
-                grpc::mosaic::protos::TensorShape {
+                protos::TensorShape {
                     dim: shape,
                     unknown_rank: true,
                 }
@@ -182,7 +155,9 @@ impl TensorShape {
         }
     }
 
-    fn from_mosaic_proto(proto: grpc::mosaic::protos::TensorShape) -> Self {
+    /// Converts proto message shape into [`Tensorshape`].
+    /// 
+    fn from_proto(proto: protos::TensorShape) -> Self {
         Self(
             Some(
             proto
@@ -199,27 +174,6 @@ impl TensorShape {
             )
         )
     }
-
-    // /// Converts proto message shape into [`Tensorshape`].
-    // fn from_proto(proto: &protos::tensor_shape::TensorShape) -> Self {
-    //     TensorShape(if proto.get_unknown_rank() {
-    //         None
-    //     } else {
-    //         Some(
-    //             proto
-    //                 .get_dim()
-    //                 .iter()
-    //                 .map(|dim| {
-    //                     if dim.get_size() == -1 {
-    //                         None
-    //                     } else {
-    //                         Some(dim.get_size())
-    //                     }
-    //                 })
-    //                 .collect::<Vec<_>>(),
-    //         )
-    //     })
-    // }
 }
 
 /// An interface to convert a collection of primitive values into an iterator of numerical values.
@@ -351,18 +305,16 @@ impl Tensor {
 }
 
 impl Tensor {
-    fn into_proto(mut self) -> protos::tensor::TensorProto {
-        let mut proto_tensor = protos::tensor::TensorProto::new();
-        proto_tensor.set_tensor_dtype(self.dtype.into_proto());
-        proto_tensor.set_tensor_shape(self.shape.into_proto());
-        proto_tensor.set_tensor_content(self.storage.to_bytes(self.dtype).unwrap());
+    fn into_proto(mut self) -> protos::TensorProto {
+        protos::TensorProto {
+            tensor_dtype: self.dtype.into_i32(),
+            tensor_shape: Some(self.shape.into_proto()),
+            tensor_content: self.storage.to_bytes(self.dtype).unwrap(),
 
-        proto_tensor
+        }
     }
 
-
-
-    pub fn from_proto(_proto_tensor: &grpc::mosaic::protos::TensorProto) -> Self {
+    pub fn from_proto(_proto_tensor: &protos::TensorProto) -> Self {
         todo!()
     }
 }
