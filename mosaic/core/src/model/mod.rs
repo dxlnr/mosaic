@@ -6,6 +6,8 @@ pub mod tensor;
 use crate::model::tensor::Tensor;
 use std::slice::Iter;
 
+use crate::message::grpc::mosaic::protos::TensorProto;
+
 /// [`Model`] represents a Machine Learning model, adapted to FL.
 ///
 #[derive(Debug, Clone, Default)]
@@ -31,5 +33,12 @@ impl Model {
     /// Creates an iterator that yields references to the weights/parameters of this model.
     pub fn iter(&self) -> Iter<Tensor> {
         self.tensors.iter()
+    }
+    /// Instantiate a [`Model`] via repeated [`TensorProto`] objects.
+    /// 
+    pub fn from_proto(proto_tensors: Vec<TensorProto>, model_version: u32) -> Self {
+        let ts = proto_tensors.iter().map(|tp| Tensor::from_proto(tp)).collect();
+
+        Self {tensors: ts, model_version}
     }
 }

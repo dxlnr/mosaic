@@ -1,12 +1,13 @@
 //! Tensor library for Mosaic.
 //!
-use derive_more::{Display, From, Index, IndexMut, Into};
+use derive_more::Display;
 use protobuf::ProtobufEnum;
 use rug::Float;
-use serde::{Deserialize, Serialize};
+// use serde::{Deserialize, Serialize};
 use std::{fmt::Debug, slice::Iter, vec::Vec};
 
 use crate::protos;
+use crate::message::grpc;
 
 /// Derive conversion [`From`] and [`Into`] trait as macro for DataType.
 ///
@@ -91,10 +92,23 @@ impl DataType {
             panic!("Unable to convert {} to a protobuf DataType", self);
         }
     }
+
+    fn into_mosaic_proto(self) -> grpc::mosaic::protos::DataType {
+        if let Some(d) = grpc::mosaic::protos::DataType::from_i32(self.into()) {
+            d
+        } else {
+            // This is unfortunate, but the protobuf crate doesn't support unrecognized enum values.
+            panic!("Unable to convert {} to a protobuf DataType", self);
+        }
+    }
     /// Converts proto DataType into [`DataType`].
     ///
     fn from_proto(proto: protos::dtype::DataType) -> Self {
         Self::from(proto.value() as i32)
+    }
+
+    fn from_mosaic_proto(proto: grpc::mosaic::protos::DataType) -> Self {
+        Self::from(proto as i32)
     }
 }
 
@@ -142,26 +156,70 @@ impl TensorShape {
             }
         }
     }
-    /// Converts proto message shape into [`Tensorshape`].
-    fn from_proto(proto: &protos::tensor_shape::TensorShape) -> Self {
-        TensorShape(if proto.get_unknown_rank() {
-            None
-        } else {
-            Some(
-                proto
-                    .get_dim()
-                    .iter()
-                    .map(|dim| {
-                        if dim.get_size() == -1 {
-                            None
-                        } else {
-                            Some(dim.get_size())
+    fn into_mosaic_proto(mut self) -> grpc::mosaic::protos::TensorShape {
+        match self.0 {
+            None => {
+                grpc::mosaic::protos::TensorShape {
+                    dim: Vec::new(),
+                    unknown_rank: true,
+                }
+            }
+            Some(v) => {
+                let mut shape = Vec::new();
+                for in_dim in v {
+                    shape.push({
+                        grpc::mosaic::protos::tensor_shape::Dim {
+                            size: in_dim.unwrap_or(-1),
+                            name: "".to_string(),
                         }
-                    })
-                    .collect::<Vec<_>>(),
-            )
-        })
+                    });
+                }
+                grpc::mosaic::protos::TensorShape {
+                    dim: shape,
+                    unknown_rank: true,
+                }
+            }
+        }
     }
+
+    fn from_mosaic_proto(proto: grpc::mosaic::protos::TensorShape) -> Self {
+        Self(
+            Some(
+            proto
+                .dim
+                .iter()
+                .map(|dim| {
+                    if dim.size == -1 {
+                        None
+                    } else {
+                        Some(dim.size)
+                    }
+                })
+                .collect::<Vec<_>>(),
+            )
+        )
+    }
+
+    // /// Converts proto message shape into [`Tensorshape`].
+    // fn from_proto(proto: &protos::tensor_shape::TensorShape) -> Self {
+    //     TensorShape(if proto.get_unknown_rank() {
+    //         None
+    //     } else {
+    //         Some(
+    //             proto
+    //                 .get_dim()
+    //                 .iter()
+    //                 .map(|dim| {
+    //                     if dim.get_size() == -1 {
+    //                         None
+    //                     } else {
+    //                         Some(dim.get_size())
+    //                     }
+    //                 })
+    //                 .collect::<Vec<_>>(),
+    //         )
+    //     })
+    // }
 }
 
 /// An interface to convert a collection of primitive values into an iterator of numerical values.
@@ -301,11 +359,17 @@ impl Tensor {
 
         proto_tensor
     }
+
+
+
+    pub fn from_proto(_proto_tensor: &grpc::mosaic::protos::TensorProto) -> Self {
+        todo!()
+    }
 }
 
 #[cfg(test)]
 mod tests {
-    use super::*;
+    // use super::*;
     // use serde::Serializer;
 
     #[test]

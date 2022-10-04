@@ -27,4 +27,8 @@ serde = { version = "1.0.144", features = ["derive"] }
 sodiumoxide = "0.2.7"
 rug = "1.17.0"
 
+# tokio ecosystem
+prost = "0.11.0"
+tonic = "0.8.1"
+
 [build-dependencies]

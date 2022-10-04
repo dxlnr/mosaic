@@ -1,7 +1,8 @@
 use async_trait::async_trait;
 use derive_more::Display;
 use thiserror::Error;
-use tracing::{info, warn};
+use futures::StreamExt;
+use tracing::{debug, info, warn};
 
 use crate::{
     aggr::Aggregator,
@@ -67,21 +68,51 @@ where
 {
     /// Runs the current State to completion.
     pub async fn run_state(mut self) -> Option<StateEngine> {
-        info!("Server runs in state: {:?}", &Self::NAME);
+        info!("Aggregator runs in state: {:?}", &Self::NAME);
+
         async move {
             if let Err(err) = self.perform().await {
-                warn!("server failed to perform task of state {:?}", &Self::NAME);
+                warn!("Aggregator failed to perform task of state {:?}", &Self::NAME);
                 return Some(self.into_failure_state(err));
             }
+
+            self.publish();
+
+            debug!("transitioning to the next state.");
             self.next().await
         }
         .await
     }
-    /// Receives the next ['Request'].
+    /// Receives the next ['StateEngineRequest'].
     pub async fn next_request(
         &mut self,
     ) -> Result<(StateEngineRequest, ResponseSender), StateError> {
-        todo!()
+        debug!("Aggregator waiting for the next incoming request");
+        self.shared
+            .rx
+            .next()
+            .await
+            .ok_or(StateError::RequestChannel(
+                "error when receiving next request.",
+            ))
+    }
+
+    pub fn try_next_request(
+        &mut self,
+    ) -> Result<Option<(StateEngineRequest, ResponseSender)>, StateError> {
+        match self.shared.rx.try_recv() {
+            Some(Some(item)) => Ok(Some(item)),
+            None => {
+                debug!("no pending request");
+                Ok(None)
+            }
+            Some(None) => {
+                warn!("failed to get next pending request: Channel will be shut down.");
+                Err(StateError::RequestChannel(
+                    "all message senders have been dropped!",
+                ))
+            }
+        }
     }
 
     fn into_failure_state(self, err: StateError) -> StateEngine {

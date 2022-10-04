@@ -9,7 +9,7 @@ use std::convert::TryInto;
 
 use derive_more::{AsMut, AsRef, From};
 use serde::{Deserialize, Serialize};
-use sodiumoxide::crypto::{hash::sha256, sign};
+use sodiumoxide::crypto::sign;
 
 use super::ByteObject;
 
@@ -157,6 +157,7 @@ mod manually_derive_serde_for_signature {
     }
 }
 
+#[allow(deprecated)]
 impl ByteObject for Signature {
     const LENGTH: usize = sign::SIGNATUREBYTES;
 

@@ -3,9 +3,8 @@
 //! Uses the [tokio mspc](https://docs.rs/tokio/latest/tokio/sync/mpsc/index.html) module:
 //! A multi-producer, single-consumer queue for sending values across asynchronous tasks.
 //!
-
 use derive_more::{Display, From};
-use futures::Stream;
+use futures::{future::FutureExt, Stream};
 use std::{
     pin::Pin,
     task::{Context, Poll},
@@ -13,7 +12,11 @@ use std::{
 use thiserror::Error;
 use tokio::sync::{mpsc, oneshot};
 
-use mosaic_core::{model::Model, crypto::PublicSigningKey, mask::MaskSeed};
+use mosaic_core::message::grpc::mosaic::protos::client_message::ClientUpdate;
+// use crate::grpc::msflp::client_message::ClientUpdate;
+// use msflp::client_message::ClientUpdate;
+
+use mosaic_core::{model::Model, crypto::{PublicSigningKey, ByteObject}, mask::MaskSeed};
 
 /// Errors which can occur while the state engine handles a request.
 #[derive(Debug, Display, Error)]
@@ -22,6 +25,9 @@ pub enum RequestError {
     InternalError(&'static str),
     /// The message was rejected.
     MessageRejected,
+    /// The request will be discarded due to an error: {0}.
+    RequestDiscarded(&'static str),
+
 }
 
 #[derive(Debug)]
@@ -29,12 +35,22 @@ pub struct StateEngineRequest {
     /// The Client Identifier.
     pub client_id: Option<u32>,
     /// The public key of the client.
-    pub client_pk: PublicSigningKey,
+    pub client_pk: Option<PublicSigningKey>,
     /// The local seed defines the seed used to mask `masked_model`.
     pub local_seed: Option<MaskSeed>,
     /// The masked model trained by the participant.
     pub model: Model,
 }
+
+impl From<ClientUpdate> for StateEngineRequest {
+    fn from(client_update: ClientUpdate) -> StateEngineRequest  {
+        let c_pk = PublicSigningKey::from_slice(&client_update.client_pk);
+        let m_seed = MaskSeed::from_slice(&client_update.local_seed);
+        let c_model = Model::from_proto(client_update.model, client_update.model_version);
+        StateEngineRequest { client_id: Some(client_update.client_id), client_pk: c_pk, local_seed: m_seed, model: c_model}
+    }
+}
+
 
 #[derive(Clone, From, Debug)]
 /// A handle to send requests to the ['StateEngine'].
@@ -72,14 +88,24 @@ impl Stream for RequestReceiver {
 }
 
 impl RequestReceiver {
-    pub fn recv(&mut self) {
-        todo!()
+    /// Receives the next request.
+    /// See [the `tokio` documentation][receive] for more information.
+    ///
+    /// [receive]: https://docs.rs/tokio/latest/tokio/sync/mpsc/struct.UnboundedReceiver.html#method.recv
+    pub async fn recv(&mut self) -> Option<(StateEngineRequest, ResponseSender)> {
+        self.0.recv().await
     }
 
-    pub fn try_recv(&mut self) -> Option<()> {
-        todo!()
+    /// Try to retrieve the next request without blocking.
+    /// 
+    pub fn try_recv(&mut self) -> Option<Option<(StateEngineRequest, ResponseSender)>> {
+        self.0.recv().now_or_never()
     }
+
     /// Closes the [`RequestReceiver`] channel.
+    /// See [the `tokio` documentation][close] for more information.
+    ///
+    /// [close]: https://docs.rs/tokio/latest/tokio/sync/mpsc/struct.UnboundedReceiver.html#method.close
     pub fn close(&mut self) {
         self.0.close()
     }

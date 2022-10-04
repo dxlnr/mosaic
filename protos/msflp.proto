@@ -92,10 +92,17 @@ message ClientMessage {
     // The public key of the client.
     //
     bytes client_pk = 2;
+    // Seed that is used to mask the model.
+    // 
+    // Is optional as masking the model is optional.
+    bytes local_seed = 3;
     // Model represented as a repreated stream of tensors.
     //
     // For more information have a look at `TensorProto`.
-    repeated TensorProto model = 3;
+    repeated TensorProto model = 4;
+    // Model version represents the update round it was trained for.
+    //
+    uint32 model_version = 5;
   };
 
   // Client request for the latest global model.
