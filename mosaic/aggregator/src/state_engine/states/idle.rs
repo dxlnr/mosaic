@@ -18,7 +18,13 @@ impl State for StateCondition<Idle> {
     const NAME: StateName = StateName::Idle;
 
     async fn perform(&mut self) -> Result<(), StateError> {
+        self.publish();
+        
         Ok(())
+    }
+
+    fn publish(&mut self) {
+        self.shared.publisher.publish_state(Self::NAME);
     }
 
     async fn next(self) -> Option<StateEngine> {

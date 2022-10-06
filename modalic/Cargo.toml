@@ -1,0 +1,10 @@
+[workspace]
+members = [
+  "aggregator",
+  # "coordinator",
+  "core",
+  "selector",
+  # "server",
+]
+
+[workspace.metadata]

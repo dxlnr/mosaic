@@ -40,7 +40,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     init_logging(logging);
 
-    let (engine, _tx) = StateEngineInitializer::new().init().await?;
+    let (engine, _tx, _rx) = StateEngineInitializer::new().init().await?;
 
     tokio::select! {
         biased;

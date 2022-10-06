@@ -9,7 +9,7 @@ use crate::{
     state_engine::{
         channel::{RequestReceiver, RequestSender},
         event::{EventPublisher, EventSubscriber},
-        states::{Idle, SharedState, StateCondition},
+        states::{Idle, SharedState, StateCondition, StateName},
         StateEngine,
     },
 };
@@ -35,9 +35,8 @@ impl StateEngineInitializer {
     /// Initializes the [`StateEngine`] and the communication handlers.
     pub async fn init(
         self,
-        // ) -> Result<(StateEngine, RequestSender, EventSubscriber), StateEngineInitError> {
-    ) -> Result<(StateEngine, RequestSender), StateEngineInitError> {
-        let (publisher, _subscriber) = EventPublisher::new();
+        ) -> Result<(StateEngine, RequestSender, EventSubscriber), StateEngineInitError> {
+        let (publisher, subscriber) = EventPublisher::new(0, StateName::Idle);
         let (rx, tx) = RequestSender::new();
 
         let shared = SharedState::new(Aggregator::new(), rx, publisher);
@@ -45,7 +44,7 @@ impl StateEngineInitializer {
         Ok((
             StateEngine::Idle(StateCondition::<Idle>::new(shared)),
             tx,
-            // subscriber,
+            subscriber,
         ))
     }
 
