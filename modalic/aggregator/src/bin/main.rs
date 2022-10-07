@@ -1,22 +1,27 @@
-use std::{path::PathBuf, process};
+use std::{path::PathBuf, process, sync::WaitTimeoutResult};
 
+use ::redis::RedisError;
 use structopt::StructOpt;
 use tokio::signal;
-use tracing::warn;
+use tracing::{debug, warn};
 use tracing_subscriber::*;
 
 #[cfg(feature = "metrics")]
-use xaynet_server::{metrics, settings::InfluxSettings};
+use aggregator::{metrics, settings::InfluxSettings};
 
 use aggregator::{
     rest::{serve, RestError},
     services,
     settings::{LoggingSettings, RedisSettings, Settings},
     state_engine::init::StateEngineInitializer,
-    storage::{coordinator_storage::redis, Storage, Store},
+    storage::{Storage, Store},
 };
+
+#[cfg(feature = "redis")]
+use aggregator::storage::aggr_storage::redis;
+
 #[cfg(feature = "model-persistence")]
-use xaynet_server::{settings::S3Settings, storage::model_storage::s3};
+use aggregator::{settings::S3Settings, storage::model_storage::s3};
 
 #[derive(Debug, StructOpt)]
 #[structopt(name = "Aggregator")]
@@ -120,14 +125,37 @@ async fn init_store(
     redis_settings: RedisSettings,
     #[cfg(feature = "model-persistence")] s3_settings: S3Settings,
 ) -> impl Storage {
-    let coordinator_store = redis::Client::new(redis_settings.url)
-        .await
-        .expect("failed to establish a connection to Redis");
+    // let aggregator_store = redis::Client::new(redis_settings.url)
+    //     .await
+    //     .expect("failed to establish a connection to Redis");
+
+    let aggregator_store = {
+        #[cfg(not(feature = "redis"))]
+        {
+            aggregator::storage::aggr_storage::noop::AggrNoOp
+        }
+
+        #[cfg(feature = "redis")]
+        {
+            let aggregator_store = redis::Client::new(redis_settings.url)
+                .await
+                .expect("failed to establish a connection to Redis");
+            aggregator_store
+        }
+    };
+
+    // let aggregator_store = redis::Client::new(redis_settings.url)
+    //     .await
+    //     .ok();
+
+    // if aggregator_store.is_none() {
+    //     warn!("Unable to establish connection to Redis. Learning proceeds without in-memory data storage.")
+    // }
 
     let model_store = {
         #[cfg(not(feature = "model-persistence"))]
         {
-            aggregator::storage::model_storage::noop::NoOp
+            aggregator::storage::model_storage::noop::ModelNoOp
         }
 
         #[cfg(feature = "model-persistence")]
@@ -140,5 +168,5 @@ async fn init_store(
         }
     };
 
-    Store::new(coordinator_store, model_store)
+    Store::new(aggregator_store, model_store)
 }

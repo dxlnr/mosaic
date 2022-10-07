@@ -49,51 +49,51 @@ where
     /// - If a state exists, return `StorageResult::Ok(Some(Aggregator))`.
     async fn coordinator_state(&mut self) -> StorageResult<Option<Aggregator>>;
 
-    /// Adds a sum participant entry to the [`SumDict`].
-    ///
-    /// # Behavior
-    ///
-    /// - If a sum participant has been successfully added, return `StorageResult::Ok(SumPartAdd)`
-    ///   containing a `Result::Ok(())`.
-    /// - If the participant could not be added due to a PET protocol error, return
-    ///   the corresponding `StorageResult::Ok(SumPartAdd)` containing a
-    ///   `Result::Err(SumPartAddError)`.
-    async fn add_sum_participant(
-        &mut self,
-        pk: &SumParticipantPublicKey,
-        ephm_pk: &SumParticipantEphemeralPublicKey,
-    ) -> StorageResult<SumPartAdd>;
+    // /// Adds a sum participant entry to the [`SumDict`].
+    // ///
+    // /// # Behavior
+    // ///
+    // /// - If a sum participant has been successfully added, return `StorageResult::Ok(SumPartAdd)`
+    // ///   containing a `Result::Ok(())`.
+    // /// - If the participant could not be added due to a PET protocol error, return
+    // ///   the corresponding `StorageResult::Ok(SumPartAdd)` containing a
+    // ///   `Result::Err(SumPartAddError)`.
+    // async fn add_sum_participant(
+    //     &mut self,
+    //     pk: &SumParticipantPublicKey,
+    //     ephm_pk: &SumParticipantEphemeralPublicKey,
+    // ) -> StorageResult<SumPartAdd>;
 
-    /// Returns the [`SumDict`].
-    ///
-    /// # Behavior
-    ///
-    /// - If the sum dict does not exist, return `StorageResult::Ok(Option::None)`.
-    /// - If the sum dict exists, return `StorageResult::Ok(Option::Some(SumDict))`.
-    async fn sum_dict(&mut self) -> StorageResult<Option<SumDict>>;
+    // /// Returns the [`SumDict`].
+    // ///
+    // /// # Behavior
+    // ///
+    // /// - If the sum dict does not exist, return `StorageResult::Ok(Option::None)`.
+    // /// - If the sum dict exists, return `StorageResult::Ok(Option::Some(SumDict))`.
+    // async fn sum_dict(&mut self) -> StorageResult<Option<SumDict>>;
 
-    /// Adds a local [`LocalSeedDict`] of the given [`UpdateParticipantPublicKey`] to the [`SeedDict`].
-    ///
-    /// # Behavior
-    ///
-    /// - If the local seed dict has been successfully added, return
-    ///   `StorageResult::Ok(LocalSeedDictAdd)` containing a `Result::Ok(())`.
-    /// - If the local seed dict could not be added due to a PET protocol error, return
-    ///   the corresponding `StorageResult::Ok(LocalSeedDictAdd)` containing a
-    ///   `Result::Err(LocalSeedDictAddError)`.
-    async fn add_local_seed_dict(
-        &mut self,
-        update_pk: &UpdateParticipantPublicKey,
-        local_seed_dict: &LocalSeedDict,
-    ) -> StorageResult<LocalSeedDictAdd>;
+    // /// Adds a local [`LocalSeedDict`] of the given [`UpdateParticipantPublicKey`] to the [`SeedDict`].
+    // ///
+    // /// # Behavior
+    // ///
+    // /// - If the local seed dict has been successfully added, return
+    // ///   `StorageResult::Ok(LocalSeedDictAdd)` containing a `Result::Ok(())`.
+    // /// - If the local seed dict could not be added due to a PET protocol error, return
+    // ///   the corresponding `StorageResult::Ok(LocalSeedDictAdd)` containing a
+    // ///   `Result::Err(LocalSeedDictAddError)`.
+    // async fn add_local_seed_dict(
+    //     &mut self,
+    //     update_pk: &UpdateParticipantPublicKey,
+    //     local_seed_dict: &LocalSeedDict,
+    // ) -> StorageResult<LocalSeedDictAdd>;
 
-    /// Returns the [`SeedDict`].
-    ///
-    /// # Behavior
-    ///
-    /// - If the seed dict does not exist, return `StorageResult::Ok(Option::None)`.
-    /// - If the seed dict exists, return `StorageResult::Ok(Option::Some(SeedDict))`.
-    async fn seed_dict(&mut self) -> StorageResult<Option<SeedDict>>;
+    // /// Returns the [`SeedDict`].
+    // ///
+    // /// # Behavior
+    // ///
+    // /// - If the seed dict does not exist, return `StorageResult::Ok(Option::None)`.
+    // /// - If the seed dict exists, return `StorageResult::Ok(Option::Some(SeedDict))`.
+    // async fn seed_dict(&mut self) -> StorageResult<Option<SeedDict>>;
 
     /// Increments the mask score with the given [`MaskObject`]b by one.
     ///
@@ -104,27 +104,27 @@ where
     /// - If the mask score could not be incremented due to a PET protocol error,
     ///   return the corresponding `Result::Ok(MaskScoreIncr)` containing a
     ///   `Result::Err(MaskScoreIncrError)`.
-    async fn incr_mask_score(
-        &mut self,
-        pk: &SumParticipantPublicKey,
-        mask: &MaskObject,
-    ) -> StorageResult<MaskScoreIncr>;
+    // async fn incr_mask_score(
+    //     &mut self,
+    //     pk: &SumParticipantPublicKey,
+    //     mask: &MaskObject,
+    // ) -> StorageResult<MaskScoreIncr>;
 
-    /// Returns the two masks with the highest score.
-    ///
-    /// # Behavior
-    ///
-    /// - If no masks exist, return `Result::Ok(Option::None)`.
-    /// - If only one mask exists, return this mask
-    ///   `StorageResult::Ok(Option::Some(Vec<(MaskObject, u64)>))`.
-    /// - If two masks exist with the same score, return both
-    ///   `StorageResult::Ok(Option::Some(Vec<(MaskObject, u64)>))`.
-    /// - If two masks exist with the different score, return
-    ///   both in descending order `StorageResult::Ok(Option::Some(Vec<(MaskObject, u64)>))`.
-    async fn best_masks(&mut self) -> StorageResult<Option<Vec<(MaskObject, u64)>>>;
+    // /// Returns the two masks with the highest score.
+    // ///
+    // /// # Behavior
+    // ///
+    // /// - If no masks exist, return `Result::Ok(Option::None)`.
+    // /// - If only one mask exists, return this mask
+    // ///   `StorageResult::Ok(Option::Some(Vec<(MaskObject, u64)>))`.
+    // /// - If two masks exist with the same score, return both
+    // ///   `StorageResult::Ok(Option::Some(Vec<(MaskObject, u64)>))`.
+    // /// - If two masks exist with the different score, return
+    // ///   both in descending order `StorageResult::Ok(Option::Some(Vec<(MaskObject, u64)>))`.
+    // async fn best_masks(&mut self) -> StorageResult<Option<Vec<(MaskObject, u64)>>>;
 
-    /// Returns the number of unique masks.
-    async fn number_of_unique_masks(&mut self) -> StorageResult<u64>;
+    // /// Returns the number of unique masks.
+    // async fn number_of_unique_masks(&mut self) -> StorageResult<u64>;
 
     /// Deletes all coordinator data. This includes the coordinator
     /// state as well as the [`SumDict`], [`SeedDict`] and `mask` dictionary.

@@ -161,224 +161,224 @@ impl AggregatorStorage for Client {
             .map_err(to_storage_err)
     }
 
-    async fn add_sum_participant(
-        &mut self,
-        pk: &SumParticipantPublicKey,
-        ephm_pk: &SumParticipantEphemeralPublicKey,
-    ) -> StorageResult<SumPartAdd> {
-        debug!("add sum participant with pk {:?}", pk);
-        // https://redis.io/commands/hsetnx
-        // > If field already exists, this operation has no effect.
-        // > Return value
-        //   Integer reply, specifically:
-        //   1 if field is a new field in the hash and value was set.
-        //   0 if field already exists in the hash and no operation was performed.
-        self.connection
-            .hset_nx(
-                "sum_dict",
-                PublicSigningKeyWrite::from(pk),
-                PublicEncryptKeyWrite::from(ephm_pk),
-            )
-            .await
-            .map_err(to_storage_err)
-    }
+    // async fn add_sum_participant(
+    //     &mut self,
+    //     pk: &SumParticipantPublicKey,
+    //     ephm_pk: &SumParticipantEphemeralPublicKey,
+    // ) -> StorageResult<SumPartAdd> {
+    //     debug!("add sum participant with pk {:?}", pk);
+    //     // https://redis.io/commands/hsetnx
+    //     // > If field already exists, this operation has no effect.
+    //     // > Return value
+    //     //   Integer reply, specifically:
+    //     //   1 if field is a new field in the hash and value was set.
+    //     //   0 if field already exists in the hash and no operation was performed.
+    //     self.connection
+    //         .hset_nx(
+    //             "sum_dict",
+    //             PublicSigningKeyWrite::from(pk),
+    //             PublicEncryptKeyWrite::from(ephm_pk),
+    //         )
+    //         .await
+    //         .map_err(to_storage_err)
+    // }
 
-    async fn sum_dict(&mut self) -> StorageResult<Option<SumDict>> {
-        debug!("get sum dictionary");
-        // https://redis.io/commands/hgetall
-        // > Return value
-        //   Array reply: list of fields and their values stored in the hash, or an empty
-        //   list when key does not exist.
-        let reply: Vec<(PublicSigningKeyRead, PublicEncryptKeyRead)> = self
-            .connection
-            .hgetall("sum_dict")
-            .await
-            .map_err(to_storage_err)?;
+    // async fn sum_dict(&mut self) -> StorageResult<Option<SumDict>> {
+    //     debug!("get sum dictionary");
+    //     // https://redis.io/commands/hgetall
+    //     // > Return value
+    //     //   Array reply: list of fields and their values stored in the hash, or an empty
+    //     //   list when key does not exist.
+    //     let reply: Vec<(PublicSigningKeyRead, PublicEncryptKeyRead)> = self
+    //         .connection
+    //         .hgetall("sum_dict")
+    //         .await
+    //         .map_err(to_storage_err)?;
 
-        if reply.is_empty() {
-            return Ok(None);
-        };
+    //     if reply.is_empty() {
+    //         return Ok(None);
+    //     };
 
-        let sum_dict = reply
-            .into_iter()
-            .map(|(pk, ephm_pk)| (pk.into(), ephm_pk.into()))
-            .collect();
+    //     let sum_dict = reply
+    //         .into_iter()
+    //         .map(|(pk, ephm_pk)| (pk.into(), ephm_pk.into()))
+    //         .collect();
 
-        Ok(Some(sum_dict))
-    }
+    //     Ok(Some(sum_dict))
+    // }
 
-    async fn add_local_seed_dict(
-        &mut self,
-        update_pk: &UpdateParticipantPublicKey,
-        local_seed_dict: &LocalSeedDict,
-    ) -> StorageResult<LocalSeedDictAdd> {
-        debug!(
-            "update seed dictionary for update participant with pk {:?}",
-            update_pk
-        );
-        let script = Script::new(
-            r#"
-                -- lua lists (tables) start at 1
-                local update_pk = ARGV[1]
+    // async fn add_local_seed_dict(
+    //     &mut self,
+    //     update_pk: &UpdateParticipantPublicKey,
+    //     local_seed_dict: &LocalSeedDict,
+    // ) -> StorageResult<LocalSeedDictAdd> {
+    //     debug!(
+    //         "update seed dictionary for update participant with pk {:?}",
+    //         update_pk
+    //     );
+    //     let script = Script::new(
+    //         r#"
+    //             -- lua lists (tables) start at 1
+    //             local update_pk = ARGV[1]
 
-                -- check if the local seed dict has the same length as the sum_dict
+    //             -- check if the local seed dict has the same length as the sum_dict
 
-                -- KEYS is a list (table) of key value pairs ([sum_pk_1, seed_1, sum_pk_2, seed_2, ...])
-                local seed_dict_len = #KEYS / 2
-                local sum_dict_len = redis.call("HLEN", "sum_dict")
-                if seed_dict_len ~= sum_dict_len then
-                    return -1
-                end
+    //             -- KEYS is a list (table) of key value pairs ([sum_pk_1, seed_1, sum_pk_2, seed_2, ...])
+    //             local seed_dict_len = #KEYS / 2
+    //             local sum_dict_len = redis.call("HLEN", "sum_dict")
+    //             if seed_dict_len ~= sum_dict_len then
+    //                 return -1
+    //             end
 
-                -- check if all pks of the local seed dict exists in sum_dict
-                for i = 1, #KEYS, 2 do
-                    local exist_in_sum_dict = redis.call("HEXISTS", "sum_dict", KEYS[i])
-                    if exist_in_sum_dict == 0 then
-                        return -2
-                    end
-                end
+    //             -- check if all pks of the local seed dict exists in sum_dict
+    //             for i = 1, #KEYS, 2 do
+    //                 local exist_in_sum_dict = redis.call("HEXISTS", "sum_dict", KEYS[i])
+    //                 if exist_in_sum_dict == 0 then
+    //                     return -2
+    //                 end
+    //             end
 
-                -- check if the update pk already exists (i.e. the local seed dict has already been submitted)
-                local exist_in_seed_dict = redis.call("SADD", "update_participants", update_pk)
-                -- SADD returns 0 if the key already exists
-                if exist_in_seed_dict == 0 then
-                    return -3
-                end
+    //             -- check if the update pk already exists (i.e. the local seed dict has already been submitted)
+    //             local exist_in_seed_dict = redis.call("SADD", "update_participants", update_pk)
+    //             -- SADD returns 0 if the key already exists
+    //             if exist_in_seed_dict == 0 then
+    //                 return -3
+    //             end
 
-                -- update the seed dict
-                for i = 1, #KEYS, 2 do
-                    local exist_in_update_seed_dict = redis.call("HSETNX", KEYS[i], update_pk, KEYS[i + 1])
-                    -- HSETNX returns 0 if the update pk already exists
-                    if exist_in_update_seed_dict == 0 then
-                        -- This condition should never apply.
-                        -- If this condition is true, it is an indication that the data in redis is corrupted.
-                        return -4
-                    end
-                end
+    //             -- update the seed dict
+    //             for i = 1, #KEYS, 2 do
+    //                 local exist_in_update_seed_dict = redis.call("HSETNX", KEYS[i], update_pk, KEYS[i + 1])
+    //                 -- HSETNX returns 0 if the update pk already exists
+    //                 if exist_in_update_seed_dict == 0 then
+    //                     -- This condition should never apply.
+    //                     -- If this condition is true, it is an indication that the data in redis is corrupted.
+    //                     return -4
+    //                 end
+    //             end
 
-                return 0
-            "#,
-        );
+    //             return 0
+    //         "#,
+    //     );
 
-        script
-            .key(LocalSeedDictWrite::from(local_seed_dict))
-            .arg(PublicSigningKeyWrite::from(update_pk))
-            .invoke_async(&mut self.connection)
-            .await
-            .map_err(to_storage_err)
-    }
+    //     script
+    //         .key(LocalSeedDictWrite::from(local_seed_dict))
+    //         .arg(PublicSigningKeyWrite::from(update_pk))
+    //         .invoke_async(&mut self.connection)
+    //         .await
+    //         .map_err(to_storage_err)
+    // }
 
-    /// # Note
-    /// This method is **not** an atomic operation.
-    async fn seed_dict(&mut self) -> StorageResult<Option<SeedDict>> {
-        debug!("get seed dictionary");
-        // https://redis.io/commands/hkeys
-        // > Return value:
-        //   Array reply: list of fields in the hash, or an empty list when key does not exist.
-        let sum_pks: Vec<PublicSigningKeyRead> = self.connection.hkeys("sum_dict").await?;
+    // /// # Note
+    // /// This method is **not** an atomic operation.
+    // async fn seed_dict(&mut self) -> StorageResult<Option<SeedDict>> {
+    //     debug!("get seed dictionary");
+    //     // https://redis.io/commands/hkeys
+    //     // > Return value:
+    //     //   Array reply: list of fields in the hash, or an empty list when key does not exist.
+    //     let sum_pks: Vec<PublicSigningKeyRead> = self.connection.hkeys("sum_dict").await?;
 
-        if sum_pks.is_empty() {
-            return Ok(None);
-        };
+    //     if sum_pks.is_empty() {
+    //         return Ok(None);
+    //     };
 
-        let mut seed_dict: SeedDict = SeedDict::new();
-        for sum_pk in sum_pks {
-            // https://redis.io/commands/hgetall
-            // > Return value
-            //   Array reply: list of fields and their values stored in the hash, or an empty
-            //   list when key does not exist.
-            let sum_pk_seed_dict: HashMap<PublicSigningKeyRead, EncryptedMaskSeedRead> =
-                self.connection.hgetall(&sum_pk).await?;
-            seed_dict.insert(
-                sum_pk.into(),
-                sum_pk_seed_dict
-                    .into_iter()
-                    .map(|(pk, seed)| (pk.into(), seed.into()))
-                    .collect(),
-            );
-        }
+    //     let mut seed_dict: SeedDict = SeedDict::new();
+    //     for sum_pk in sum_pks {
+    //         // https://redis.io/commands/hgetall
+    //         // > Return value
+    //         //   Array reply: list of fields and their values stored in the hash, or an empty
+    //         //   list when key does not exist.
+    //         let sum_pk_seed_dict: HashMap<PublicSigningKeyRead, EncryptedMaskSeedRead> =
+    //             self.connection.hgetall(&sum_pk).await?;
+    //         seed_dict.insert(
+    //             sum_pk.into(),
+    //             sum_pk_seed_dict
+    //                 .into_iter()
+    //                 .map(|(pk, seed)| (pk.into(), seed.into()))
+    //                 .collect(),
+    //         );
+    //     }
 
-        Ok(Some(seed_dict))
-    }
+    //     Ok(Some(seed_dict))
+    // }
 
-    /// The maximum length of a serialized mask is 512 Megabytes.
-    async fn incr_mask_score(
-        &mut self,
-        sum_pk: &SumParticipantPublicKey,
-        mask: &MaskObject,
-    ) -> StorageResult<MaskScoreIncr> {
-        debug!("increment mask count");
-        let script = Script::new(
-            r#"
-                -- lua lists (tables) start at 1
-                local sum_pk = ARGV[1]
+    // /// The maximum length of a serialized mask is 512 Megabytes.
+    // async fn incr_mask_score(
+    //     &mut self,
+    //     sum_pk: &SumParticipantPublicKey,
+    //     mask: &MaskObject,
+    // ) -> StorageResult<MaskScoreIncr> {
+    //     debug!("increment mask count");
+    //     let script = Script::new(
+    //         r#"
+    //             -- lua lists (tables) start at 1
+    //             local sum_pk = ARGV[1]
 
-                -- check if the client participated in sum phase
-                --
-                -- Note: we cannot delete the sum_pk in the sum_dict because we
-                -- need the sum_dict later to delete the seed_dict
-                local sum_pk_exist = redis.call("HEXISTS", "sum_dict", sum_pk)
-                if sum_pk_exist == 0 then
-                    return -1
-                end
+    //             -- check if the client participated in sum phase
+    //             --
+    //             -- Note: we cannot delete the sum_pk in the sum_dict because we
+    //             -- need the sum_dict later to delete the seed_dict
+    //             local sum_pk_exist = redis.call("HEXISTS", "sum_dict", sum_pk)
+    //             if sum_pk_exist == 0 then
+    //                 return -1
+    //             end
 
-                -- check if sum participant has not already submitted a mask
-                local mask_already_submitted = redis.call("SADD", "mask_submitted", sum_pk)
-                -- SADD returns 0 if the key already exists
-                if mask_already_submitted == 0 then
-                    return -2
-                end
+    //             -- check if sum participant has not already submitted a mask
+    //             local mask_already_submitted = redis.call("SADD", "mask_submitted", sum_pk)
+    //             -- SADD returns 0 if the key already exists
+    //             if mask_already_submitted == 0 then
+    //                 return -2
+    //             end
 
-                redis.call("ZINCRBY", "mask_dict", 1, KEYS[1])
+    //             redis.call("ZINCRBY", "mask_dict", 1, KEYS[1])
 
-                return 0
-            "#,
-        );
+    //             return 0
+    //         "#,
+    //     );
 
-        script
-            .key(MaskObjectWrite::from(mask))
-            .arg(PublicSigningKeyWrite::from(sum_pk))
-            .invoke_async(&mut self.connection)
-            .await
-            .map_err(to_storage_err)
-    }
+    //     script
+    //         .key(MaskObjectWrite::from(mask))
+    //         .arg(PublicSigningKeyWrite::from(sum_pk))
+    //         .invoke_async(&mut self.connection)
+    //         .await
+    //         .map_err(to_storage_err)
+    // }
 
-    async fn best_masks(&mut self) -> StorageResult<Option<Vec<(MaskObject, u64)>>> {
-        debug!("get best masks");
-        // https://redis.io/commands/zrevrangebyscore
-        // > Return value:
-        //   Array reply: list of elements in the specified range (optionally with their scores,
-        //   in case the WITHSCORES option is given).
-        let reply: Vec<(MaskObjectRead, u64)> = self
-            .connection
-            .zrevrange_withscores("mask_dict", 0, 1)
-            .await?;
+    // async fn best_masks(&mut self) -> StorageResult<Option<Vec<(MaskObject, u64)>>> {
+    //     debug!("get best masks");
+    //     // https://redis.io/commands/zrevrangebyscore
+    //     // > Return value:
+    //     //   Array reply: list of elements in the specified range (optionally with their scores,
+    //     //   in case the WITHSCORES option is given).
+    //     let reply: Vec<(MaskObjectRead, u64)> = self
+    //         .connection
+    //         .zrevrange_withscores("mask_dict", 0, 1)
+    //         .await?;
 
-        let result = match reply.is_empty() {
-            true => None,
-            _ => {
-                let masks = reply
-                    .into_iter()
-                    .map(|(mask, count)| (mask.into(), count))
-                    .collect();
+    //     let result = match reply.is_empty() {
+    //         true => None,
+    //         _ => {
+    //             let masks = reply
+    //                 .into_iter()
+    //                 .map(|(mask, count)| (mask.into(), count))
+    //                 .collect();
 
-                Some(masks)
-            }
-        };
+    //             Some(masks)
+    //         }
+    //     };
 
-        Ok(result)
-    }
+    //     Ok(result)
+    // }
 
-    async fn number_of_unique_masks(&mut self) -> StorageResult<u64> {
-        debug!("get number of unique masks");
-        // https://redis.io/commands/zcount
-        // > Return value:
-        //   Integer reply: the number of elements in the specified score range.
-        self.connection
-            .zcount("mask_dict", "-inf", "+inf")
-            .await
-            .map_err(to_storage_err)
-    }
+    // async fn number_of_unique_masks(&mut self) -> StorageResult<u64> {
+    //     debug!("get number of unique masks");
+    //     // https://redis.io/commands/zcount
+    //     // > Return value:
+    //     //   Integer reply: the number of elements in the specified score range.
+    //     self.connection
+    //         .zcount("mask_dict", "-inf", "+inf")
+    //         .await
+    //         .map_err(to_storage_err)
+    // }
 
     /// # Note
     /// This method is **not** an atomic operation.

@@ -5,10 +5,10 @@ use async_trait::async_trait;
 use modalic_core::{common::RoundSeed, mask::Model};
 
 #[derive(Clone)]
-pub struct NoOp;
+pub struct ModelNoOp;
 
 #[async_trait]
-impl ModelStorage for NoOp {
+impl ModelStorage for ModelNoOp {
     async fn set_global_model(
         &mut self,
         round_id: u64,

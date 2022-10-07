@@ -95,7 +95,7 @@ impl Settings {
         Config::builder()
             .set_default(
                 "api.bind_address",
-                ValueKind::String("127.0.0.1:8081".to_string()),
+                ValueKind::String("127.0.0.1:8080".to_string()),
             )
             .unwrap_or_default()
             .set_default(

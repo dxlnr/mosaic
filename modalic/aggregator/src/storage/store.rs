@@ -90,47 +90,47 @@ where
         self.coordinator.coordinator_state().await
     }
 
-    async fn add_sum_participant(
-        &mut self,
-        pk: &SumParticipantPublicKey,
-        ephm_pk: &SumParticipantEphemeralPublicKey,
-    ) -> StorageResult<SumPartAdd> {
-        self.coordinator.add_sum_participant(pk, ephm_pk).await
-    }
+    // async fn add_sum_participant(
+    //     &mut self,
+    //     pk: &SumParticipantPublicKey,
+    //     ephm_pk: &SumParticipantEphemeralPublicKey,
+    // ) -> StorageResult<SumPartAdd> {
+    //     self.coordinator.add_sum_participant(pk, ephm_pk).await
+    // }
 
-    async fn sum_dict(&mut self) -> StorageResult<Option<SumDict>> {
-        self.coordinator.sum_dict().await
-    }
+    // async fn sum_dict(&mut self) -> StorageResult<Option<SumDict>> {
+    //     self.coordinator.sum_dict().await
+    // }
 
-    async fn add_local_seed_dict(
-        &mut self,
-        update_pk: &UpdateParticipantPublicKey,
-        local_seed_dict: &LocalSeedDict,
-    ) -> StorageResult<LocalSeedDictAdd> {
-        self.coordinator
-            .add_local_seed_dict(update_pk, local_seed_dict)
-            .await
-    }
+    // async fn add_local_seed_dict(
+    //     &mut self,
+    //     update_pk: &UpdateParticipantPublicKey,
+    //     local_seed_dict: &LocalSeedDict,
+    // ) -> StorageResult<LocalSeedDictAdd> {
+    //     self.coordinator
+    //         .add_local_seed_dict(update_pk, local_seed_dict)
+    //         .await
+    // }
 
-    async fn seed_dict(&mut self) -> StorageResult<Option<SeedDict>> {
-        self.coordinator.seed_dict().await
-    }
+    // async fn seed_dict(&mut self) -> StorageResult<Option<SeedDict>> {
+    //     self.coordinator.seed_dict().await
+    // }
 
-    async fn incr_mask_score(
-        &mut self,
-        pk: &SumParticipantPublicKey,
-        mask: &MaskObject,
-    ) -> StorageResult<MaskScoreIncr> {
-        self.coordinator.incr_mask_score(pk, mask).await
-    }
+    // async fn incr_mask_score(
+    //     &mut self,
+    //     pk: &SumParticipantPublicKey,
+    //     mask: &MaskObject,
+    // ) -> StorageResult<MaskScoreIncr> {
+    //     self.coordinator.incr_mask_score(pk, mask).await
+    // }
 
-    async fn best_masks(&mut self) -> StorageResult<Option<Vec<(MaskObject, u64)>>> {
-        self.coordinator.best_masks().await
-    }
+    // async fn best_masks(&mut self) -> StorageResult<Option<Vec<(MaskObject, u64)>>> {
+    //     self.coordinator.best_masks().await
+    // }
 
-    async fn number_of_unique_masks(&mut self) -> StorageResult<u64> {
-        self.coordinator.number_of_unique_masks().await
-    }
+    // async fn number_of_unique_masks(&mut self) -> StorageResult<u64> {
+    //     self.coordinator.number_of_unique_masks().await
+    // }
 
     async fn delete_coordinator_data(&mut self) -> StorageResult<()> {
         self.coordinator.delete_coordinator_data().await

@@ -1,6 +1,6 @@
 //! Storage backends for the coordinator.
 
-pub mod coordinator_storage;
+pub mod aggr_storage;
 pub mod model_storage;
 pub mod store;
 pub mod traits;
