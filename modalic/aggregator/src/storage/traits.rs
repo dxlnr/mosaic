@@ -6,7 +6,8 @@ use displaydoc::Display;
 use num_enum::TryFromPrimitive;
 use thiserror::Error;
 
-use crate::state_engine::coordinator::CoordinatorState;
+// use crate::state_engine::coordinator::Aggregator;
+use crate::aggr::Aggregator;
 use modalic_core::{
     common::RoundSeed,
     crypto::ByteObject,
@@ -28,25 +29,25 @@ pub type StorageResult<T> = Result<T, StorageError>;
 
 #[async_trait]
 /// An abstract coordinator storage.
-pub trait CoordinatorStorage
+pub trait AggregatorStorage
 where
     Self: Clone + Send + Sync + 'static,
 {
-    /// Sets a [`CoordinatorState`].
+    /// Sets an [`Aggregator`].
     ///
     /// # Behavior
     ///
     /// - If no state has been set yet, set the state and return `StorageResult::Ok(())`.
     /// - If a state already exists, override the state and return `StorageResult::Ok(())`.
-    async fn set_coordinator_state(&mut self, state: &CoordinatorState) -> StorageResult<()>;
+    async fn set_coordinator_state(&mut self, state: &Aggregator) -> StorageResult<()>;
 
-    /// Returns a [`CoordinatorState`].
+    /// Returns a [`Aggregator`].
     ///
     /// # Behavior
     ///
     /// - If no state has been set yet, return `StorageResult::Ok(Option::None)`.
-    /// - If a state exists, return `StorageResult::Ok(Some(CoordinatorState))`.
-    async fn coordinator_state(&mut self) -> StorageResult<Option<CoordinatorState>>;
+    /// - If a state exists, return `StorageResult::Ok(Some(Aggregator))`.
+    async fn coordinator_state(&mut self) -> StorageResult<Option<Aggregator>>;
 
     /// Adds a sum participant entry to the [`SumDict`].
     ///
@@ -149,12 +150,12 @@ where
     /// - If the global model id exists, return `StorageResult::Ok(Some(String)))`.
     async fn latest_global_model_id(&mut self) -> StorageResult<Option<String>>;
 
-    /// Checks if the [`CoordinatorStorage`] is ready to process requests.
+    /// Checks if the [`AggregatorStorage`] is ready to process requests.
     ///
     /// # Behavior
     ///
-    /// If the [`CoordinatorStorage`] is ready to process requests, return `StorageResult::Ok(())`.
-    /// If the [`CoordinatorStorage`] cannot process requests because of a connection error,
+    /// If the [`AggregatorStorage`] is ready to process requests, return `StorageResult::Ok(())`.
+    /// If the [`AggregatorStorage`] cannot process requests because of a connection error,
     /// for example, return `StorageResult::Err(error)`.
     async fn is_ready(&mut self) -> StorageResult<()>;
 }
@@ -232,8 +233,8 @@ where
 }
 
 #[async_trait]
-pub trait Storage: CoordinatorStorage + ModelStorage + TrustAnchor {
-    /// Checks if the [`CoordinatorStorage`], [`ModelStorage`] and  [`TrustAnchor`]
+pub trait Storage: AggregatorStorage + ModelStorage + TrustAnchor {
+    /// Checks if the [`AggregatorStorage`], [`ModelStorage`] and  [`TrustAnchor`]
     /// are ready to process requests.
     ///
     /// # Behavior

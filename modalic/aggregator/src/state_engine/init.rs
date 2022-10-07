@@ -81,7 +81,7 @@ impl<T> StateEngineInitializer<T> {
         let (event_publisher, event_subscriber) = EventPublisher::init(
             aggr.round_id,
             aggr.keys.clone(),
-            // coordinator_state.round_params.clone(),
+            aggr.round_params.clone(),
             StateName::Idle,
             global_model,
         );

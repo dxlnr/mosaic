@@ -2,13 +2,14 @@ use async_trait::async_trait;
 use derive_more::Display;
 use thiserror::Error;
 use futures::StreamExt;
-use tracing::{debug, info, warn};
+use tracing::{debug, info, warn, Span};
 
 use crate::{
     aggr::Aggregator,
     state_engine::{
         channel::{RequestReceiver, ResponseSender, StateEngineRequest},
         events::EventPublisher,
+        states::{IdleError, UpdateError},
         Failure,
         StateEngine,
     },
@@ -20,6 +21,10 @@ use crate::{
 pub enum StateError {
     /// Request channel error: {0}.
     RequestChannel(&'static str),
+    /// Idle phase failed: {0}.
+    Idle(#[from] IdleError),
+    /// Update phase failed: {0}.
+    Update(#[from] UpdateError),
 }
 
 #[derive(Clone, Copy, Debug, Display, Eq, PartialEq)]
@@ -73,7 +78,7 @@ where
     Self: State<T>,
 {
     /// Runs the current State to completion.
-    pub async fn run_state(mut self) -> Option<StateEngine> {
+    pub async fn run_state(mut self) -> Option<StateEngine<T>> {
         info!("Aggregator runs in state: {:?}", &Self::NAME);
 
         async move {
@@ -92,7 +97,7 @@ where
     /// Receives the next ['StateEngineRequest'].
     pub async fn next_request(
         &mut self,
-    ) -> Result<(StateEngineRequest, ResponseSender), StateError> {
+    ) -> Result<(StateEngineRequest, Span, ResponseSender), StateError> {
         debug!("Aggregator waiting for the next incoming request");
         self.shared
             .rx
@@ -105,7 +110,7 @@ where
 
     pub fn try_next_request(
         &mut self,
-    ) -> Result<Option<(StateEngineRequest, ResponseSender)>, StateError> {
+    ) -> Result<Option<(StateEngineRequest, Span, ResponseSender)>, StateError> {
         match self.shared.rx.try_recv() {
             Some(Some(item)) => Ok(Some(item)),
             None => {
@@ -122,7 +127,7 @@ where
     }
 
     fn into_failure_state(self, err: StateError) -> StateEngine<T> {
-        StateCondition::<Failure>::new(err, self.shared).into()
+        StateCondition::<Failure, _>::new(self.shared, err).into()
     }
 }
 
@@ -142,7 +147,7 @@ pub struct SharedState<T> {
 
 impl<T> SharedState<T> {
     /// Init new [`SharedState`] for the aggregation server.
-    pub fn new(aggr: Aggregator, rx: RequestReceiver, publisher: EventPublisher, store: T) -> Self {
+    pub fn new(aggr: Aggregator, publisher: EventPublisher, rx: RequestReceiver, store: T) -> Self {
         SharedState {
             aggr,
             rx,

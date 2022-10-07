@@ -36,23 +36,23 @@ where
     const NAME: StateName = StateName::Idle;
 
     async fn perform(&mut self) -> Result<(), StateError> {
-        self.delete_dicts().await?;
+        // self.delete_dicts().await?;
 
-        self.gen_round_keypair();
-        self.update_round_probabilities();
-        self.update_round_seed();
+        // self.gen_round_keypair();
+        // self.update_round_probabilities();
+        // self.update_round_seed();
 
-        self.set_coordinator_state().await?;
+        // self.set_coordinator_state().await?;
         
         Ok(())
     }
 
     fn publish(&mut self) {
-        self.shared.publisher.publish_state(Self::NAME);
+        // self.shared.publisher.publish_state(Self::NAME);
     }
 
     async fn next(self) -> Option<StateEngine<T>> {
-        Some(StateCondition::<Collect>::new(self.shared).into())
+        Some(StateCondition::<Collect, _>::new(self.shared).into())
     }
 }
 

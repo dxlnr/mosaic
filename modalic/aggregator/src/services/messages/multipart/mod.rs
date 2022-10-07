@@ -7,7 +7,7 @@ use futures::future::TryFutureExt;
 use tower::{buffer::Buffer, Service, ServiceBuilder};
 
 use crate::services::messages::ServiceError;
-use xaynet_core::message::Message;
+use modalic_core::message::Message;
 
 type Inner = Buffer<service::MultipartHandler, Message>;
 

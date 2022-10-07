@@ -5,9 +5,9 @@ use tower::Service;
 
 use crate::{
     services::messages::ServiceError,
-    state_machine::events::{EventListener, EventSubscriber},
+    state_engine::events::{EventListener, EventSubscriber},
 };
-use xaynet_core::{
+use modalic_core::{
     common::RoundParameters,
     crypto::ByteObject,
     message::{Message, Payload},
@@ -51,7 +51,8 @@ impl Service<Message> for TaskValidator {
         let has_valid_sum_signature = message
             .participant_pk
             .verify_detached(&sum_signature, &[seed, b"sum"].concat());
-        let is_summer = has_valid_sum_signature && sum_signature.is_eligible(params.sum);
+        // let is_summer = has_valid_sum_signature && sum_signature.is_eligible(params.sum);
+        let is_summer = false;
 
         // Check whether the participant is eligible for the update task
         let has_valid_update_signature = update_signature
@@ -61,11 +62,13 @@ impl Service<Message> for TaskValidator {
                     .verify_detached(&sig, &[seed, b"update"].concat())
             })
             .unwrap_or(false);
-        let is_updater = !is_summer
-            && has_valid_update_signature
-            && update_signature
-                .map(|sig| sig.is_eligible(params.update))
-                .unwrap_or(false);
+        // let is_updater = !is_summer
+        //     && has_valid_update_signature
+        //     && update_signature
+        //         .map(|sig| sig.is_eligible(params.update))
+        //         .unwrap_or(false);
+
+        let is_updater = true;
 
         match message.payload {
             Payload::Sum(_) | Payload::Sum2(_) => {
@@ -87,65 +90,3 @@ impl Service<Message> for TaskValidator {
     }
 }
 
-#[cfg(test)]
-mod tests {
-    use tokio_test::assert_ready;
-    use tower_test::mock::Spawn;
-
-    use crate::{
-        services::tests::utils,
-        state_machine::{
-            events::{EventPublisher, EventSubscriber},
-            phases::PhaseName,
-        },
-    };
-
-    use super::*;
-
-    fn spawn_svc() -> (EventPublisher, EventSubscriber, Spawn<TaskValidator>) {
-        let (publisher, subscriber) = utils::new_event_channels();
-        let task = Spawn::new(TaskValidator::new(&subscriber));
-        (publisher, subscriber, task)
-    }
-
-    #[tokio::test]
-    async fn test_sum_ok() {
-        let (mut publisher, subscriber, mut task) = spawn_svc();
-
-        let mut round_params = subscriber.params_listener().get_latest().event;
-
-        // make sure everyone is eligible
-        round_params.sum = 1.0;
-
-        publisher.broadcast_params(round_params.clone());
-        publisher.broadcast_phase(PhaseName::Sum);
-
-        let (message, _) = utils::new_sum_message(&round_params);
-
-        assert_ready!(task.poll_ready()).unwrap();
-        let resp = task.call(message.clone()).await.unwrap();
-        assert_eq!(resp, message);
-    }
-
-    #[tokio::test]
-    async fn test_sum_not_eligible() {
-        let (mut publisher, subscriber, mut task) = spawn_svc();
-
-        let mut round_params = subscriber.params_listener().get_latest().event;
-
-        // make sure no-one is eligible
-        round_params.sum = 0.0;
-
-        publisher.broadcast_params(round_params.clone());
-        publisher.broadcast_phase(PhaseName::Sum);
-
-        let (message, _) = utils::new_sum_message(&round_params);
-
-        assert_ready!(task.poll_ready()).unwrap();
-        let err = task.call(message).await.unwrap_err();
-        match err {
-            ServiceError::NotSumEligible => {}
-            _ => panic!("expected ServiceError::NotSumEligible got {:?}", err),
-        }
-    }
-}

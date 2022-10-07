@@ -9,7 +9,8 @@ pub mod trust_anchor;
 pub use self::{
     store::Store,
     traits::{
-        CoordinatorStorage,
+        AggregatorStorage,
+        // CoordinatorStorage,
         LocalSeedDictAdd,
         LocalSeedDictAddError,
         MaskScoreIncr,

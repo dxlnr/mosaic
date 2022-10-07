@@ -18,7 +18,7 @@ use modalic_core::{
 pub struct Event<E> {
     /// Metadata that associates this event to the round in which it is
     /// emitted.
-    pub round_id: u64,
+    pub round_id: u32,
     /// The event itself
     pub event: E,
 }
@@ -42,7 +42,7 @@ pub enum DictionaryUpdate<D> {
 #[derive(Debug)]
 pub struct EventPublisher {
     /// Round ID that is attached to all the requests.
-    round_id: u64,
+    round_id: u32,
     keys_tx: EventBroadcaster<EncryptKeyPair>,
     params_tx: EventBroadcaster<RoundParameters>,
     state_tx: EventBroadcaster<StateName>,
@@ -66,7 +66,7 @@ pub struct EventSubscriber {
 impl EventPublisher {
     /// Initialize a new event publisher with the given initial events.
     pub fn init(
-        round_id: u64,
+        round_id: u32,
         keys: EncryptKeyPair,
         params: RoundParameters,
         state: StateName,
@@ -127,7 +127,7 @@ impl EventPublisher {
     }
 
     /// Set the round ID that is attached to the events the publisher broadcasts.
-    pub fn set_round_id(&mut self, id: u64) {
+    pub fn set_round_id(&mut self, id: u32) {
         self.round_id = id;
     }
 

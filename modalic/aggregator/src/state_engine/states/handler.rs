@@ -108,6 +108,7 @@ pub trait StateHandler {
 
 impl<S, T> StateCondition<S, T>
 where
+    S: Send,
     T: Storage,
     Self: State<T> + StateHandler,
 {
@@ -122,7 +123,7 @@ where
                     break Ok(())
                 }
                 next = self.next_request() => {
-                    let (req, tx) = next?;
+                    let (req, span, tx) = next?;
                     self.process_single(req, tx, &mut counter).await;
                 }
             }

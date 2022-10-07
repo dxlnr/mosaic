@@ -3,10 +3,12 @@
 use async_trait::async_trait;
 
 use crate::{
-    state_engine::coordinator::CoordinatorState,
+    aggr::Aggregator,
+    // state_engine::coordinator::Aggregator,
     storage::{
+        AggregatorStorage,
         trust_anchor::noop::NoOp,
-        CoordinatorStorage,
+        // AggregatorStorage,
         LocalSeedDictAdd,
         MaskScoreIncr,
         ModelStorage,
@@ -31,7 +33,7 @@ use modalic_core::{
 /// A generic store.
 pub struct Store<C, M, T>
 where
-    C: CoordinatorStorage,
+    C: AggregatorStorage,
     M: ModelStorage,
     T: TrustAnchor,
 {
@@ -45,7 +47,7 @@ where
 
 impl<C, M, T> Store<C, M, T>
 where
-    C: CoordinatorStorage,
+    C: AggregatorStorage,
     M: ModelStorage,
     T: TrustAnchor,
 {
@@ -60,7 +62,7 @@ where
 
 impl<C, M> Store<C, M, NoOp>
 where
-    C: CoordinatorStorage,
+    C: AggregatorStorage,
     M: ModelStorage,
 {
     /// Creates a new [`Store`].
@@ -74,17 +76,17 @@ where
 }
 
 #[async_trait]
-impl<C, M, T> CoordinatorStorage for Store<C, M, T>
+impl<C, M, T> AggregatorStorage for Store<C, M, T>
 where
-    C: CoordinatorStorage,
+    C: AggregatorStorage,
     M: ModelStorage,
     T: TrustAnchor,
 {
-    async fn set_coordinator_state(&mut self, state: &CoordinatorState) -> StorageResult<()> {
+    async fn set_coordinator_state(&mut self, state: &Aggregator) -> StorageResult<()> {
         self.coordinator.set_coordinator_state(state).await
     }
 
-    async fn coordinator_state(&mut self) -> StorageResult<Option<CoordinatorState>> {
+    async fn coordinator_state(&mut self) -> StorageResult<Option<Aggregator>> {
         self.coordinator.coordinator_state().await
     }
 
@@ -154,7 +156,7 @@ where
 #[async_trait]
 impl<C, M, T> ModelStorage for Store<C, M, T>
 where
-    C: CoordinatorStorage,
+    C: AggregatorStorage,
     M: ModelStorage,
     T: TrustAnchor,
 {
@@ -181,7 +183,7 @@ where
 #[async_trait]
 impl<C, M, T> TrustAnchor for Store<C, M, T>
 where
-    C: CoordinatorStorage,
+    C: AggregatorStorage,
     M: ModelStorage,
     T: TrustAnchor,
 {
@@ -197,7 +199,7 @@ where
 #[async_trait]
 impl<C, M, T> Storage for Store<C, M, T>
 where
-    C: CoordinatorStorage,
+    C: AggregatorStorage,
     M: ModelStorage,
     T: TrustAnchor,
 {

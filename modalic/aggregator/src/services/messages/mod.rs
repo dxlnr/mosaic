@@ -7,7 +7,7 @@ mod decryptor;
 mod error;
 mod message_parser;
 mod multipart;
-mod state_machine;
+mod state_engine;
 mod task_validator;
 
 use std::sync::Arc;
@@ -15,17 +15,17 @@ use std::sync::Arc;
 use futures::future::poll_fn;
 use rayon::ThreadPoolBuilder;
 use tower::Service;
-use xaynet_core::message::Message;
+use modalic_core::message::Message;
 
 pub use self::error::ServiceError;
 use self::{
     decryptor::Decryptor,
     message_parser::MessageParser,
     multipart::MultipartHandler,
-    state_machine::StateMachine,
+    state_engine::StateEngine,
     task_validator::TaskValidator,
 };
-use crate::state_machine::{events::EventSubscriber, requests::RequestSender};
+use crate::state_engine::{events::EventSubscriber, channel::RequestSender};
 
 impl PetMessageHandler {
     pub fn new(event_subscriber: &EventSubscriber, requests_tx: RequestSender) -> Self {
@@ -38,7 +38,7 @@ impl PetMessageHandler {
         let multipart_handler = MultipartHandler::new();
         let message_parser = MessageParser::new(event_subscriber, thread_pool);
         let task_validator = TaskValidator::new(event_subscriber);
-        let state_machine = StateMachine::new(requests_tx);
+        let state_machine = StateEngine::new(requests_tx);
 
         Self {
             decryptor,
@@ -103,14 +103,14 @@ impl PetMessageHandler {
 ///    the message type performs some additional checks. The
 ///    `TaskValidator` may also discard the message
 ///
-/// 3. Finally, the message is handled by the `StateMachine` service.
+/// 3. Finally, the message is handled by the `StateEngine` service.
 #[derive(Clone)]
 pub struct PetMessageHandler {
     decryptor: Decryptor,
     multipart_handler: MultipartHandler,
     message_parser: MessageParser,
     task_validator: TaskValidator,
-    state_machine: StateMachine,
+    state_machine: StateEngine,
 }
 
 pub type BoxedServiceFuture<Response, Error> = std::pin::Pin<

@@ -12,10 +12,10 @@ mod update;
 
 pub use self::{
     collect::Collect,
-    failure::{Failure, StateError},
+    failure::Failure,
     handler::StateHandler,
     idle::{Idle, IdleError},
-    state::{State, StateName, StateCondition, SharedState},
+    state::{State, StateName, StateCondition, SharedState, StateError},
     shutdown::Shutdown,
     update::{Update, UpdateError},
 };

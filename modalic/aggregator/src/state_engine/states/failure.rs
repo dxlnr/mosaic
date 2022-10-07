@@ -8,21 +8,10 @@ use tracing::{error, debug};
 
 use crate::{
     state_engine::{
-    states::{IdleError, SharedState, State, StateCondition, UpdateError, StateName},
+    states::{SharedState, State, StateCondition, StateError, StateName},
     StateEngine,},
     storage::Storage,
 };
-
-/// Errors which can occur during the execution of the [`StateMachine`].
-#[derive(Debug, Display, Error)]
-pub enum StateError {
-    /// Request channel error: {0}.
-    RequestChannel(&'static str),
-    /// Idle phase failed: {0}.
-    Idle(#[from] IdleError),
-    /// Update phase failed: {0}.
-    Update(#[from] UpdateError),
-}
 
 #[derive(Debug)]
 /// [`Failure`] state of the [`StateEngine`]
@@ -48,7 +37,7 @@ where
 }
 
 impl<T> StateCondition<Failure, T> {
-    pub fn new(error: StateError, shared: SharedState<T>) -> Self {
+    pub fn new(shared: SharedState<T>, error: StateError) -> Self {
         Self {
             private: Failure { error },
             shared,

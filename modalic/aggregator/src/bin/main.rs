@@ -8,19 +8,19 @@ use tracing_subscriber::*;
 #[cfg(feature = "metrics")]
 use xaynet_server::{metrics, settings::InfluxSettings};
 
-use xaynet_server::{
+use aggregator::{
     rest::{serve, RestError},
     services,
     settings::{LoggingSettings, RedisSettings, Settings},
-    state_machine::initializer::StateMachineInitializer,
+    state_engine::init::StateEngineInitializer,
     storage::{coordinator_storage::redis, Storage, Store},
 };
 #[cfg(feature = "model-persistence")]
 use xaynet_server::{settings::S3Settings, storage::model_storage::s3};
 
 #[derive(Debug, StructOpt)]
-#[structopt(name = "Coordinator")]
-struct Opt {
+#[structopt(name = "Aggregator")]
+struct CliConf {
     /// Path of the configuration file
     #[structopt(short, parse(from_os_str))]
     config_path: PathBuf,
@@ -28,9 +28,15 @@ struct Opt {
 
 #[tokio::main]
 async fn main() {
-    let opt = Opt::from_args();
+    let path_buf = match CliConf::from_args_safe() {
+        Ok(path_buf) => Some(path_buf.config_path),
+        Err(_) => {
+            println!("\n\tWARN: Aggregator runs without external configuration, default values are used.\n");
+            None
+        }
+    };
 
-    let settings = Settings::new(opt.config_path).unwrap_or_else(|err| {
+    let settings = Settings::new(path_buf).unwrap_or_else(|err| {
         eprintln!("{}", err);
         process::exit(1);
     });
@@ -61,7 +67,7 @@ async fn main() {
     )
     .await;
 
-    let (state_machine, requests_tx, event_subscriber) = StateMachineInitializer::new(
+    let (state_machine, requests_tx, event_subscriber) = StateEngineInitializer::new(
         pet_settings,
         mask_settings,
         model_settings,
@@ -121,7 +127,7 @@ async fn init_store(
     let model_store = {
         #[cfg(not(feature = "model-persistence"))]
         {
-            xaynet_server::storage::model_storage::noop::NoOp
+            aggregator::storage::model_storage::noop::NoOp
         }
 
         #[cfg(feature = "model-persistence")]

@@ -8,12 +8,12 @@ use tracing::{debug, info, trace, warn};
 
 use crate::{
     services::messages::{BoxedServiceFuture, ServiceError},
-    state_machine::{
+    state_engine::{
         events::{EventListener, EventSubscriber},
-        phases::PhaseName,
+        states::StateName,
     },
 };
-use xaynet_core::{
+use modalic_core::{
     crypto::{EncryptKeyPair, PublicEncryptKey},
     message::{FromBytes, Message, MessageBuffer, Tag},
 };
@@ -88,7 +88,7 @@ impl<S> Layer<S> for BufferWrapperLayer {
 #[derive(Debug, Clone)]
 struct PhaseFilter<S> {
     /// A listener to retrieve the current phase
-    phase: EventListener<PhaseName>,
+    phase: EventListener<StateName>,
     /// Next service to be called
     next_svc: S,
 }
@@ -111,10 +111,17 @@ where
         debug!("retrieving the current phase");
         let phase = self.phase.get_latest().event;
         match req.buffer.tag().try_into() {
+            // Ok(tag) => match (phase, tag) {
+            //     (StateName::Sum, Tag::Sum)
+            //     | (StateName::Update, Tag::Update)
+            //     | (StateName::Sum2, Tag::Sum2) => {
+            //         let fut = self.next_svc.call(req);
+            //         Box::pin(async move { fut.await })
+            //     }
+            //     _ => Box::pin(future::ready(Err(ServiceError::UnexpectedMessage))),
+            // },
             Ok(tag) => match (phase, tag) {
-                (PhaseName::Sum, Tag::Sum)
-                | (PhaseName::Update, Tag::Update)
-                | (PhaseName::Sum2, Tag::Sum2) => {
+                (StateName::Update, Tag::Update)=> {
                     let fut = self.next_svc.call(req);
                     Box::pin(async move { fut.await })
                 }
@@ -126,7 +133,7 @@ where
 }
 
 struct PhaseFilterLayer {
-    phase: EventListener<PhaseName>,
+    phase: EventListener<StateName>,
 }
 
 impl<S> Layer<S> for PhaseFilterLayer {
@@ -338,7 +345,7 @@ impl MessageParser {
         let inner = ServiceBuilder::new()
             .layer(BufferWrapperLayer)
             .layer(PhaseFilterLayer {
-                phase: events.phase_listener(),
+                phase: events.state_listener(),
             })
             .layer(SignatureVerifierLayer { thread_pool })
             .layer(CoordinatorPublicKeyValidatorLayer {
@@ -346,65 +353,5 @@ impl MessageParser {
             })
             .service(Parser);
         Self(inner)
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use rayon::ThreadPoolBuilder;
-    use tokio_test::assert_ready;
-    use tower_test::mock::Spawn;
-
-    use super::*;
-    use crate::{
-        services::tests::utils,
-        state_machine::events::{EventPublisher, EventSubscriber},
-    };
-
-    fn spawn_svc() -> (EventPublisher, EventSubscriber, Spawn<MessageParser>) {
-        let (publisher, subscriber) = utils::new_event_channels();
-        let thread_pool = Arc::new(ThreadPoolBuilder::new().build().unwrap());
-        let task = Spawn::new(MessageParser::new(&subscriber, thread_pool));
-        (publisher, subscriber, task)
-    }
-
-    #[tokio::test]
-    async fn test_valid_request() {
-        let (mut publisher, subscriber, mut task) = spawn_svc();
-        assert_ready!(task.poll_ready::<Vec<u8>>()).unwrap();
-
-        let round_params = subscriber.params_listener().get_latest().event;
-        let (message, signing_keys) = utils::new_sum_message(&round_params);
-        let serialized_message = utils::serialize_message(&message, &signing_keys);
-
-        // Simulate the state machine broadcasting the sum phase
-        // (otherwise the request will be rejected by the phase
-        // filter)
-        publisher.broadcast_phase(PhaseName::Sum);
-
-        // Call the service
-        let mut resp = task.call(serialized_message).await.unwrap();
-        // The signature should be set. However in `message` it's not been
-        // computed, so we just check that it's there, then set it to
-        // `None` in `resp`
-        assert!(resp.signature.is_some());
-        resp.signature = None;
-        // Now the comparison should work
-        assert_eq!(resp, message);
-    }
-
-    #[tokio::test]
-    async fn test_unexpected_message() {
-        let (_publisher, subscriber, mut task) = spawn_svc();
-        assert_ready!(task.poll_ready::<Vec<u8>>()).unwrap();
-
-        let round_params = subscriber.params_listener().get_latest().event;
-        let (message, signing_keys) = utils::new_sum_message(&round_params);
-        let serialized_message = utils::serialize_message(&message, &signing_keys);
-        let err = task.call(serialized_message).await.unwrap_err();
-        match err {
-            ServiceError::UnexpectedMessage => {}
-            _ => panic!("expected ServiceError::UnexpectedMessage got {:?}", err),
-        }
     }
 }

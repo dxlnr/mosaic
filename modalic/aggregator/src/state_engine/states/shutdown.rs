@@ -22,8 +22,8 @@ where
 
     async fn perform(&mut self) -> Result<(), StateError> {
         debug!("clearing the request channel");
-        self.shared.request_rx.close();
-        while self.shared.request_rx.recv().await.is_some() {}
+        self.shared.rx.close();
+        while self.shared.rx.recv().await.is_some() {}
 
         Ok(())
     }

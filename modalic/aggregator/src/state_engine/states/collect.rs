@@ -25,7 +25,7 @@ where
     }
 
     async fn next(self) -> Option<StateEngine<T>> {
-        Some(StateCondition::<Update>::new(self.shared).into())
+        Some(StateCondition::<Update, _>::new(self.shared).into())
     }
 }
 
@@ -46,8 +46,12 @@ impl<T> StateCondition<Collect, T> {
 }
 
 #[async_trait]
-impl<T> StateHandler for StateCondition<Collect, T> {
+impl<T> StateHandler for StateCondition<Collect, T> 
+where
+    T: Storage,
+{
     async fn handle_request(&mut self, req: StateEngineRequest) -> Result<(), RequestError> {
-        self.add_to_buffer(req)
+        // self.add_to_buffer(req)
+        todo!()
     }
 }

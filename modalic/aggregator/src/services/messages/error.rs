@@ -1,8 +1,8 @@
 use displaydoc::Display;
 use thiserror::Error;
 
-use crate::state_machine::requests::RequestError;
-use xaynet_core::message::DecodeError;
+use crate::state_engine::channel::RequestError;
+use modalic_core::message::DecodeError;
 
 /// Errors for the message parsing service.
 #[derive(Debug, Display, Error)]
@@ -20,7 +20,7 @@ pub enum ServiceError {
     // FIXME: we need to refine the state machine errors and the
     // conversion into a service error
     /// The state machine failed to process the request: {0}.
-    StateMachine(RequestError),
+    StateEngine(RequestError),
     /// Participant is not eligible for sum task.
     NotSumEligible,
     /// Participant is not eligible for update task.

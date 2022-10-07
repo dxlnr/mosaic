@@ -6,7 +6,8 @@ use redis::{ErrorKind, FromRedisValue, RedisError, RedisResult, RedisWrite, ToRe
 use serde::{Deserialize, Serialize};
 
 use crate::{
-    state_engine::coordinator::CoordinatorState,
+    aggr::Aggregator,
+    // state_engine::coordinator::Aggregator,
     storage::{
         LocalSeedDictAdd,
         LocalSeedDictAddError,
@@ -145,11 +146,11 @@ macro_rules! impl_bincode_redis_traits {
     };
 }
 
-// CoordinatorState is pretty straightforward:
+// Aggregator is pretty straightforward:
 // - all the sequences have known length (
 // - no untagged enum
 // so bincode will not panic.
-impl_bincode_redis_traits!(CoordinatorState);
+impl_bincode_redis_traits!(Aggregator);
 
 #[derive(From, Into, Serialize, Deserialize)]
 pub(crate) struct MaskObjectRead(MaskObject);

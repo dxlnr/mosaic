@@ -1,3 +1,5 @@
+use serde::{Deserialize, Serialize};
+
 use crate::settings::{
     MaskSettings,
     // ModelSettings,
@@ -9,7 +11,7 @@ use modalic_core::{
     mask::MaskConfig,
 };
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub struct Aggregator {
     /// The credentials of the coordinator.
     pub keys: EncryptKeyPair,
@@ -45,7 +47,7 @@ impl Aggregator {
 }
 
 /// Parameters necessary for performing an aggregation schema.
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct AggrParams {
     /// Server-side learning rate. Defaults to 1e-1.
     pub eta: f64,
