@@ -36,6 +36,8 @@ pub enum StateName {
     Collect,
     #[display(fmt = "Update")]
     Update,
+    #[display(fmt = "Unmask")]
+    Unmask,
     #[display(fmt = "Failure")]
     Failure,
     #[display(fmt = "Shutdown")]

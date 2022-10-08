@@ -51,7 +51,7 @@ async fn main() {
         api: api_settings,
         log: log_settings,
         model: model_settings,
-        redis: redis_settings,
+        // redis: redis_settings,
         ..
     } = settings;
 
@@ -66,6 +66,7 @@ async fn main() {
     init_metrics(settings.metrics.influxdb);
 
     let store = init_store(
+        #[cfg(feature = "redis")]
         redis_settings,
         #[cfg(feature = "model-persistence")]
         settings.s3,
@@ -122,7 +123,7 @@ fn init_metrics(settings: InfluxSettings) {
 }
 
 async fn init_store(
-    redis_settings: RedisSettings,
+    #[cfg(feature = "redis")] redis_settings: RedisSettings,
     #[cfg(feature = "model-persistence")] s3_settings: S3Settings,
 ) -> impl Storage {
     // let aggregator_store = redis::Client::new(redis_settings.url)

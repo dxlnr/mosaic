@@ -291,7 +291,7 @@ impl Aggregation {
     /// [`validate_aggregation()`]: Aggregation::validate_aggregation
     pub fn aggregate(&mut self, object: MaskObject) {
         if self.nb_models == 0 {
-            self.object = object;
+            self.object = object.clone();
             self.nb_models = 1;
             return;
         }

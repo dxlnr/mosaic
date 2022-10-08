@@ -11,6 +11,8 @@ use modalic_core::{
     mask::MaskConfig,
 };
 
+pub mod buffer;
+
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub struct Aggregator {
     /// The credentials of the coordinator.

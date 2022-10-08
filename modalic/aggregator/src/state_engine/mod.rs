@@ -13,7 +13,7 @@ pub mod states;
 
 use derive_more::From;
 
-use crate::{state_engine::states::{Collect, Failure, Idle, State, Shutdown, StateCondition, Update}, storage::Storage};
+use crate::{state_engine::states::{Collect, Failure, Idle, State, Shutdown, StateCondition, Unmask, Update}, storage::Storage};
 
 /// [`StateEngine`] functions as the state machine which handles the progress of the `Aggregator`
 /// and keep its state.
@@ -26,6 +26,8 @@ pub enum StateEngine<T> {
     Collect(StateCondition<Collect, T>),
     /// [`Update`] state.
     Update(StateCondition<Update, T>),
+    /// [`Update`] state.
+    Unmask(StateCondition<Unmask, T>),
     /// [`Shutdown`] state.
     Shutdown(StateCondition<Shutdown, T>),
     /// [`Failure`] state.
@@ -38,6 +40,7 @@ where
     StateCondition<Idle, T>: State<T>,
     StateCondition<Collect, T>: State<T>,
     StateCondition<Update, T>: State<T>,
+    StateCondition<Unmask, T>: State<T>,
     StateCondition<Failure, T>: State<T>,
     StateCondition<Shutdown, T>: State<T>,
 {
@@ -46,6 +49,7 @@ where
             StateEngine::Idle(state) => state.run_state().await,
             StateEngine::Collect(state) => state.run_state().await,
             StateEngine::Update(state) => state.run_state().await,
+            StateEngine::Unmask(state) => state.run_state().await,
             StateEngine::Shutdown(state) => state.run_state().await,
             StateEngine::Failure(state) => state.run_state().await,
         }

@@ -51,6 +51,8 @@ pub struct Settings {
     pub model: ModelSettings,
     #[validate]
     pub metrics: MetricsSettings,
+    #[cfg(feature = "redis")]
+    #[validate]
     pub redis: RedisSettings,
     #[cfg(feature = "model-persistence")]
     #[validate]

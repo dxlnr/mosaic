@@ -8,14 +8,16 @@ mod handler;
 mod idle;
 mod state;
 mod shutdown;
+mod unmask;
 mod update;
 
 pub use self::{
     collect::Collect,
     failure::Failure,
-    handler::StateHandler,
+    handler::{StateHandler, MessageCounter},
     idle::{Idle, IdleError},
     state::{State, StateName, StateCondition, SharedState, StateError},
     shutdown::Shutdown,
+    unmask::{Unmask, UnmaskError},
     update::{Update, UpdateError},
 };
