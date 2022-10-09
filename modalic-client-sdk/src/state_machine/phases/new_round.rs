@@ -49,11 +49,11 @@ impl Step for Phase<NewRound> {
 
         TransitionOutcome::Complete(
             self.into_update(sum_signature, update_signature).into(),
-        );
+        )
 
-        info!("not eligible for update task, going to sleep until next round");
-        let awaiting: Phase<Awaiting> = self.into();
-        TransitionOutcome::Complete(awaiting.into())
+        // info!("not eligible for update task, going to sleep until next round");
+        // let awaiting: Phase<Awaiting> = self.into();
+        // TransitionOutcome::Complete(awaiting.into())
     }
 }
 

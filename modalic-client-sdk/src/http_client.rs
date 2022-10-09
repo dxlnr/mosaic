@@ -30,11 +30,11 @@ pub enum ClientError {
     #[error("Unexpected response")]
     UnexpectedResponse(u16),
 
-    #[error("Unexpected certificate extension")]
-    UnexpectedCertificate,
+    // #[error("Unexpected certificate extension")]
+    // UnexpectedCertificate,
 
-    #[error("No certificate found")]
-    NoCertificate,
+    // #[error("No certificate found")]
+    // NoCertificate,
 }
 
 #[cfg_attr(not(feature = "reqwest-client"), allow(dead_code))]

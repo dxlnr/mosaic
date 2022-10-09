@@ -12,11 +12,11 @@ use mosaic_core::model::{
 
 create_exception!(mosaic_sdk, ClientInit, PyException);
 create_exception!(mosaic_sdk, ClientNotFound, PyException);
-create_exception!(xaynet_sdk, ModelError, PyException);
-create_exception!(xaynet_sdk, TensorsError, PyException);
-create_exception!(xaynet_sdk, TensorDataTypeMismatch, PyException);
-create_exception!(xaynet_sdk, TensorDataTypeError, PyException);
-create_exception!(xaynet_sdk, TensorShapeError, PyException);
+create_exception!(mosaic_sdk, ModelError, PyException);
+create_exception!(mosaic_sdk, TensorsError, PyException);
+create_exception!(mosaic_sdk, TensorDataTypeMismatch, PyException);
+create_exception!(mosaic_sdk, TensorDataTypeError, PyException);
+create_exception!(mosaic_sdk, TensorShapeError, PyException);
 
 /// Python module created by decorating a Rust function with #[pymodule].
 ///

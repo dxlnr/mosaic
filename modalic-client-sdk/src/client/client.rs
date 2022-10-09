@@ -153,7 +153,7 @@ pub struct Client {
     /// Async runtime to execute the state machine
     runtime: Runtime,
     /// Xaynet client
-    client: HttpClient<reqwest::Client>,
+    http_client: HttpClient<reqwest::Client>,
     /// Whether the participant state changed after the last call to
     /// [`Participant::tick()`]
     made_progress: bool,
@@ -209,23 +209,23 @@ impl Client {
 
     fn init(
         state_machine: StateMachine,
-        client: HttpClient<reqwest::Client>,
+        http_client: HttpClient<reqwest::Client>,
         events: Events,
         store: Store,
     ) -> Result<Self, InitError> {
-        let mut participant = Self {
+        let mut client = Self {
             runtime: Self::runtime()?,
             state_machine: Some(state_machine),
             events,
             store,
-            client,
+            http_client,
             task: Task::None,
             made_progress: true,
             should_set_model: false,
             new_global_model: false,
         };
-        participant.process_events();
-        Ok(participant)
+        client.process_events();
+        Ok(client)
     }
 
     fn runtime() -> Result<Runtime, InitError> {
@@ -352,12 +352,12 @@ impl Client {
     pub fn global_model(&mut self) -> Result<Option<Model>, GetGlobalModelError> {
         let Self {
             ref mut runtime,
-            ref mut client,
+            ref mut http_client,
             ..
         } = self;
 
         let global_model =
-            runtime.block_on(async { client.get_model().await.map_err(GetGlobalModelError) });
+            runtime.block_on(async { http_client.get_model().await.map_err(GetGlobalModelError) });
         if global_model.is_ok() {
             self.new_global_model = false;
         }

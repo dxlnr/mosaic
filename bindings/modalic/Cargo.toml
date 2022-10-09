@@ -29,7 +29,11 @@ crate-type = ["cdylib"]
 [dependencies]
 # Internal Dependencies
 modalic_core = { path = "../../modalic/core" }
-client-sdk = { path = "../../client-sdk", version = "0.1.0"}
+modalic-client-sdk = { path = "../../modalic-client-sdk", version = "0.1.0"}
 # External Crates
 pyo3 = { version = "0.16.3", features = ["extension-module"] }
+
+sodiumoxide = "0.2.7"
+tracing = "0.1.36"
+tracing-subscriber = { version = "0.3.15", features = ["env-filter"] }
 # pyo3-asyncio = { version = "0.16.0", features = ["tokio-runtime"] }

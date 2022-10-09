@@ -5,25 +5,24 @@ use pyo3::{prelude::*, wrap_pyfunction};
 use tracing::debug;
 use tracing_subscriber::{EnvFilter, FmtSubscriber};
 
-use xaynet_core::mask::IntoPrimitives;
-use xaynet_core::mask::{DataType, FromPrimitives, Model};
-use xaynet_sdk::settings::MaxMessageSize;
+use modalic_client_sdk::settings::MaxMessageSize;
+use modalic_core::mask::{DataType, FromPrimitives, IntoPrimitives, Model};
 
-use crate::from_primitives;
-use crate::into_primitives;
+// use crate::from_primitives;
+// use crate::into_primitives;
 
-create_exception!(xaynet_sdk, CryptoInit, PyException);
-create_exception!(xaynet_sdk, ParticipantInit, PyException);
-create_exception!(xaynet_sdk, ParticipantRestore, PyException);
-create_exception!(xaynet_sdk, UninitializedParticipant, PyException);
-create_exception!(xaynet_sdk, LocalModelLengthMisMatch, PyException);
-create_exception!(xaynet_sdk, LocalModelDataTypeMisMatch, PyException);
-create_exception!(xaynet_sdk, GlobalModelUnavailable, PyException);
-create_exception!(xaynet_sdk, GlobalModelDataTypeMisMatch, PyException);
+create_exception!(modalic_sdk, CryptoInit, PyException);
+create_exception!(modalic_sdk, ParticipantInit, PyException);
+create_exception!(modalic_sdk, ParticipantRestore, PyException);
+create_exception!(modalic_sdk, UninitializedParticipant, PyException);
+create_exception!(modalic_sdk, LocalModelLengthMisMatch, PyException);
+create_exception!(modalic_sdk, LocalModelDataTypeMisMatch, PyException);
+create_exception!(modalic_sdk, GlobalModelUnavailable, PyException);
+create_exception!(modalic_sdk, GlobalModelDataTypeMisMatch, PyException);
 
 #[pymodule]
-fn xaynet_sdk(py: Python, m: &PyModule) -> PyResult<()> {
-    m.add_class::<Participant>()?;
+fn modalic_sdk(py: Python, m: &PyModule) -> PyResult<()> {
+    m.add_class::<Client>()?;
     m.add_function(wrap_pyfunction!(init_logging, m)?)?;
 
     m.add("CryptoInit", py.get_type::<CryptoInit>())?;
@@ -54,13 +53,13 @@ fn xaynet_sdk(py: Python, m: &PyModule) -> PyResult<()> {
 }
 
 #[pyclass]
-#[text_signature = "(url, scalar, /)"]
-struct Participant {
-    inner: Option<xaynet_mobile::Participant>,
+// #[text_signature = "(url, scalar, /)"]
+struct Client {
+    inner: Option<modalic_client_sdk::Client>,
 }
 
 #[pymethods]
-impl Participant {
+impl Client {
     #[new]
     pub fn new(url: String, scalar: f64, state: Option<Vec<u8>>) -> PyResult<Self> {
         sodiumoxide::init()
@@ -68,18 +67,18 @@ impl Participant {
 
         let inner = if let Some(state) = state {
             debug!("restore participant");
-            xaynet_mobile::Participant::restore(&state, &url).map_err(|err| {
+            modalic_client_sdk::Client::restore(&state, &url).map_err(|err| {
                 ParticipantRestore::new_err(format!("failed to restore participant: {}", err))
             })?
         } else {
             debug!("initialize participant");
-            let mut settings = xaynet_mobile::Settings::new();
+            let mut settings = modalic_client_sdk::Settings::new();
             settings.set_url(url);
-            settings.set_keys(xaynet_core::crypto::SigningKeyPair::generate());
+            settings.set_keys(modalic_core::crypto::SigningKeyPair::generate());
             settings.set_scalar(scalar);
             settings.set_max_message_size(MaxMessageSize::unlimited());
 
-            xaynet_mobile::Participant::new(settings).map_err(|err| {
+            modalic_client_sdk::Client::new(settings).map_err(|err| {
                 ParticipantInit::new_err(format!("failed to initialize participant: {}", err))
             })?
         };
@@ -87,7 +86,7 @@ impl Participant {
         Ok(Self { inner: Some(inner) })
     }
 
-    #[text_signature = "($self)"]
+    // #[text_signature = "($self)"]
     pub fn tick(&mut self) -> PyResult<()> {
         let inner = match self.inner {
             Some(ref mut inner) => inner,
@@ -102,7 +101,7 @@ impl Participant {
         Ok(())
     }
 
-    #[text_signature = "($self, local_model)"]
+    // #[text_signature = "($self, local_model)"]
     pub fn set_model(&mut self, local_model: &PyList) -> PyResult<()> {
         let inner = match self.inner {
             Some(ref mut inner) => inner,
@@ -138,7 +137,7 @@ impl Participant {
 
     /// Check whether the participant internal state machine made progress while
     /// executing the PET protocol. If so, the participant state likely changed.
-    #[text_signature = "($self)"]
+    // #[text_signature = "($self)"]
     pub fn made_progress(&self) -> PyResult<bool> {
         let inner = match self.inner {
             Some(ref inner) => inner,
@@ -155,7 +154,7 @@ impl Participant {
     /// Check whether the participant internal state machine is waiting for the
     /// participant to load its model into the store. If this method returns `true`, the
     /// caller should make sure to call [`Participant::set_model()`] at some point.
-    #[text_signature = "($self)"]
+    // #[text_signature = "($self)"]
     pub fn should_set_model(&self) -> PyResult<bool> {
         let inner = match self.inner {
             Some(ref inner) => inner,
@@ -169,7 +168,7 @@ impl Participant {
         Ok(inner.should_set_model())
     }
 
-    #[text_signature = "($self)"]
+    // #[text_signature = "($self)"]
     pub fn task(&self) -> PyResult<u8> {
         let inner = match self.inner {
             Some(ref inner) => inner,
@@ -183,15 +182,15 @@ impl Participant {
         // FIXME:
         // Returning an enum is currently not supported: https://github.com/PyO3/pyo3/pull/1045
         let task_as_u8 = match inner.task() {
-            xaynet_mobile::Task::None => 0,
-            xaynet_mobile::Task::Sum => 1,
-            xaynet_mobile::Task::Update => 2,
+            modalic_client_sdk::Task::None => 0,
+            modalic_client_sdk::Task::Sum => 1,
+            modalic_client_sdk::Task::Update => 2,
         };
 
         Ok(task_as_u8)
     }
 
-    #[text_signature = "($self)"]
+    // #[text_signature = "($self)"]
     pub fn new_global_model(&self) -> PyResult<bool> {
         let inner = match self.inner {
             Some(ref inner) => inner,
@@ -205,7 +204,7 @@ impl Participant {
         Ok(inner.new_global_model())
     }
 
-    #[text_signature = "($self)"]
+    // #[text_signature = "($self)"]
     pub fn global_model(&mut self, py: Python) -> PyResult<Option<Py<PyList>>> {
         let inner = match self.inner {
             Some(ref mut inner) => inner,
@@ -233,7 +232,7 @@ impl Participant {
         }
     }
 
-    #[text_signature = "($self)"]
+    // #[text_signature = "($self)"]
     pub fn save(&mut self) -> PyResult<Vec<u8>> {
         let inner = match self.inner.take() {
             Some(inner) => inner,

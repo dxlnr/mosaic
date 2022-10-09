@@ -243,7 +243,8 @@ impl<P> Phase<P> {
     pub fn local_model_config(&self) -> LocalModelConfig {
         LocalModelConfig {
             data_type: self.state.shared.round_params.mask_config.vect.data_type,
-            len: self.state.shared.round_params.model_length,
+            // len: self.state.shared.round_params.model_length,
+            len: 0,
         }
     }
 
