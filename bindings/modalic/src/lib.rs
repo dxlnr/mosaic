@@ -103,6 +103,7 @@ impl Client {
 
     // #[text_signature = "($self, local_model)"]
     pub fn set_model(&mut self, local_model: &PyList) -> PyResult<()> {
+        println!("In set model.!");
         let inner = match self.inner {
             Some(ref mut inner) => inner,
             None => {
@@ -111,8 +112,11 @@ impl Client {
                 ))
             }
         };
+        println!("In set model.!, found inner");
 
         let local_model_config = inner.local_model_config();
+
+        println!("{:?}", &local_model_config);
 
         // if local_model.len() != local_model_config.len {
         //     return Err(LocalModelLengthMisMatch::new_err(format!(
@@ -266,12 +270,13 @@ macro_rules! into_primitives {
 
 #[macro_export]
 macro_rules! from_primitives {
-    ($participant:expr, $local_model:expr, $data_type:ty) => {{
+    ($client:expr, $local_model:expr, $data_type:ty) => {{
             let model: Vec<$data_type> = $local_model.extract()
                 .map_err(|err| LocalModelDataTypeMisMatch::new_err(format!("{}", err)))?;
+            println!("test in from_primitives!");
             let converted_model = Model::from_primitives(model.into_iter());
             if let Ok(converted_model) = converted_model {
-                $participant.set_model(converted_model);
+                $client.set_model(converted_model);
                 Ok(())
             } else {
                 Err(LocalModelDataTypeMisMatch::new_err(

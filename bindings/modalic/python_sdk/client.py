@@ -55,8 +55,13 @@ class ModalicClient(threading.Thread):
         """
         raise NotImplementedError()
 
+    @abstractmethod
+    def on_new_global_model(self, model):
+        r"""."""
+        raise NotImplementedError()
+
     def _fetch_global_model(self):
-        LOG.debug("fetch global model")
+        # LOG.debug("fetch global model")
         try:
             global_model = self._modalic_client.global_model()
         except (
@@ -73,6 +78,37 @@ class ModalicClient(threading.Thread):
             else:
                 self._global_model = None
             self._error_on_fetch_global_model = False
+
+    def _set_local_model(self, local_model: list):
+        """
+        Sets a local model. This method can be called at any time. Internally the
+        participant first caches the local model. As soon as the participant is selected as an
+        update participant, the currently cached local model is used. This means that the cache
+        is empty after this operation.
+
+        If a local model is already in the cache and `set_local_model` is called with a new local
+        model, the current cached local model will be replaced by the new one.
+        If the participant is an update participant and there is no local model in the cache,
+        the participant waits until a local model is set or until a new round has been started.
+
+        Args:
+            local_model: The local model in the form of a list. The data type of the
+                elements must match the data type defined in the coordinator configuration.
+
+        Raises:
+            LocalModelLengthMisMatch: If the length of the local model does not match the
+                length defined in the coordinator configuration.
+            LocalModelDataTypeMisMatch: If the data type of the local model does not match
+                the data type defined in the coordinator configuration.
+        """
+        try:
+            print("test test test")
+            self._modalic_client.set_model(local_model)
+        except (
+            modalic_sdk.UninitializedParticipant,
+        ) as err:
+            print("failed to set local model: %s", err)
+            self._exit_event.set()
 
     def run(self):
         self._client = self._client()
@@ -130,11 +166,13 @@ class ModalicClient(threading.Thread):
         # local_update_ = self._client.serialize_training(local_update)
         print(local_update)
         try:
-            self._modalic_client.set_local_model(local_update)
+            print("helloooooo")
+            self._set_local_model(local_update)
         except (
             modalic_sdk.LocalModelLengthMisMatch,
             modalic_sdk.LocalModelDataTypeMisMatch,
         ) as err:
+            print("helloooooo noooooooooo")
             print("failed to set local model: %s", err)
 
     def _run_standalone(self):
@@ -166,6 +204,14 @@ class PyClient:
         time.sleep(2.0)
         print("\t\tPyClient: Training done.")
         return self.tensors
+
+    def on_new_global_model(self, model):
+        r"""."""
+        print("client calls: on_new_global_model")
+
+    def participate_in_update_task(self) -> bool:
+        r"""."""
+        return True
 
     # def _torch_model_to_modalic_tensors(self, model):
     #     r"""."""
