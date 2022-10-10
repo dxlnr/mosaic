@@ -161,6 +161,7 @@ mod manually_derive_serde_for_signature {
     }
 }
 
+#[allow(deprecated)]
 impl ByteObject for Signature {
     const LENGTH: usize = sign::SIGNATUREBYTES;
 

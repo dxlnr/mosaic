@@ -132,10 +132,11 @@ impl IntoPhase<Update> for State<Update> {
 #[async_trait]
 impl Step for Phase<Update> {
     async fn step(mut self) -> TransitionOutcome {
-        self = try_progress!(self.fetch_sum_dict().await);
+        println!("---------------------Update Step-----------------------");
+        // self = try_progress!(self.fetch_sum_dict().await);
         self = try_progress!(self.load_model().await);
         self = try_progress!(self.mask_model());
-        self = try_progress!(self.build_seed_dict());
+        // self = try_progress!(self.build_seed_dict());
         let sending: Phase<SendingUpdate> = self.into();
         TransitionOutcome::Complete(sending.into())
     }
@@ -191,14 +192,17 @@ impl Phase<Update> {
         debug!("loading local model");
         match self.io.load_model().await {
             Ok(Some(model)) => {
+                println!("update : load_model : Progress::Updated");
                 self.state.private.model = Some(model.into());
                 Progress::Updated(self.into())
             }
             Ok(None) => {
+                println!("update : load_model : Progress::Stuck");
                 debug!("model is not ready");
                 Progress::Stuck(self)
             }
             Err(e) => {
+                println!("update : load_model : Progress::Stuck : Error !");
                 warn!("failed to load model: {:?}", e);
                 Progress::Stuck(self)
             }
@@ -211,13 +215,17 @@ impl Phase<Update> {
             debug!("already computed the masked model, continuing");
             return Progress::Continue(self);
         }
-        info!("computing masked model");
+        println!("---------------------- computing masked model----------------------");
         let config = self.state.shared.round_params.mask_config;
         let masker = Masker::new(config);
+        println!("MaskConfig: {:?}", &config);
         // UNWRAP_SAFE: the model is set, per the `has_masked_model()` check above
         let model = self.state.private.model.take().unwrap();
+        println!("Model: {:?}", &model);
         let scalar = self.state.shared.scalar.clone();
+        println!("scalar: {:?}", &scalar);
         self.state.private.mask = Some(masker.mask(scalar, model.as_ref()));
+        println!("Masked Model: {:?}", &self.state.private.mask);
         Progress::Updated(self.into())
     }
 

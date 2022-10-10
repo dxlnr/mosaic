@@ -31,7 +31,12 @@ sodiumoxide = "0.2.7"
 thiserror = "1.0.32"
 
 [features]
-testutils = []
+default = []
+full = ["async", "secure"]
+
+# Set features.
+async = []
+secure = []
 
 [dev-dependencies]
 paste = "1.0.8"

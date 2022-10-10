@@ -1,9 +1,8 @@
 //! Model representation and conversion.
 //!
-//! See the [mask module] documentation since this is a private module anyways.
+//! See the [module] documentation since this is a private module anyways.
 //!
-//! [mask module]: crate::mask
-
+//! [model module]: crate::model
 use std::{
     fmt::Debug,
     iter::{FromIterator, IntoIterator},
@@ -20,7 +19,37 @@ use num::{
 use serde::{Deserialize, Serialize};
 use thiserror::Error;
 
-#[derive(Debug, Clone, PartialEq, Hash, From, Index, IndexMut, Into, Serialize, Deserialize)]
+pub struct InvalidDataType;
+
+#[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
+#[repr(u8)]
+/// The original primitive data type of the numerical values to be masked.
+pub enum DataType {
+    /// Numbers of type f32.
+    F32 = 0,
+    /// Numbers of type f64.
+    F64 = 1,
+    /// Numbers of type i32.
+    I32 = 2,
+    /// Numbers of type i64.
+    I64 = 3,
+}
+
+impl TryFrom<u8> for DataType {
+    type Error = InvalidDataType;
+
+    fn try_from(byte: u8) -> Result<Self, Self::Error> {
+        match byte {
+            0 => Ok(DataType::F32),
+            1 => Ok(DataType::F64),
+            2 => Ok(DataType::I32),
+            3 => Ok(DataType::I64),
+            _ => Err(InvalidDataType),
+        }
+    }
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Hash, From, Index, IndexMut, Into, Serialize, Deserialize)]
 /// A numerical representation of a machine learning model.
 pub struct Model(Vec<Ratio<BigInt>>);
 
@@ -307,159 +336,5 @@ pub(crate) fn float_to_ratio_bounded<F: FloatCore>(f: F) -> Ratio<BigInt> {
         let finite_f = clamp(f, F::min_value(), F::max_value());
         // safe unwrap: clamped weight is guaranteed to be finite
         Ratio::<BigInt>::from_float(finite_f).unwrap()
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-    use std::iter;
-
-    type R = Ratio<BigInt>;
-
-    #[test]
-    fn test_model_f32() {
-        let expected_primitives = vec![-1_f32, 0_f32, 1_f32];
-        let expected_model = Model::from(vec![
-            R::from_float(-1_f32).unwrap(),
-            R::zero(),
-            R::from_float(1_f32).unwrap(),
-        ]);
-
-        let actual_model = Model::from_primitives(expected_primitives.iter().cloned()).unwrap();
-        assert_eq!(actual_model, expected_model);
-
-        let actual_model = Model::from_primitives_bounded(expected_primitives.iter().cloned());
-        assert_eq!(actual_model, expected_model);
-
-        let actual_primitives: Vec<f32> = expected_model.into_primitives_unchecked().collect();
-        assert_eq!(actual_primitives, expected_primitives);
-    }
-
-    #[test]
-    fn test_model_f64() {
-        let expected_primitives = vec![-1_f64, 0_f64, 1_f64];
-        let expected_model = Model::from(vec![
-            R::from_float(-1_f64).unwrap(),
-            R::zero(),
-            R::from_float(1_f64).unwrap(),
-        ]);
-
-        let actual_model = Model::from_primitives(expected_primitives.iter().cloned()).unwrap();
-        assert_eq!(actual_model, expected_model);
-
-        let actual_model = Model::from_primitives_bounded(expected_primitives.iter().cloned());
-        assert_eq!(actual_model, expected_model);
-
-        let actual_primitives: Vec<f64> = expected_model.into_primitives_unchecked().collect();
-        assert_eq!(actual_primitives, expected_primitives);
-    }
-
-    #[test]
-    fn test_model_f32_from_weird_primitives() {
-        // +infinity
-        assert!(Model::from_primitives(iter::once(f32::INFINITY)).is_err());
-        assert_eq!(
-            Model::from_primitives_bounded(iter::once(f32::INFINITY)),
-            vec![R::from_float(f32::MAX).unwrap()].into()
-        );
-
-        // -infinity
-        assert!(Model::from_primitives(iter::once(f32::NEG_INFINITY)).is_err());
-        assert_eq!(
-            Model::from_primitives_bounded(iter::once(f32::NEG_INFINITY)),
-            vec![R::from_float(f32::MIN).unwrap()].into()
-        );
-
-        // NaN
-        assert!(Model::from_primitives(iter::once(f32::NAN)).is_err());
-        assert_eq!(
-            Model::from_primitives_bounded(iter::once(f32::NAN)),
-            vec![R::zero()].into()
-        );
-    }
-
-    #[test]
-    fn test_model_f64_from_weird_primitives() {
-        // +infinity
-        assert!(Model::from_primitives(iter::once(f64::INFINITY)).is_err());
-        assert_eq!(
-            Model::from_primitives_bounded(iter::once(f64::INFINITY)),
-            vec![R::from_float(f64::MAX).unwrap()].into()
-        );
-
-        // -infinity
-        assert!(Model::from_primitives(iter::once(f64::NEG_INFINITY)).is_err());
-        assert_eq!(
-            Model::from_primitives_bounded(iter::once(f64::NEG_INFINITY)),
-            vec![R::from_float(f64::MIN).unwrap()].into()
-        );
-
-        // NaN
-        assert!(Model::from_primitives(iter::once(f64::NAN)).is_err());
-        assert_eq!(
-            Model::from_primitives_bounded(iter::once(f64::NAN)),
-            vec![R::zero()].into()
-        );
-    }
-
-    #[test]
-    fn test_model_i32() {
-        let expected_primitives = vec![-1_i32, 0_i32, 1_i32];
-        let expected_model = Model::from(vec![
-            R::from_integer(BigInt::from(-1_i32)),
-            R::zero(),
-            R::from_integer(BigInt::from(1_i32)),
-        ]);
-
-        let actual_model = Model::from_primitives(expected_primitives.iter().cloned()).unwrap();
-        assert_eq!(actual_model, expected_model);
-
-        let actual_model = Model::from_primitives_bounded(expected_primitives.iter().cloned());
-        assert_eq!(actual_model, expected_model);
-
-        let actual_primitives: Vec<i32> = expected_model.into_primitives_unchecked().collect();
-        assert_eq!(actual_primitives, expected_primitives);
-    }
-
-    #[test]
-    fn test_model_i64() {
-        let expected_primitives = vec![-1_i64, 0_i64, 1_i64];
-        let expected_model = Model::from(vec![
-            R::from_integer(BigInt::from(-1_i64)),
-            R::zero(),
-            R::from_integer(BigInt::from(1_i64)),
-        ]);
-
-        let actual_model = Model::from_primitives(expected_primitives.iter().cloned()).unwrap();
-        assert_eq!(actual_model, expected_model);
-
-        let actual_model = Model::from_primitives_bounded(expected_primitives.iter().cloned());
-        assert_eq!(actual_model, expected_model);
-
-        let actual_primitives: Vec<i64> = expected_model.into_primitives_unchecked().collect();
-        assert_eq!(actual_primitives, expected_primitives);
-    }
-
-    #[test]
-    #[allow(clippy::float_cmp)]
-    fn test_ratio_to_float() {
-        let ratio = R::from_float(0_f32).unwrap();
-        assert_eq!(ratio_to_float::<f32>(&ratio).unwrap(), 0_f32);
-        let ratio = R::from_float(0_f64).unwrap();
-        assert_eq!(ratio_to_float::<f64>(&ratio).unwrap(), 0_f64);
-
-        let ratio = R::from_float(0.1_f32).unwrap();
-        assert_eq!(ratio_to_float::<f32>(&ratio).unwrap(), 0.1_f32);
-        let ratio = R::from_float(0.1_f64).unwrap();
-        assert_eq!(ratio_to_float::<f64>(&ratio).unwrap(), 0.1_f64);
-
-        let f32_max = R::from_float(f32::max_value()).unwrap();
-        let ratio = &f32_max * BigInt::from(10_usize) / (f32_max * BigInt::from(100_usize));
-        assert_eq!(ratio_to_float::<f32>(&ratio).unwrap(), 0.1_f32);
-
-        let f64_max = R::from_float(f64::max_value()).unwrap();
-        let ratio = &f64_max * BigInt::from(10_usize) / (f64_max * BigInt::from(100_usize));
-        assert_eq!(ratio_to_float::<f64>(&ratio).unwrap(), 0.1_f64);
     }
 }

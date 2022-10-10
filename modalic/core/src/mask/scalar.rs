@@ -4,9 +4,8 @@
 //!
 //! [mask module]: crate::mask
 
-use crate::mask::{
-    model::{ratio_to_float, PrimitiveType},
-    PrimitiveCastError,
+use crate::model::{
+    ratio_to_float, PrimitiveType, PrimitiveCastError,
 };
 use derive_more::{From, Into};
 use num::{

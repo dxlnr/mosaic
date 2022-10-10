@@ -183,7 +183,6 @@
 
 pub(crate) mod config;
 pub(crate) mod masking;
-pub(crate) mod model;
 pub(crate) mod object;
 pub(crate) mod scalar;
 pub(crate) mod seed;
@@ -200,7 +199,6 @@ pub use self::{
         ModelType,
     },
     masking::{Aggregation, AggregationError, Masker, UnmaskingError},
-    model::{FromPrimitives, IntoPrimitives, Model, ModelCastError, PrimitiveCastError},
     object::{
         serialization::vect::MaskVectBuffer,
         InvalidMaskObjectError,

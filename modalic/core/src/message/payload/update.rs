@@ -10,12 +10,15 @@ use anyhow::{anyhow, Context};
 
 use crate::{
     crypto::ByteObject,
-    mask::object::{serialization::MaskObjectBuffer, MaskObject},
+    mask::{
+        object::{serialization::MaskObjectBuffer, MaskObject},
+    },
     message::{
         traits::{FromBytes, LengthValueBuffer, ToBytes},
         utils::range,
         DecodeError,
     },
+    model::Model,
     LocalSeedDict,
     ParticipantTaskSignature,
 };
@@ -165,6 +168,42 @@ impl<T: AsRef<[u8]> + AsMut<[u8]>> UpdateBuffer<T> {
     }
 }
 
+// #[derive(Debug, Eq, PartialEq, Clone)]
+// /// A high level representation of an update message.
+// ///
+// /// These messages are sent by update participants during the update phase.
+// pub struct Update {
+//     /// The signature of the round seed and the word "sum".
+//     ///
+//     /// This is used to determine whether a participant is selected for the sum task.
+//     pub sum_signature: ParticipantTaskSignature,
+//     /// Signature of the round seed and the word "update".
+//     ///
+//     /// This is used to determine whether a participant is selected for the update task.
+//     pub update_signature: ParticipantTaskSignature,
+//     /// A model trained by an update participant.
+//     ///
+//     /// The model is masked with randomness derived from the participant seed.
+//     pub masked_model: MaskObject,
+//     /// A dictionary that contains the seed used to mask `masked_model`.
+//     ///
+//     /// The seed is encrypted with the ephemeral public key of each sum participant.
+//     pub local_seed_dict: LocalSeedDict,
+// }
+
+#[cfg(not(feature = "secure"))]
+#[derive(Debug, Eq, PartialEq, Clone)]
+/// A high level representation of an update message.
+///
+/// These messages are sent by update participants during the update phase.
+pub struct Update {
+    /// A model trained by an update participant.
+    ///
+    /// The model is masked with randomness derived from the participant seed.
+    pub model: Model,
+}
+
+#[cfg(feature = "secure")]
 #[derive(Debug, Eq, PartialEq, Clone)]
 /// A high level representation of an update message.
 ///
@@ -188,6 +227,24 @@ pub struct Update {
     pub local_seed_dict: LocalSeedDict,
 }
 
+#[cfg(not(feature = "secure"))]
+impl ToBytes for Update {
+    fn buffer_length(&self) -> usize {
+        self.model.buffer_length()
+    }
+
+    fn to_bytes<T: AsMut<[u8]> + AsRef<[u8]>>(&self, buffer: &mut T) {
+        let mut writer = UpdateBuffer::new_unchecked(buffer.as_mut());
+        self.sum_signature.to_bytes(&mut writer.sum_signature_mut());
+        self.update_signature
+            .to_bytes(&mut writer.update_signature_mut());
+        self.masked_model.to_bytes(&mut writer.masked_model_mut());
+        self.local_seed_dict
+            .to_bytes(&mut writer.local_seed_dict_mut());
+    }
+}
+
+#[cfg(feature = "secure")]
 impl ToBytes for Update {
     fn buffer_length(&self) -> usize {
         UPDATE_SIGNATURE_RANGE.end
@@ -206,6 +263,7 @@ impl ToBytes for Update {
     }
 }
 
+#[cfg(feature = "secure")]
 impl FromBytes for Update {
     fn from_byte_slice<T: AsRef<[u8]>>(buffer: &T) -> Result<Self, DecodeError> {
         let reader = UpdateBuffer::new(buffer.as_ref())?;

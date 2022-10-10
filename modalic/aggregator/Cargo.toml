@@ -89,7 +89,13 @@ rusoto_s3 = { version = "0.46.0", optional = true }
 
 [features]
 default = []
-full = ["model-persistence", "tls"]
+full = ["async", "secure", "redis", "model-persistence", "metrics", "tls"]
+
+# Set features.
+async = []
+secure = []
+redis = []
 metrics = []
 model-persistence = ["fancy-regex", "rusoto_core", "rusoto_s3"]
 tls = ["warp/tls"]
+

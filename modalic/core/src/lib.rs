@@ -19,6 +19,7 @@ pub mod common;
 pub mod crypto;
 pub mod mask;
 pub mod message;
+pub mod model;
 #[cfg(any(feature = "testutils", test))]
 #[cfg_attr(docsrs, doc(cfg(feature = "testutils")))]
 pub mod testutils;

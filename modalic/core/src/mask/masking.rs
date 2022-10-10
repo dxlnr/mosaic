@@ -20,11 +20,11 @@ use crate::{
     crypto::{prng::generate_integer, ByteObject},
     mask::{
         config::MaskConfigPair,
-        model::Model,
         object::{MaskObject, MaskUnit, MaskVect},
         scalar::Scalar,
         seed::MaskSeed,
     },
+    model::Model,
 };
 
 #[derive(Debug, Error, Eq, PartialEq)]
@@ -429,16 +429,18 @@ mod tests {
     use rand_chacha::ChaCha20Rng;
 
     use super::*;
-    use crate::mask::{
-        config::{
-            BoundType::{Bmax, B0, B2, B4, B6},
-            DataType::{F32, F64, I32, I64},
-            GroupType::{Integer, Power2, Prime},
-            MaskConfig,
-            ModelType::M3,
+    use crate::{
+        mask::{
+            config::{
+                BoundType::{Bmax, B0, B2, B4, B6},
+                DataType::{F32, F64, I32, I64},
+                GroupType::{Integer, Power2, Prime},
+                MaskConfig,
+                ModelType::M3,
+            },
+            scalar::FromPrimitive,
         },
         model::FromPrimitives,
-        scalar::FromPrimitive,
     };
 
     /// Generate tests for masking and unmasking of a single model:
