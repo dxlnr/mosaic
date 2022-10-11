@@ -9,7 +9,7 @@ use tracing::error_span;
 use tracing_futures::{Instrument, Instrumented};
 
 use crate::state_engine::events::{EventListener, EventSubscriber, ModelUpdate};
-use modalic_core::mask::Model;
+use modalic_core::model::Model;
 
 /// [`ModelService`]'s request type
 #[derive(Default, Clone, Eq, PartialEq, Debug)]

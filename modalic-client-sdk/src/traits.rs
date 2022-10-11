@@ -2,7 +2,7 @@ use async_trait::async_trait;
 
 use modalic_core::{
     common::RoundParameters,
-    mask::Model,
+    model::Model,
     SumDict,
     SumParticipantPublicKey,
     UpdateSeedDict,

@@ -7,9 +7,8 @@ use crate::MosaicClientTrait;
 use modalic_core::{
     common::RoundParameters,
     crypto::{ByteObject, PublicSigningKey},
-    mask::Model,
-    SumDict,
-    UpdateSeedDict,
+    model::Model,
+    SumDict, UpdateSeedDict,
 };
 
 /// Error returned upon failing to build a new [`Client`]
@@ -29,7 +28,6 @@ pub enum ClientError {
 
     #[error("Unexpected response")]
     UnexpectedResponse(u16),
-
     // #[error("Unexpected certificate extension")]
     // UnexpectedCertificate,
 

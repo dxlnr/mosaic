@@ -11,15 +11,15 @@ use crate::model::DataType;
 /// A [`ModelObject`] which represents a model and some attached meta data.
 /// 
 pub struct ModelObject {
-    pub data: Vec<Ratio<BigInt>>,
     pub data_type: DataType,
+    pub data: Vec<Ratio<BigInt>>,
 }
 
 impl ModelObject {
     /// Creates a new [`ModelObject`] from given data vector and [`DataType`].
     /// 
     pub fn new(data: Vec<Ratio<BigInt>>, data_type: DataType) -> Self {
-        Self { data, data_type }
+        Self { data_type, data }
     }
     /// Creates a new empty [`ModelObject`] and [`DataType`].
     /// 

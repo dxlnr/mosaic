@@ -17,7 +17,7 @@ use super::{
     // Sum2,
     Update,
 };
-use crate::{settings::PetSettings, ModelStore, Notify, MosaicClientTrait};
+use crate::{settings::PetSettings, ModelStore, MosaicClientTrait, Notify};
 
 /// Outcome of a state machine transition attempt.
 #[derive(Debug)]

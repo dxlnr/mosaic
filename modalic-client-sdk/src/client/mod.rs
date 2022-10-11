@@ -2,7 +2,7 @@ mod client;
 mod settings;
 
 pub use self::{
-    client::{Event, Events, InitError, Notifier, Client, Task},
+    client::{Client, Event, Events, InitError, Notifier, Task},
     settings::{Settings, SettingsError},
 };
 

@@ -18,7 +18,7 @@ use crate::{
         utils::range,
         DecodeError,
     },
-    model::Model,
+    model::ModelObject,
     LocalSeedDict,
     ParticipantTaskSignature,
 };
@@ -168,42 +168,6 @@ impl<T: AsRef<[u8]> + AsMut<[u8]>> UpdateBuffer<T> {
     }
 }
 
-// #[derive(Debug, Eq, PartialEq, Clone)]
-// /// A high level representation of an update message.
-// ///
-// /// These messages are sent by update participants during the update phase.
-// pub struct Update {
-//     /// The signature of the round seed and the word "sum".
-//     ///
-//     /// This is used to determine whether a participant is selected for the sum task.
-//     pub sum_signature: ParticipantTaskSignature,
-//     /// Signature of the round seed and the word "update".
-//     ///
-//     /// This is used to determine whether a participant is selected for the update task.
-//     pub update_signature: ParticipantTaskSignature,
-//     /// A model trained by an update participant.
-//     ///
-//     /// The model is masked with randomness derived from the participant seed.
-//     pub masked_model: MaskObject,
-//     /// A dictionary that contains the seed used to mask `masked_model`.
-//     ///
-//     /// The seed is encrypted with the ephemeral public key of each sum participant.
-//     pub local_seed_dict: LocalSeedDict,
-// }
-
-#[cfg(not(feature = "secure"))]
-#[derive(Debug, Eq, PartialEq, Clone)]
-/// A high level representation of an update message.
-///
-/// These messages are sent by update participants during the update phase.
-pub struct Update {
-    /// A model trained by an update participant.
-    ///
-    /// The model is masked with randomness derived from the participant seed.
-    pub model: Model,
-}
-
-#[cfg(feature = "secure")]
 #[derive(Debug, Eq, PartialEq, Clone)]
 /// A high level representation of an update message.
 ///
@@ -227,24 +191,61 @@ pub struct Update {
     pub local_seed_dict: LocalSeedDict,
 }
 
-#[cfg(not(feature = "secure"))]
-impl ToBytes for Update {
-    fn buffer_length(&self) -> usize {
-        self.model.buffer_length()
-    }
+// #[cfg(not(feature = "secure"))]
+// #[derive(Debug, Eq, PartialEq, Clone)]
+// /// A high level representation of an update message.
+// ///
+// /// These messages are sent by update participants during the update phase.
+// pub struct Update {
+//     /// A model trained by an update participant.
+//     ///
+//     /// The model is masked with randomness derived from the participant seed.
+//     pub model_object: ModelObject,
+// }
 
-    fn to_bytes<T: AsMut<[u8]> + AsRef<[u8]>>(&self, buffer: &mut T) {
-        let mut writer = UpdateBuffer::new_unchecked(buffer.as_mut());
-        self.sum_signature.to_bytes(&mut writer.sum_signature_mut());
-        self.update_signature
-            .to_bytes(&mut writer.update_signature_mut());
-        self.masked_model.to_bytes(&mut writer.masked_model_mut());
-        self.local_seed_dict
-            .to_bytes(&mut writer.local_seed_dict_mut());
-    }
-}
+// #[cfg(feature = "secure")]
+// #[derive(Debug, Eq, PartialEq, Clone)]
+// /// A high level representation of an update message.
+// ///
+// /// These messages are sent by update participants during the update phase.
+// pub struct Update {
+//     /// The signature of the round seed and the word "sum".
+//     ///
+//     /// This is used to determine whether a participant is selected for the sum task.
+//     pub sum_signature: ParticipantTaskSignature,
+//     /// Signature of the round seed and the word "update".
+//     ///
+//     /// This is used to determine whether a participant is selected for the update task.
+//     pub update_signature: ParticipantTaskSignature,
+//     /// A model trained by an update participant.
+//     ///
+//     /// The model is masked with randomness derived from the participant seed.
+//     pub masked_model: MaskObject,
+//     /// A dictionary that contains the seed used to mask `masked_model`.
+//     ///
+//     /// The seed is encrypted with the ephemeral public key of each sum participant.
+//     pub local_seed_dict: LocalSeedDict,
+// }
 
-#[cfg(feature = "secure")]
+// #[cfg(not(feature = "secure"))]
+// impl ToBytes for Update {
+//     fn buffer_length(&self) -> usize {
+//         self.model_object.buffer_length()
+//     }
+
+//     fn to_bytes<T: AsMut<[u8]> + AsRef<[u8]>>(&self, buffer: &mut T) {
+//         todo!()
+//         // let mut writer = UpdateBuffer::new_unchecked(buffer.as_mut());
+//         // self.sum_signature.to_bytes(&mut writer.sum_signature_mut());
+//         // self.update_signature
+//         //     .to_bytes(&mut writer.update_signature_mut());
+//         // self.masked_model.to_bytes(&mut writer.masked_model_mut());
+//         // self.local_seed_dict
+//         //     .to_bytes(&mut writer.local_seed_dict_mut());
+//     }
+// }
+
+// #[cfg(feature = "secure")]
 impl ToBytes for Update {
     fn buffer_length(&self) -> usize {
         UPDATE_SIGNATURE_RANGE.end
@@ -263,7 +264,7 @@ impl ToBytes for Update {
     }
 }
 
-#[cfg(feature = "secure")]
+// #[cfg(feature = "secure")]
 impl FromBytes for Update {
     fn from_byte_slice<T: AsRef<[u8]>>(buffer: &T) -> Result<Self, DecodeError> {
         let reader = UpdateBuffer::new(buffer.as_ref())?;
@@ -291,80 +292,5 @@ impl FromBytes for Update {
             local_seed_dict: LocalSeedDict::from_byte_stream(iter)
                 .context("invalid local seed dictionary")?,
         })
-    }
-}
-
-#[cfg(test)]
-pub mod tests {
-    use super::*;
-    use crate::testutils::messages::update as helpers;
-
-    #[test]
-    fn buffer_read() {
-        let bytes = helpers::payload().1;
-        let buffer = UpdateBuffer::new(&bytes).unwrap();
-        assert_eq!(
-            buffer.sum_signature(),
-            helpers::sum_task_signature().1.as_slice()
-        );
-        assert_eq!(
-            buffer.update_signature(),
-            helpers::update_task_signature().1.as_slice()
-        );
-        let expected = helpers::mask_object().1;
-        assert_eq!(&buffer.masked_model()[..expected.len()], &expected[..]);
-        assert_eq!(buffer.local_seed_dict(), &helpers::local_seed_dict().1[..]);
-    }
-
-    #[test]
-    fn decode_invalid_seed_dict() {
-        let mut invalid = helpers::local_seed_dict().1;
-        // This truncates the last entry of the seed dictionary
-        invalid[3] = 0xe3;
-        let mut bytes = vec![];
-        bytes.extend(helpers::sum_task_signature().1);
-        bytes.extend(helpers::update_task_signature().1);
-        bytes.extend(helpers::mask_object().1);
-        bytes.extend(invalid);
-
-        let e = Update::from_byte_slice(&bytes).unwrap_err();
-        let cause = e.source().unwrap().to_string();
-        assert_eq!(
-            cause,
-            "invalid local seed dictionary: trailing bytes".to_string()
-        );
-    }
-
-    #[test]
-    fn decode() {
-        let (update, bytes) = helpers::payload();
-        let parsed = Update::from_byte_slice(&bytes).unwrap();
-        assert_eq!(parsed, update);
-    }
-
-    #[test]
-    fn stream_parse() {
-        let (update, bytes) = helpers::payload();
-        let parsed = Update::from_byte_stream(&mut bytes.into_iter()).unwrap();
-        assert_eq!(parsed, update);
-    }
-
-    #[test]
-    fn encode() {
-        let (update, bytes) = helpers::payload();
-        assert_eq!(update.buffer_length(), bytes.len());
-        let mut buf = vec![0xff; update.buffer_length()];
-        update.to_bytes(&mut buf);
-        // The order in which the hashmap is serialized is not
-        // guaranteed, but we chose our key/values such that they are
-        // sorted.
-        //
-        // First compute the offset at which the local seed dict value
-        // starts: two signature (64 bytes), the masked model (32
-        // bytes), the length field (4 bytes), the masked scalar (10 bytes)
-        let offset = 64 * 2 + 32 + 4 + 10;
-        // Sort the end of the buffer
-        (&mut buf[offset..]).sort_unstable();
-        assert_eq!(buf, bytes);
     }
 }

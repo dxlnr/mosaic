@@ -2,7 +2,7 @@
 
 use crate::storage::{ModelStorage, StorageResult};
 use async_trait::async_trait;
-use modalic_core::{common::RoundSeed, mask::Model};
+use modalic_core::{common::RoundSeed, model::Model};
 
 #[derive(Clone)]
 pub struct ModelNoOp;

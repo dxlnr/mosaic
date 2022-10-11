@@ -15,10 +15,11 @@ use crate::{
 };
 
 use modalic_core::{
-    mask::{Aggregation, MaskObject, Model, UnmaskingError},
+    mask::{Aggregation, MaskObject,UnmaskingError},
     LocalSeedDict,
     SeedDict,
     UpdateParticipantPublicKey,
+    model::Model,
 };
 
 /// Errors which can occur during the update phase.

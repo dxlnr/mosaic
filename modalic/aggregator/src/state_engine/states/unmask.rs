@@ -15,7 +15,7 @@ use crate::{
     },
     storage::{Storage, StorageError},
 };
-use modalic_core::mask::{Aggregation, MaskObject, Model, UnmaskingError};
+use modalic_core::{mask::{Aggregation, MaskObject, UnmaskingError}, model::Model};
 
 /// Errors which can occur during the unmask State.
 #[derive(Debug, Display, Error)]

@@ -19,13 +19,14 @@ use crate::{
 use async_trait::async_trait;
 use modalic_core::{
     common::RoundSeed,
-    mask::{MaskObject, Model},
+    mask::MaskObject,
     LocalSeedDict,
     SeedDict,
     SumDict,
     SumParticipantEphemeralPublicKey,
     SumParticipantPublicKey,
     UpdateParticipantPublicKey,
+    model::Model,
 };
 
 #[derive(Clone)]

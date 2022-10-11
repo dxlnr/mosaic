@@ -1,7 +1,7 @@
 use crate::storage::traits::{StorageResult, TrustAnchor};
 use async_trait::async_trait;
 
-use modalic_core::mask::Model;
+use modalic_core::model::Model;
 
 #[derive(Clone)]
 pub struct NoOp;

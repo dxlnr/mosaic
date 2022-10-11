@@ -49,9 +49,33 @@ impl TryFrom<u8> for DataType {
     }
 }
 
+impl TryInto<u8> for DataType {
+    type Error = InvalidDataType;
+
+    fn try_into(self) -> Result<u8, Self::Error> {
+        match self  {
+            DataType::F32 => Ok(0),
+            DataType::F64 => Ok(1),
+            DataType::I32 => Ok(2),
+            DataType::I64 => Ok(3),
+        }
+    }
+}
+
+impl DataType {
+    pub(crate) fn bytes_per_number(&self) -> usize {
+        match self {
+            DataType::F32 => 4,
+            DataType::F64 => 8,
+            DataType::I32 => 4,
+            DataType::I64 => 8,
+        }
+    }
+}
+
 #[derive(Debug, Clone, PartialEq, Eq, Hash, From, Index, IndexMut, Into, Serialize, Deserialize)]
 /// A numerical representation of a machine learning model.
-pub struct Model(Vec<Ratio<BigInt>>);
+pub struct Model(pub Vec<Ratio<BigInt>>);
 
 impl std::convert::AsRef<Model> for Model {
     fn as_ref(&self) -> &Model {
@@ -295,11 +319,21 @@ impl FromPrimitives<f64> for Model {
     }
 }
 
+pub fn ratio_to_bytes(ratio: &Ratio<BigInt>, dtype: DataType) -> Vec<u8> {
+    match dtype {
+        DataType::F32 => ratio_to_float::<f32>(ratio).unwrap_or(0.0).to_le_bytes().to_vec(),
+        DataType::F64 => ratio_to_float::<f64>(ratio).unwrap_or(0.0).to_le_bytes().to_vec(),
+        DataType::I32 => ratio.to_integer().to_i32().unwrap_or(0).to_le_bytes().to_vec(),
+        DataType::I64 => ratio.to_integer().to_i64().unwrap_or(0).to_le_bytes().to_vec(),
+        // _ => None,
+    }
+}
+
 /// Converts a numerical value into a primitive floating point value.
 ///
 /// # Errors
 /// Fails if the numerical value is not representable in the primitive data type.
-pub(crate) fn ratio_to_float<F: FloatCore>(ratio: &Ratio<BigInt>) -> Option<F> {
+pub fn ratio_to_float<F: FloatCore>(ratio: &Ratio<BigInt>) -> Option<F> {
     let min_value = Ratio::from_float(F::min_value()).unwrap();
     let max_value = Ratio::from_float(F::max_value()).unwrap();
     if ratio < &min_value || ratio > &max_value {

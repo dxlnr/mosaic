@@ -1,14 +1,15 @@
 //! This module provides utilities to configure a [`Participant`].
 //!
 //! [`Participant`]: crate::Participant
-
-use std::convert::TryInto;
-use thiserror::Error;
+//!
+use crate::settings::{MaxMessageSize, PetSettings};
 use modalic_core::{
     crypto::SigningKeyPair,
-    mask::{FromPrimitive, PrimitiveCastError, Scalar},
+    mask::{FromPrimitive, Scalar},
+    model::PrimitiveCastError,
 };
-use crate::settings::{MaxMessageSize, PetSettings};
+use std::convert::TryInto;
+use thiserror::Error;
 
 /// A participant settings
 #[derive(Clone, Debug)]

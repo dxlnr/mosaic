@@ -8,7 +8,7 @@ use crate::state_engine::states::StateName;
 use modalic_core::{
     common::RoundParameters,
     crypto::EncryptKeyPair,
-    mask::Model,
+    model::Model,
     SeedDict,
     SumDict,
 };

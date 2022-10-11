@@ -3,14 +3,10 @@ use std::error::Error;
 use async_trait::async_trait;
 
 use modalic_core::{
-    common::RoundParameters,
-    mask::Model,
-    SumDict,
-    SumParticipantPublicKey,
-    UpdateSeedDict,
+    common::RoundParameters, model::Model, SumDict, SumParticipantPublicKey, UpdateSeedDict,
 };
 
-use crate::{ModelStore, Notify, MosaicClientTrait};
+use crate::{ModelStore, MosaicClientTrait, Notify};
 
 /// Returned a dynamically dispatched [`IO`] object
 pub(crate) fn boxed_io<X, M, N>(
@@ -27,7 +23,7 @@ where
 }
 
 #[cfg(test)]
-type DynModel = Box<(dyn std::convert::AsRef<modalic_core::mask::Model> + Send)>;
+type DynModel = Box<(dyn std::convert::AsRef<modalic_core::model::Model> + Send)>;
 /// A trait that gathers all the [`Notify`], [`XaynetClient`] and [`ModelStore`]
 /// methods.
 ///

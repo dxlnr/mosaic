@@ -10,7 +10,7 @@ use tokio::{
 };
 use tracing::warn;
 
-use modalic_core::mask::Model;
+use modalic_core::model::Model;
 
 use crate::{
     client::{
@@ -19,13 +19,8 @@ use crate::{
         ClientError,
     },
     http_client::HttpClient,
-    LocalModelConfig,
-    ModelStore,
-    Notify,
-    SerializableState,
-    StateMachine,
+    LocalModelConfig, ModelStore, MosaicClientTrait, Notify, SerializableState, StateMachine,
     TransitionOutcome,
-    MosaicClientTrait,
 };
 
 /// Event emitted by the participant internal state machine as it advances through the
@@ -275,7 +270,7 @@ impl Client {
 
     fn process_events(&mut self) {
         println!("\tParticipant process event");
-        
+
         loop {
             match self.events.next() {
                 Some(Event::Idle) => {
@@ -303,7 +298,6 @@ impl Client {
                     println!("\tParticipant process event : {:?}", &self.task);
                     break;
                 }
-
             }
         }
     }

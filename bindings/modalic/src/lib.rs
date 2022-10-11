@@ -6,7 +6,7 @@ use tracing::debug;
 use tracing_subscriber::{EnvFilter, FmtSubscriber};
 
 use modalic_client_sdk::settings::MaxMessageSize;
-use modalic_core::mask::{DataType, FromPrimitives, IntoPrimitives, Model};
+use modalic_core::model::{DataType, FromPrimitives, IntoPrimitives, Model};
 
 // use crate::from_primitives;
 // use crate::into_primitives;

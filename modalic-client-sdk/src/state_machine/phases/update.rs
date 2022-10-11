@@ -7,25 +7,16 @@ use tracing::{debug, info, warn};
 
 use modalic_core::{
     crypto::Signature,
-    mask::{MaskObject, MaskSeed, Masker, Model},
+    mask::{MaskObject, MaskSeed, Masker},
     message::Update as UpdateMessage,
-    LocalSeedDict,
-    ParticipantTaskSignature,
-    SumDict,
+    model::Model,
+    LocalSeedDict, ParticipantTaskSignature, SumDict,
 };
 
 use crate::{
     state_machine::{
-        Awaiting,
-        IntoPhase,
-        Phase,
-        PhaseIo,
-        Progress,
-        SendingUpdate,
-        State,
-        Step,
-        TransitionOutcome,
-        IO,
+        Awaiting, IntoPhase, Phase, PhaseIo, Progress, SendingUpdate, State, Step,
+        TransitionOutcome, IO,
     },
     MessageEncoder,
 };
@@ -132,10 +123,19 @@ impl IntoPhase<Update> for State<Update> {
 #[async_trait]
 impl Step for Phase<Update> {
     async fn step(mut self) -> TransitionOutcome {
-        println!("---------------------Update Step-----------------------");
-        // self = try_progress!(self.fetch_sum_dict().await);
         self = try_progress!(self.load_model().await);
-        self = try_progress!(self.mask_model());
+
+        #[cfg(feature = "secure")]
+        {
+            self = try_progress!(self.fetch_sum_dict().await);
+            self = try_progress!(self.mask_model());
+            self = try_progress!(self.build_seed_dict());
+        }
+        println!("---------------------Update Step-----------------------");
+
+        // self = try_progress!(self.fetch_sum_dict().await);
+        // self = try_progress!(self.load_model().await);
+        // self = try_progress!(self.mask_model());
         // self = try_progress!(self.build_seed_dict());
         let sending: Phase<SendingUpdate> = self.into();
         TransitionOutcome::Complete(sending.into())

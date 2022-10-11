@@ -11,13 +11,14 @@ use crate::aggr::Aggregator;
 use modalic_core::{
     common::RoundSeed,
     crypto::ByteObject,
-    mask::{MaskObject, Model},
+    mask::MaskObject,
     LocalSeedDict,
     SeedDict,
     SumDict,
     SumParticipantEphemeralPublicKey,
     SumParticipantPublicKey,
     UpdateParticipantPublicKey,
+    model::Model,
 };
 
 /// The error type for storage operations that are not directly related to application domain.

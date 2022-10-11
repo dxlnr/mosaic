@@ -24,6 +24,6 @@ pub(crate) mod object;
 pub(crate) mod serialize;
 
 pub use self::{
-    model::{DataType, FromPrimitives, IntoPrimitives, Model, ModelCastError, PrimitiveCastError},
+    model::{DataType, FromPrimitives, IntoPrimitives, Model, ModelCastError, PrimitiveCastError, ratio_to_bytes},
     object::ModelObject,
 };

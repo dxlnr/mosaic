@@ -210,16 +210,16 @@
 //! ```
 
 pub mod client;
+mod http_client;
 mod message_encoder;
 pub mod settings;
 mod state_machine;
 mod traits;
-mod http_client;
 pub(crate) mod utils;
 
 pub(crate) use self::message_encoder::MessageEncoder;
 pub use self::{
-    client::{Event, Events, InitError, Notifier, Client, Task, Settings, SettingsError},
-    traits::{ModelStore, Notify, MosaicClientTrait}
+    client::{Client, Event, Events, InitError, Notifier, Settings, SettingsError, Task},
+    traits::{ModelStore, MosaicClientTrait, Notify},
 };
 pub use state_machine::{LocalModelConfig, SerializableState, StateMachine, TransitionOutcome};

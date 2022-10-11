@@ -13,8 +13,9 @@ use crate::{
 use modalic_core::{
     common::{RoundParameters, RoundSeed},
     crypto::{ByteObject, PublicEncryptKey, SigningKeyPair},
-    mask::{self, DataType, MaskConfig, Model, Scalar},
+    mask::{self, DataType, MaskConfig, Scalar},
     message::Payload,
+    model::Model,
 };
 
 /// State of the state machine
