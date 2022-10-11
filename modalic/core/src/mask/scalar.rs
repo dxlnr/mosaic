@@ -4,19 +4,13 @@
 //!
 //! [mask module]: crate::mask
 
-use crate::model::{
-    model::ratio_to_float, model::PrimitiveType, PrimitiveCastError,
-};
+use crate::model::{model::ratio_to_float, model::PrimitiveType, PrimitiveCastError};
 use derive_more::{From, Into};
 use num::{
     clamp,
     rational::Ratio,
     traits::{float::FloatCore, ToPrimitive},
-    BigInt,
-    BigUint,
-    One,
-    Unsigned,
-    Zero,
+    BigInt, BigUint, One, Unsigned, Zero,
 };
 use serde::{Deserialize, Serialize};
 use std::{

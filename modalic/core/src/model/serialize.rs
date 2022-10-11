@@ -30,9 +30,7 @@ impl<T: AsRef<[u8]>> ModelObjectBuffer<T> {
     /// Fails if the `bytes` don't conform to the required buffer length for mask objects.
     pub fn new(bytes: T) -> Result<Self, DecodeError> {
         let buffer = Self { inner: bytes };
-        buffer
-            .check_buffer_length()
-            .context("invalid model")?;
+        buffer.check_buffer_length().context("invalid model")?;
         Ok(buffer)
     }
 
@@ -114,9 +112,9 @@ impl ToBytes for ModelObject {
         writer.set_numbers(self.data.len() as u32);
 
         let mut data = writer.data_mut(self.buffer_length());
-        
+
         let bytes_per_number = self.data_type.bytes_per_number();
-        
+
         for ratio in self.data.iter() {
             let bytes = ratio_to_bytes(ratio, self.data_type);
             data[..bytes.len()].copy_from_slice(&bytes[..]);
@@ -126,7 +124,6 @@ impl ToBytes for ModelObject {
             }
             data = &mut data[bytes_per_number..];
         }
-        
     }
 }
 
@@ -146,20 +143,19 @@ impl FromBytes for ModelObject {
 pub(crate) mod tests {
     use super::*;
 
-    use num::{bigint::BigInt, rational::Ratio};
     use crate::model::DataType;
+    use num::{bigint::BigInt, rational::Ratio};
 
     #[test]
     pub fn serialize_model_object() {
-
         let mut bytes = vec![0x00];
         bytes.extend(vec![
             // number of elements
-            0x00, 0x00, 0x00, 0x04,  // data (1 weight => 4 bytes with f32)
-            0x01, 0x00, 0x00, 0x00,  // 1
-            0x02, 0x00, 0x00, 0x00,  // 2
-            0x01, 0x00, 0x00, 0x00,  // 1
-            0x02, 0x00, 0x00, 0x00,  // 2
+            0x00, 0x00, 0x00, 0x04, // data (1 weight => 4 bytes with f32)
+            0x01, 0x00, 0x00, 0x00, // 1
+            0x02, 0x00, 0x00, 0x00, // 2
+            0x01, 0x00, 0x00, 0x00, // 1
+            0x02, 0x00, 0x00, 0x00, // 2
         ]);
 
         let data = vec![

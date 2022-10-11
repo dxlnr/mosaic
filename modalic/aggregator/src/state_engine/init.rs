@@ -11,10 +11,10 @@ use crate::{
     aggr::Aggregator,
     settings::{MaskSettings, ModelSettings, PetSettings},
     state_engine::{
+        channel::{RequestReceiver, RequestSender},
         // coordinator::CoordinatorState,
         events::{EventPublisher, EventSubscriber, ModelUpdate},
-        states::{Idle, StateName, StateCondition, SharedState},
-        channel::{RequestReceiver, RequestSender},
+        states::{Idle, SharedState, StateCondition, StateName},
         StateEngine,
     },
     storage::{Storage, StorageError},

@@ -3,14 +3,8 @@
 use serde::{Deserialize, Serialize};
 
 use crate::settings::{
-    MaskSettings,
-    ModelSettings,
-    PetSettings,
-    PetSettingsCount,
-    PetSettingsSum,
-    PetSettingsSum2,
-    PetSettingsTime,
-    PetSettingsUpdate,
+    MaskSettings, ModelSettings, PetSettings, PetSettingsCount, PetSettingsSum, PetSettingsSum2,
+    PetSettingsTime, PetSettingsUpdate,
 };
 use xaynet_core::{
     common::{RoundParameters, RoundSeed},

@@ -5,11 +5,34 @@
 
 use crate::state_engine::states::MessageCounter;
 
+#[cfg(feature = "secure")]
 use modalic_core::{
     SeedDict,
-    mask::MaskObject, 
+    mask::MaskObject,
+    model::ModelObject,
 };
 
+use modalic_core::model::ModelObject;
+
+#[cfg(not(feature = "secure"))]
+#[derive(Debug, Clone)]
+pub struct FedBuffer {
+    /// [`MessageCounter`]
+    pub counter: MessageCounter,
+    /// Buffered [`MaskObject`].
+    pub local_models: Vec<ModelObject>,
+}
+
+impl Default for FedBuffer {
+    fn default() -> Self {
+        Self {
+            counter: MessageCounter::default(),
+            local_models: Vec::new(),
+        }
+    }
+}
+
+#[cfg(feature = "secure")]
 #[derive(Debug, Clone)]
 pub struct FedBuffer {
     /// [`MessageCounter`]
@@ -19,20 +42,3 @@ pub struct FedBuffer {
     /// The seed dictionary which gets assembled during the update phase.
     pub seed_dict: Option<SeedDict>,
 }
-
-impl Default for FedBuffer {
-    /// Creates a new default [`MessageCounter`].
-    fn default() -> Self {
-        Self {
-            counter: MessageCounter::default(),
-            local_models: Vec::new(),
-            seed_dict: None,
-        }
-    }
-}
-
-// impl FedBuffer {
-//     pub fn set_seed_dict(&mut self, k: PublicSigningKey, v: UpdateSeedDict) {
-//         self.seed_dict(k, v);
-//     }
-// }

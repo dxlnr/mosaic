@@ -10,12 +10,15 @@ use tracing::{error, info};
 use crate::{
     state_engine::{
         events::ModelUpdate,
-        states::{Idle, State, StateError, StateName, StateCondition, SharedState},
+        states::{Idle, SharedState, State, StateCondition, StateError, StateName},
         StateEngine,
     },
     storage::{Storage, StorageError},
 };
-use modalic_core::{mask::{Aggregation, MaskObject, UnmaskingError}, model::Model};
+use modalic_core::{
+    mask::{Aggregation, MaskObject, UnmaskingError},
+    model::Model,
+};
 
 /// Errors which can occur during the unmask State.
 #[derive(Debug, Display, Error)]

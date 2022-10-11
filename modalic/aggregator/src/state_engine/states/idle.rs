@@ -5,11 +5,11 @@ use thiserror::Error;
 use tracing::{debug, info};
 
 use crate::{
-    storage::{Storage, StorageError},
     state_engine::{
-    states::{Collect, SharedState, State, StateCondition, StateError, StateName},
-    StateEngine,
-    }
+        states::{Collect, SharedState, State, StateCondition, StateError, StateName},
+        StateEngine,
+    },
+    storage::{Storage, StorageError},
 };
 use modalic_core::crypto::EncryptKeyPair;
 
@@ -30,7 +30,7 @@ pub enum IdleError {
 pub struct Idle;
 
 #[async_trait]
-impl<T> State<T> for StateCondition<Idle, T> 
+impl<T> State<T> for StateCondition<Idle, T>
 where
     T: Storage,
 {
@@ -44,7 +44,7 @@ where
         // self.update_round_seed();
 
         self.set_aggr_state_to_store().await?;
-        
+
         Ok(())
     }
 

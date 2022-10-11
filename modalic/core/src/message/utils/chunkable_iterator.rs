@@ -8,8 +8,7 @@
 
 use std::{
     cell::RefCell,
-    cmp,
-    fmt,
+    cmp, fmt,
     iter::{ExactSizeIterator, Iterator},
     ops::Range,
 };

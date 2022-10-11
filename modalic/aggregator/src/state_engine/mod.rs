@@ -13,7 +13,12 @@ pub mod states;
 
 use derive_more::From;
 
-use crate::{state_engine::states::{Collect, Failure, Idle, State, Shutdown, StateCondition, Unmask, Update}, storage::Storage};
+use crate::{
+    state_engine::states::{
+        Collect, Failure, Idle, Shutdown, State, StateCondition, Unmask, Update,
+    },
+    storage::Storage,
+};
 
 /// [`StateEngine`] functions as the state machine which handles the progress of the `Aggregator`
 /// and keep its state.
@@ -34,7 +39,7 @@ pub enum StateEngine<T> {
     Failure(StateCondition<Failure, T>),
 }
 
-impl<T> StateEngine<T> 
+impl<T> StateEngine<T>
 where
     T: Storage,
     StateCondition<Idle, T>: State<T>,

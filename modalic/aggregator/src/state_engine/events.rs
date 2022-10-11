@@ -6,11 +6,7 @@ use tokio::sync::watch;
 
 use crate::state_engine::states::StateName;
 use modalic_core::{
-    common::RoundParameters,
-    crypto::EncryptKeyPair,
-    model::Model,
-    SeedDict,
-    SumDict,
+    common::RoundParameters, crypto::EncryptKeyPair, model::Model, SeedDict, SumDict,
 };
 
 /// An event emitted by the coordinator.

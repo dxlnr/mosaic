@@ -4,8 +4,8 @@ use crate::{
     aggr::Aggregator,
     // state_engine::coordinator::Aggregator,
     storage::{
-        AggregatorStorage,
         trust_anchor::noop::NoOp,
+        AggregatorStorage,
         // AggregatorStorage,
         LocalSeedDictAdd,
         MaskScoreIncr,
@@ -18,15 +18,8 @@ use crate::{
 };
 use async_trait::async_trait;
 use modalic_core::{
-    common::RoundSeed,
-    mask::MaskObject,
-    LocalSeedDict,
-    SeedDict,
-    SumDict,
-    SumParticipantEphemeralPublicKey,
-    SumParticipantPublicKey,
-    UpdateParticipantPublicKey,
-    model::Model,
+    common::RoundSeed, mask::MaskObject, model::Model, LocalSeedDict, SeedDict, SumDict,
+    SumParticipantEphemeralPublicKey, SumParticipantPublicKey, UpdateParticipantPublicKey,
 };
 
 #[derive(Clone)]

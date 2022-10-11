@@ -439,7 +439,10 @@ mod tests {
             },
             scalar::FromPrimitive,
         },
-        model::{DataType::{F32, F64, I32, I64}, FromPrimitives},
+        model::{
+            DataType::{F32, F64, I32, I64},
+            FromPrimitives,
+        },
     };
 
     /// Generate tests for masking and unmasking of a single model:

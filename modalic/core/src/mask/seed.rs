@@ -19,8 +19,7 @@ use crate::{
         object::{MaskObject, MaskUnit, MaskVect},
         MaskConfigPair,
     },
-    SumParticipantEphemeralPublicKey,
-    SumParticipantEphemeralSecretKey,
+    SumParticipantEphemeralPublicKey, SumParticipantEphemeralSecretKey,
 };
 
 #[derive(AsRef, AsMut, Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]

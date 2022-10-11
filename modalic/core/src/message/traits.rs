@@ -17,8 +17,7 @@ use crate::{
     crypto::ByteObject,
     mask::seed::EncryptedMaskSeed,
     message::{utils::ChunkableIterator, DecodeError},
-    LocalSeedDict,
-    SumParticipantPublicKey,
+    LocalSeedDict, SumParticipantPublicKey,
 };
 
 /// An interface for serializable message types.

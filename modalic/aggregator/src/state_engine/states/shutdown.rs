@@ -3,7 +3,7 @@ use tracing::debug;
 
 use crate::{
     state_engine::{
-        states::{State, StateError, StateName, StateCondition, SharedState},
+        states::{SharedState, State, StateCondition, StateError, StateName},
         StateEngine,
     },
     storage::Storage,
@@ -42,4 +42,3 @@ impl<T> StateCondition<Shutdown, T> {
         }
     }
 }
-

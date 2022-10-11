@@ -6,18 +6,18 @@ mod collect;
 mod failure;
 mod handler;
 mod idle;
-mod state;
 mod shutdown;
+mod state;
 mod unmask;
 mod update;
 
 pub use self::{
     collect::Collect,
     failure::Failure,
-    handler::{StateHandler, MessageCounter},
+    handler::{MessageCounter, StateHandler},
     idle::{Idle, IdleError},
-    state::{State, StateName, StateCondition, SharedState, StateError},
     shutdown::Shutdown,
+    state::{SharedState, State, StateCondition, StateError, StateName},
     unmask::{Unmask, UnmaskError},
     update::{Update, UpdateError},
 };

@@ -1,7 +1,7 @@
 use async_trait::async_trait;
 use derive_more::Display;
-use thiserror::Error;
 use futures::StreamExt;
+use thiserror::Error;
 use tracing::{debug, info, warn, Span};
 
 use crate::{
@@ -10,8 +10,7 @@ use crate::{
         channel::{RequestReceiver, ResponseSender, StateEngineRequest},
         events::EventPublisher,
         states::{IdleError, UpdateError},
-        Failure,
-        StateEngine,
+        Failure, StateEngine,
     },
     storage::Storage,
 };
@@ -46,7 +45,7 @@ pub enum StateName {
 
 /// A trait that must be implemented by a state in order to perform its tasks and to move to a next state.
 #[async_trait]
-pub trait State<T> 
+pub trait State<T>
 where
     T: Storage,
 {
@@ -66,7 +65,7 @@ where
 #[allow(dead_code)]
 pub struct StateCondition<S, T> {
     /// Private Identifier of the state.
-    /// 
+    ///
     pub(in crate::state_engine) private: S,
     /// [`SharedState`] that the Aggregator holds.
     ///
@@ -85,7 +84,10 @@ where
 
         async move {
             if let Err(err) = self.perform().await {
-                warn!("Aggregator failed to perform task of state {:?}", &Self::NAME);
+                warn!(
+                    "Aggregator failed to perform task of state {:?}",
+                    &Self::NAME
+                );
                 return Some(self.into_failure_state(err));
             }
 
@@ -138,7 +140,7 @@ pub struct SharedState<T> {
     /// [`Aggregator`]
     pub(in crate::state_engine) aggr: Aggregator,
     /// [`RequestReceiver`] for enabling receiving requests from the client.
-    /// 
+    ///
     pub(in crate::state_engine) rx: RequestReceiver,
     /// [`EventPublisher`] responsible for publishing the latest updates.
     ///

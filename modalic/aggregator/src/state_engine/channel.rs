@@ -17,10 +17,8 @@ use crate::storage::{LocalSeedDictAddError, MaskScoreIncrError, StorageError, Su
 use modalic_core::{
     mask::MaskObject,
     message::{Message, Payload, Update},
-    LocalSeedDict,
-    ParticipantPublicKey,
-    SumParticipantEphemeralPublicKey,
-    SumParticipantPublicKey,
+    model::ModelObject,
+    LocalSeedDict, ParticipantPublicKey, SumParticipantEphemeralPublicKey, SumParticipantPublicKey,
     UpdateParticipantPublicKey,
 };
 
@@ -54,6 +52,7 @@ pub struct SumRequest {
     pub ephm_pk: SumParticipantEphemeralPublicKey,
 }
 
+#[cfg(feature = "secure")]
 /// An update request.
 #[derive(Debug)]
 pub struct UpdateRequest {
@@ -63,6 +62,16 @@ pub struct UpdateRequest {
     pub local_seed_dict: LocalSeedDict,
     /// The masked model trained by the participant.
     pub masked_model: MaskObject,
+}
+
+#[cfg(not(feature = "secure"))]
+/// An update request.
+#[derive(Debug)]
+pub struct UpdateRequest {
+    /// The public key of the participant.
+    pub participant_pk: UpdateParticipantPublicKey,
+    /// The masked model trained by the participant.
+    pub model_object: ModelObject,
 }
 
 /// A sum2 request.
@@ -87,6 +96,7 @@ pub enum StateEngineRequest {
 impl From<Message> for StateEngineRequest {
     fn from(message: Message) -> Self {
         let participant_pk = message.participant_pk;
+        #[cfg(feature = "secure")]
         match message.payload {
             Payload::Sum(sum) => StateEngineRequest::Sum(SumRequest {
                 participant_pk,
@@ -108,6 +118,19 @@ impl From<Message> for StateEngineRequest {
                 participant_pk,
                 model_mask: sum2.model_mask,
             }),
+            Payload::Chunk(_) => unimplemented!(),
+        }
+        #[cfg(not(feature = "secure"))]
+        match message.payload {
+            Payload::Sum(_) => unimplemented!(),
+            Payload::Update(update) => {
+                let Update { model_object, .. } = update;
+                StateEngineRequest::Update(UpdateRequest {
+                    participant_pk,
+                    model_object,
+                })
+            }
+            Payload::Sum2(_) => unimplemented!(),
             Payload::Chunk(_) => unimplemented!(),
         }
     }

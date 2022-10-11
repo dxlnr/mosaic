@@ -4,12 +4,13 @@ use async_trait::async_trait;
 use displaydoc::Display;
 use thiserror::Error;
 use tokio::time::sleep;
-use tracing::{error, debug};
+use tracing::{debug, error};
 
 use crate::{
     state_engine::{
-    states::{SharedState, State, StateCondition, StateError, StateName},
-    StateEngine,},
+        states::{SharedState, State, StateCondition, StateError, StateName},
+        StateEngine,
+    },
     storage::Storage,
 };
 
@@ -21,7 +22,7 @@ pub struct Failure {
 }
 
 #[async_trait]
-impl<T> State<T> for StateCondition<Failure, T> 
+impl<T> State<T> for StateCondition<Failure, T>
 where
     T: Storage,
 {

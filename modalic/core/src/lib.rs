@@ -20,9 +20,9 @@ pub mod crypto;
 pub mod mask;
 pub mod message;
 pub mod model;
-#[cfg(any(feature = "testutils", test))]
-#[cfg_attr(docsrs, doc(cfg(feature = "testutils")))]
-pub mod testutils;
+// #[cfg(any(feature = "testutils", test))]
+// #[cfg_attr(docsrs, doc(cfg(feature = "testutils")))]
+// pub mod testutils;
 
 use std::collections::HashMap;
 

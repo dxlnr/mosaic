@@ -1,13 +1,14 @@
 use async_trait::async_trait;
-use tokio::signal;
 use std::collections::HashMap;
+use tokio::signal;
 use tracing::{debug, info};
 // use crate::aggr::counter::MessageCounter;
 
 use crate::{
     state_engine::{
-    channel::{ResponseSender, RequestError, StateEngineRequest},
-    states::{State, StateCondition, StateError},},
+        channel::{RequestError, ResponseSender, StateEngineRequest},
+        states::{State, StateCondition, StateError},
+    },
     storage::Storage,
 };
 
@@ -98,11 +99,11 @@ impl Counter {
     }
 }
 /// A trait that must be implemented by a state to handle a request.
-/// 
+///
 #[async_trait]
 pub trait StateHandler {
     /// Handling the request implementation.
-    /// 
+    ///
     async fn handle_request(&mut self, req: StateEngineRequest) -> Result<(), RequestError>;
 }
 
@@ -133,7 +134,12 @@ where
         }
     }
     /// Processing a single request from a client.
-    async fn process_single(&mut self, req: StateEngineRequest, tx: ResponseSender, counter: &mut MessageCounter) {
+    async fn process_single(
+        &mut self,
+        req: StateEngineRequest,
+        tx: ResponseSender,
+        counter: &mut MessageCounter,
+    ) {
         let response = self.handle_request(req).await;
         let _ = tx.send(response);
     }

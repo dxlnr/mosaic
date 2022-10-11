@@ -53,7 +53,7 @@ impl TryInto<u8> for DataType {
     type Error = InvalidDataType;
 
     fn try_into(self) -> Result<u8, Self::Error> {
-        match self  {
+        match self {
             DataType::F32 => Ok(0),
             DataType::F64 => Ok(1),
             DataType::I32 => Ok(2),
@@ -73,7 +73,9 @@ impl DataType {
     }
 }
 
-#[derive(Debug, Clone, PartialEq, Eq, Hash, From, Index, IndexMut, Into, Serialize, Deserialize)]
+#[derive(
+    Debug, Clone, PartialEq, Eq, Hash, From, Index, IndexMut, Into, Serialize, Deserialize,
+)]
 /// A numerical representation of a machine learning model.
 pub struct Model(pub Vec<Ratio<BigInt>>);
 
@@ -321,10 +323,26 @@ impl FromPrimitives<f64> for Model {
 
 pub fn ratio_to_bytes(ratio: &Ratio<BigInt>, dtype: DataType) -> Vec<u8> {
     match dtype {
-        DataType::F32 => ratio_to_float::<f32>(ratio).unwrap_or(0.0).to_le_bytes().to_vec(),
-        DataType::F64 => ratio_to_float::<f64>(ratio).unwrap_or(0.0).to_le_bytes().to_vec(),
-        DataType::I32 => ratio.to_integer().to_i32().unwrap_or(0).to_le_bytes().to_vec(),
-        DataType::I64 => ratio.to_integer().to_i64().unwrap_or(0).to_le_bytes().to_vec(),
+        DataType::F32 => ratio_to_float::<f32>(ratio)
+            .unwrap_or(0.0)
+            .to_le_bytes()
+            .to_vec(),
+        DataType::F64 => ratio_to_float::<f64>(ratio)
+            .unwrap_or(0.0)
+            .to_le_bytes()
+            .to_vec(),
+        DataType::I32 => ratio
+            .to_integer()
+            .to_i32()
+            .unwrap_or(0)
+            .to_le_bytes()
+            .to_vec(),
+        DataType::I64 => ratio
+            .to_integer()
+            .to_i64()
+            .unwrap_or(0)
+            .to_le_bytes()
+            .to_vec(),
         // _ => None,
     }
 }

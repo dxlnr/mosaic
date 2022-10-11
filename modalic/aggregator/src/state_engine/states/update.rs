@@ -8,18 +8,17 @@ use tracing::{debug, info, warn};
 use crate::{
     aggr::buffer::FedBuffer,
     state_engine::{
-    channel::RequestError,
-    states::{SharedState, Shutdown, State, StateCondition, StateError, StateName},
-    StateEngine},
+        channel::RequestError,
+        states::{SharedState, Shutdown, State, StateCondition, StateError, StateName},
+        StateEngine,
+    },
     storage::{Storage, StorageError},
 };
 
 use modalic_core::{
-    mask::{Aggregation, MaskObject,UnmaskingError},
-    LocalSeedDict,
-    SeedDict,
-    UpdateParticipantPublicKey,
+    mask::{Aggregation, MaskObject, UnmaskingError},
     model::Model,
+    LocalSeedDict, SeedDict, UpdateParticipantPublicKey,
 };
 
 /// Errors which can occur during the update phase.
@@ -42,7 +41,7 @@ pub struct Update {
 }
 
 #[async_trait]
-impl<T> State<T> for StateCondition<Update, T> 
+impl<T> State<T> for StateCondition<Update, T>
 where
     T: Storage,
 {
@@ -58,7 +57,7 @@ where
 }
 
 // #[async_trait]
-// impl<T> StateHandler for StateCondition<Update, T> 
+// impl<T> StateHandler for StateCondition<Update, T>
 // where
 //     T: Storage,
 // {
@@ -67,13 +66,9 @@ where
 //     }
 // }
 
-
 impl<T> StateCondition<Update, T> {
     pub fn new(shared: SharedState<T>, fed_buffer: FedBuffer) -> Self {
-        let aggr = Aggregation::new(
-            shared.aggr.round_params.mask_config,
-            0,
-        );
+        let aggr = Aggregation::new(shared.aggr.round_params.mask_config, 0);
 
         Self {
             private: Update {
