@@ -3,15 +3,17 @@ use std::ops::Deref;
 use async_trait::async_trait;
 use derive_more::From;
 use serde::{Deserialize, Serialize};
-use tracing::{debug, info, warn};
+use tracing::{debug, warn};
 
 use modalic_core::{
     crypto::Signature,
-    mask::{MaskObject, MaskSeed, Masker},
     message::Update as UpdateMessage,
-    model::Model,
-    LocalSeedDict, ParticipantTaskSignature, SumDict,
+    model::{Model, ModelObject},
+    LocalSeedDict, ParticipantTaskSignature,
 };
+
+#[cfg(features = "secure")]
+use modalic_core::mask::{MaskObject, MaskSeed, Masker};
 
 use crate::{
     state_machine::{
@@ -71,6 +73,29 @@ impl<'de> serde::de::Deserialize<'de> for LocalModel {
 
 /// The state of the update phase.
 #[derive(Serialize, Deserialize, Debug)]
+#[cfg(not(features = "secure"))]
+pub struct Update {
+    pub update_signature: ParticipantTaskSignature,
+    pub model: Option<LocalModel>,
+}
+
+impl Update {
+    /// Creates a new update state.
+    pub fn new(update_signature: Signature) -> Self {
+        Update {
+            update_signature,
+            model: None,
+        }
+    }
+
+    fn has_loaded_model(&self) -> bool {
+        self.model.is_some()
+    }
+}
+
+/// The state of the update phase.
+#[derive(Serialize, Deserialize, Debug)]
+#[cfg(features = "secure")]
 pub struct Update {
     pub sum_signature: ParticipantTaskSignature,
     pub update_signature: ParticipantTaskSignature,
@@ -79,7 +104,7 @@ pub struct Update {
     pub model: Option<LocalModel>,
     pub mask: Option<(MaskSeed, MaskObject)>,
 }
-
+#[cfg(features = "secure")]
 impl Update {
     /// Creates a new update state.
     pub fn new(sum_signature: Signature, update_signature: Signature) -> Self {
@@ -125,18 +150,12 @@ impl Step for Phase<Update> {
     async fn step(mut self) -> TransitionOutcome {
         self = try_progress!(self.load_model().await);
 
-        #[cfg(feature = "secure")]
+        #[cfg(features = "secure")]
         {
             self = try_progress!(self.fetch_sum_dict().await);
             self = try_progress!(self.mask_model());
             self = try_progress!(self.build_seed_dict());
         }
-        println!("---------------------Update Step-----------------------");
-
-        // self = try_progress!(self.fetch_sum_dict().await);
-        // self = try_progress!(self.load_model().await);
-        // self = try_progress!(self.mask_model());
-        // self = try_progress!(self.build_seed_dict());
         let sending: Phase<SendingUpdate> = self.into();
         TransitionOutcome::Complete(sending.into())
     }
@@ -161,6 +180,7 @@ impl From<Phase<Update>> for Phase<Awaiting> {
 }
 
 impl Phase<Update> {
+    #[cfg(feature = "secure")]
     pub(crate) async fn fetch_sum_dict(mut self) -> Progress<Update> {
         if self.state.private.has_fetched_sum_dict() {
             debug!("already fetched the sum dictionary, continuing");
@@ -193,6 +213,14 @@ impl Phase<Update> {
         match self.io.load_model().await {
             Ok(Some(model)) => {
                 println!("update : load_model : Progress::Updated");
+                // #[cfg(not(feature = "secure"))]
+                // {
+                //     self.state.private.model = Some(model);
+                // }
+                // #[cfg(feature = "secure")]
+                // {
+                //     self.state.private.model = Some(model.into());
+                // }
                 self.state.private.model = Some(model.into());
                 Progress::Updated(self.into())
             }
@@ -209,26 +237,24 @@ impl Phase<Update> {
         }
     }
 
+    #[cfg(feature = "secure")]
     /// Generate a mask seed and mask a local model.
     pub(crate) fn mask_model(mut self) -> Progress<Update> {
         if self.state.private.has_masked_model() {
             debug!("already computed the masked model, continuing");
             return Progress::Continue(self);
         }
-        println!("---------------------- computing masked model----------------------");
         let config = self.state.shared.round_params.mask_config;
         let masker = Masker::new(config);
-        println!("MaskConfig: {:?}", &config);
         // UNWRAP_SAFE: the model is set, per the `has_masked_model()` check above
         let model = self.state.private.model.take().unwrap();
-        println!("Model: {:?}", &model);
         let scalar = self.state.shared.scalar.clone();
-        println!("scalar: {:?}", &scalar);
         self.state.private.mask = Some(masker.mask(scalar, model.as_ref()));
-        println!("Masked Model: {:?}", &self.state.private.mask);
+
         Progress::Updated(self.into())
     }
 
+    #[cfg(feature = "secure")]
     // Create a local seed dictionary from a sum dictionary.
     pub(crate) fn build_seed_dict(mut self) -> Progress<Update> {
         if self.state.private.has_built_seed_dict() {
@@ -237,7 +263,7 @@ impl Phase<Update> {
         }
         // UNWRAP_SAFE: the mask is set in `mask_model()` which is called before this method
         let mask_seed = &self.state.private.mask.as_ref().unwrap().0;
-        info!("building local seed dictionary");
+        debug!("building local seed dictionary");
         let seeds = self
             .state
             .private
@@ -253,6 +279,20 @@ impl Phase<Update> {
 
     /// Creates and encodes the update message from the update state.
     pub fn compose_message(&mut self) -> MessageEncoder {
+        #[cfg(not(features = "secure"))]
+        let model = self.state.private.model.take().unwrap().as_ref().clone();
+
+        let model_object = ModelObject::new(
+            model.0,
+            self.state.shared.round_params.mask_config.vect.data_type,
+        );
+
+        let update = UpdateMessage {
+            update_signature: self.state.private.update_signature,
+            model_object,
+        };
+
+        #[cfg(feature = "secure")]
         let update = UpdateMessage {
             sum_signature: self.state.private.sum_signature,
             update_signature: self.state.private.update_signature,

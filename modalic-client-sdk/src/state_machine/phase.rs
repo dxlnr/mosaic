@@ -13,9 +13,9 @@ use crate::{
 use modalic_core::{
     common::{RoundParameters, RoundSeed},
     crypto::{ByteObject, PublicEncryptKey, SigningKeyPair},
-    mask::{self, DataType, MaskConfig, Scalar},
+    mask::{self, MaskConfig, Scalar},
     message::Payload,
-    model::Model,
+    model::{self, DataType, Model},
 };
 
 /// State of the state machine
@@ -85,7 +85,7 @@ fn dummy_round_parameters() -> RoundParameters {
         seed: RoundSeed::zeroed(),
         mask_config: MaskConfig {
             group_type: mask::GroupType::Integer,
-            data_type: mask::DataType::F32,
+            data_type: model::DataType::F32,
             bound_type: mask::BoundType::B0,
             model_type: mask::ModelType::M3,
         }

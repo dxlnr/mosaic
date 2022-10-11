@@ -191,7 +191,6 @@ pub use self::{
     config::{
         serialization::MaskConfigBuffer,
         BoundType,
-        DataType,
         GroupType,
         InvalidMaskConfigError,
         MaskConfig,

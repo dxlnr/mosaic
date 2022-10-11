@@ -4,7 +4,6 @@ use crate::{
     crypto::{ByteObject, PublicSigningKey, Signature},
     mask::{
         BoundType,
-        DataType,
         EncryptedMaskSeed,
         GroupType,
         MaskConfig,
@@ -14,6 +13,7 @@ use crate::{
         ModelType,
     },
     message::{Message, ToBytes, Update},
+    model::DataType,
     testutils::messages,
     LocalSeedDict,
 };

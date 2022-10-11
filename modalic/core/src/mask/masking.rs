@@ -433,14 +433,13 @@ mod tests {
         mask::{
             config::{
                 BoundType::{Bmax, B0, B2, B4, B6},
-                DataType::{F32, F64, I32, I64},
                 GroupType::{Integer, Power2, Prime},
                 MaskConfig,
                 ModelType::M3,
             },
             scalar::FromPrimitive,
         },
-        model::FromPrimitives,
+        model::{DataType::{F32, F64, I32, I64}, FromPrimitives},
     };
 
     /// Generate tests for masking and unmasking of a single model:

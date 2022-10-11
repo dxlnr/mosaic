@@ -148,10 +148,12 @@ impl FromBytes for MaskObject {
 #[cfg(test)]
 pub(crate) mod tests {
     use super::*;
-    use crate::mask::{
-        config::{BoundType, DataType, GroupType, MaskConfig, ModelType},
-        object::serialization::{unit::tests::mask_unit, vect::tests::mask_vect},
-        MaskObject,
+    use crate::{mask::{
+            config::{BoundType, GroupType, MaskConfig, ModelType},
+            object::serialization::{unit::tests::mask_unit, vect::tests::mask_vect},
+            MaskObject,
+        },
+        model::DataType,
     };
 
     pub fn mask_config() -> (MaskConfig, Vec<u8>) {

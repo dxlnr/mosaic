@@ -16,6 +16,8 @@ use crate::{
     },
 };
 
+use super::InvalidMaskConfigError;
+
 const GROUP_TYPE_FIELD: usize = 0;
 const DATA_TYPE_FIELD: usize = 1;
 const BOUND_TYPE_FIELD: usize = 2;
@@ -153,6 +155,7 @@ impl FromBytes for MaskConfig {
             data_type: reader
                 .data_type()
                 .try_into()
+                .map_err(|_| InvalidMaskConfigError::DataType)
                 .context("invalid masking config")?,
             bound_type: reader
                 .bound_type()

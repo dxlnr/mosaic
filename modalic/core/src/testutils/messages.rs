@@ -188,15 +188,17 @@ pub mod sum2 {
 
 pub mod mask {
     //! This module provides helpers for generating mask objects
-    use crate::mask::{
-        BoundType,
-        DataType,
-        GroupType,
-        MaskConfig,
-        MaskObject,
-        MaskUnit,
-        MaskVect,
-        ModelType,
+    use crate::{
+        mask::{
+            BoundType,
+            GroupType,
+            MaskConfig,
+            MaskObject,
+            MaskUnit,
+            MaskVect,
+            ModelType,
+        },
+        model::DataType,
     };
 
     use super::*;

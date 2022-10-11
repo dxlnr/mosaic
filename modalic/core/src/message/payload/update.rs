@@ -18,11 +18,15 @@ use crate::{
         utils::range,
         DecodeError,
     },
-    model::ModelObject,
+    model::{ModelObject, serialize::ModelObjectBuffer},
     LocalSeedDict,
     ParticipantTaskSignature,
 };
 
+#[cfg(not(feature = "secure"))]
+const SUM_SIGNATURE_RANGE: Range<usize> = range(0, 0);
+
+#[cfg(feature = "secure")] 
 const SUM_SIGNATURE_RANGE: Range<usize> = range(0, ParticipantTaskSignature::LENGTH);
 const UPDATE_SIGNATURE_RANGE: Range<usize> =
     range(SUM_SIGNATURE_RANGE.end, ParticipantTaskSignature::LENGTH);
@@ -67,32 +71,40 @@ impl<T: AsRef<[u8]>> UpdateBuffer<T> {
                 len,
                 UPDATE_SIGNATURE_RANGE.end
             ));
+        }  
+        #[cfg(not(feature = "secure"))]
+        {
+            ModelObjectBuffer::new(&self.inner.as_ref()[self.model_offset()..])
+            .context("invalid masked object field")?;
         }
 
-        // Check length of the masked object field
-        MaskObjectBuffer::new(&self.inner.as_ref()[self.masked_model_offset()..])
+        #[cfg(feature = "secure")]
+        {
+            // Check length of the masked object field
+            MaskObjectBuffer::new(&self.inner.as_ref()[self.model_offset()..])
             .context("invalid masked object field")?;
 
-        // Check the length of the local seed dictionary field
-        let _ = LengthValueBuffer::new(&self.inner.as_ref()[self.local_seed_dict_offset()..])
-            .context("invalid local seed dictionary length")?;
+            // Check the length of the local seed dictionary field
+            let _ = LengthValueBuffer::new(&self.inner.as_ref()[self.local_seed_dict_offset()..])
+                .context("invalid local seed dictionary length")?;
+        }
 
         Ok(())
     }
 
-    /// Gets the offset of the masked model field.
-    fn masked_model_offset(&self) -> usize {
+    /// Gets the offset of the (masked) model field.
+    fn model_offset(&self) -> usize {
         UPDATE_SIGNATURE_RANGE.end
     }
-
+    
     /// Gets the offset of the local seed dictionary field.
     ///
     /// # Panics
     /// Computing the offset may panic if the buffer has not been checked before.
     fn local_seed_dict_offset(&self) -> usize {
         let masked_model =
-            MaskObjectBuffer::new_unchecked(&self.inner.as_ref()[self.masked_model_offset()..]);
-        self.masked_model_offset() + masked_model.len()
+            MaskObjectBuffer::new_unchecked(&self.inner.as_ref()[self.model_offset()..]);
+        self.model_offset() + masked_model.len()
     }
 }
 
@@ -113,15 +125,27 @@ impl<'a, T: AsRef<[u8]> + ?Sized> UpdateBuffer<&'a T> {
         &self.inner.as_ref()[UPDATE_SIGNATURE_RANGE]
     }
 
+    #[cfg(not(feature = "secure"))]
+    /// Gets a slice that starts at the beginning of the  model object field.
+    ///
+    /// # Panics
+    /// Accessing the field may panic if the buffer has not been checked before.
+    pub fn model_object(&self) -> &'a [u8] {
+        let offset = self.model_offset();
+        &self.inner.as_ref()[offset..]
+    }
+
+    #[cfg(feature = "secure")]
     /// Gets a slice that starts at the beginning of the masked model field.
     ///
     /// # Panics
     /// Accessing the field may panic if the buffer has not been checked before.
     pub fn masked_model(&self) -> &'a [u8] {
-        let offset = self.masked_model_offset();
+        let offset = self.model_offset();
         &self.inner.as_ref()[offset..]
     }
 
+    #[cfg(feature = "secure")]
     /// Gets a slice that starts at the beginning og the local seed dictionary field.
     ///
     /// # Panics
@@ -149,15 +173,27 @@ impl<T: AsRef<[u8]> + AsMut<[u8]>> UpdateBuffer<T> {
         &mut self.inner.as_mut()[UPDATE_SIGNATURE_RANGE]
     }
 
+    #[cfg(not(feature = "secure"))]
+    /// Gets a mutable slice that starts at the beginning of the model object field.
+    ///
+    /// # Panics
+    /// Accessing the field may panic if the buffer has not been checked before.
+    pub fn model_object_mut(&mut self) -> &mut [u8] {
+        let offset = self.model_offset();
+        &mut self.inner.as_mut()[offset..]
+    }
+
+    #[cfg(feature = "secure")]
     /// Gets a mutable slice that starts at the beginning of the masked model field.
     ///
     /// # Panics
     /// Accessing the field may panic if the buffer has not been checked before.
     pub fn masked_model_mut(&mut self) -> &mut [u8] {
-        let offset = self.masked_model_offset();
+        let offset = self.model_offset();
         &mut self.inner.as_mut()[offset..]
     }
 
+    #[cfg(feature = "secure")]
     /// Gets a mutable slice that starts at the beginning of the local seed dictionary field.
     ///
     /// # Panics
@@ -166,8 +202,62 @@ impl<T: AsRef<[u8]> + AsMut<[u8]>> UpdateBuffer<T> {
         let offset = self.local_seed_dict_offset();
         &mut self.inner.as_mut()[offset..]
     }
+
+
 }
 
+#[cfg(not(feature = "secure"))]
+#[derive(Debug, Eq, PartialEq, Clone)]
+/// A high level representation of an update message.
+///
+/// These messages are sent by update participants during the update phase.
+pub struct Update {
+    /// Signature of the round seed and the word "update".
+    ///
+    /// This is used to determine whether a participant is selected for the update task.
+    pub update_signature: ParticipantTaskSignature,
+    /// A model trained by an update participant.
+    ///
+    /// The model is masked with randomness derived from the participant seed.
+    pub model_object: ModelObject,
+}
+
+#[cfg(not(feature = "secure"))]
+impl ToBytes for Update {
+    fn buffer_length(&self) -> usize {
+        UPDATE_SIGNATURE_RANGE.end
+            + self.model_object.buffer_length()
+    }
+
+    fn to_bytes<T: AsMut<[u8]> + AsRef<[u8]>>(&self, buffer: &mut T) {
+        let mut writer = UpdateBuffer::new_unchecked(buffer.as_mut());
+        self.update_signature
+            .to_bytes(&mut writer.update_signature_mut());
+        self.model_object.to_bytes(&mut writer.model_object_mut());
+    }
+}
+
+#[cfg(not(feature = "secure"))]
+impl FromBytes for Update {
+    fn from_byte_slice<T: AsRef<[u8]>>(buffer: &T) -> Result<Self, DecodeError> {
+        let reader = UpdateBuffer::new(buffer.as_ref())?;
+        Ok(Self {
+            update_signature: ParticipantTaskSignature::from_byte_slice(&reader.update_signature())
+                .context("invalid update signature")?,
+            model_object: ModelObject::from_byte_slice(&reader.model_object())
+                .context("invalid masked model")?,
+        })
+    }
+
+    fn from_byte_stream<I: Iterator<Item = u8> + ExactSizeIterator>(
+        iter: &mut I,
+    ) -> Result<Self, DecodeError> {
+        todo!()
+    }
+}
+
+
+#[cfg(feature = "secure")]
 #[derive(Debug, Eq, PartialEq, Clone)]
 /// A high level representation of an update message.
 ///
@@ -191,61 +281,7 @@ pub struct Update {
     pub local_seed_dict: LocalSeedDict,
 }
 
-// #[cfg(not(feature = "secure"))]
-// #[derive(Debug, Eq, PartialEq, Clone)]
-// /// A high level representation of an update message.
-// ///
-// /// These messages are sent by update participants during the update phase.
-// pub struct Update {
-//     /// A model trained by an update participant.
-//     ///
-//     /// The model is masked with randomness derived from the participant seed.
-//     pub model_object: ModelObject,
-// }
-
-// #[cfg(feature = "secure")]
-// #[derive(Debug, Eq, PartialEq, Clone)]
-// /// A high level representation of an update message.
-// ///
-// /// These messages are sent by update participants during the update phase.
-// pub struct Update {
-//     /// The signature of the round seed and the word "sum".
-//     ///
-//     /// This is used to determine whether a participant is selected for the sum task.
-//     pub sum_signature: ParticipantTaskSignature,
-//     /// Signature of the round seed and the word "update".
-//     ///
-//     /// This is used to determine whether a participant is selected for the update task.
-//     pub update_signature: ParticipantTaskSignature,
-//     /// A model trained by an update participant.
-//     ///
-//     /// The model is masked with randomness derived from the participant seed.
-//     pub masked_model: MaskObject,
-//     /// A dictionary that contains the seed used to mask `masked_model`.
-//     ///
-//     /// The seed is encrypted with the ephemeral public key of each sum participant.
-//     pub local_seed_dict: LocalSeedDict,
-// }
-
-// #[cfg(not(feature = "secure"))]
-// impl ToBytes for Update {
-//     fn buffer_length(&self) -> usize {
-//         self.model_object.buffer_length()
-//     }
-
-//     fn to_bytes<T: AsMut<[u8]> + AsRef<[u8]>>(&self, buffer: &mut T) {
-//         todo!()
-//         // let mut writer = UpdateBuffer::new_unchecked(buffer.as_mut());
-//         // self.sum_signature.to_bytes(&mut writer.sum_signature_mut());
-//         // self.update_signature
-//         //     .to_bytes(&mut writer.update_signature_mut());
-//         // self.masked_model.to_bytes(&mut writer.masked_model_mut());
-//         // self.local_seed_dict
-//         //     .to_bytes(&mut writer.local_seed_dict_mut());
-//     }
-// }
-
-// #[cfg(feature = "secure")]
+#[cfg(feature = "secure")]
 impl ToBytes for Update {
     fn buffer_length(&self) -> usize {
         UPDATE_SIGNATURE_RANGE.end
@@ -264,7 +300,7 @@ impl ToBytes for Update {
     }
 }
 
-// #[cfg(feature = "secure")]
+#[cfg(feature = "secure")]
 impl FromBytes for Update {
     fn from_byte_slice<T: AsRef<[u8]>>(buffer: &T) -> Result<Self, DecodeError> {
         let reader = UpdateBuffer::new(buffer.as_ref())?;

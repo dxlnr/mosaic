@@ -1,11 +1,7 @@
 use async_trait::async_trait;
 
 use modalic_core::{
-    common::RoundParameters,
-    model::Model,
-    SumDict,
-    SumParticipantPublicKey,
-    UpdateSeedDict,
+    common::RoundParameters, model::Model, SumDict, SumParticipantPublicKey, UpdateSeedDict,
 };
 
 /// A trait used by the [`StateMachine`] to emit notifications upon

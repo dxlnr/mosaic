@@ -16,6 +16,8 @@ use num::{
 use serde::{Deserialize, Serialize};
 use thiserror::Error;
 
+use crate::model::DataType;
+
 // target dependent maximum bytes per mask object element
 #[cfg(target_pointer_width = "16")]
 const MAX_BPN: u64 = u16::MAX as u64;
@@ -56,34 +58,6 @@ impl TryFrom<u8> for GroupType {
             1 => Ok(GroupType::Prime),
             2 => Ok(GroupType::Power2),
             _ => Err(InvalidMaskConfigError::GroupType),
-        }
-    }
-}
-
-#[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
-#[repr(u8)]
-/// The original primitive data type of the numerical values to be masked.
-pub enum DataType {
-    /// Numbers of type f32.
-    F32 = 0,
-    /// Numbers of type f64.
-    F64 = 1,
-    /// Numbers of type i32.
-    I32 = 2,
-    /// Numbers of type i64.
-    I64 = 3,
-}
-
-impl TryFrom<u8> for DataType {
-    type Error = InvalidMaskConfigError;
-
-    fn try_from(byte: u8) -> Result<Self, Self::Error> {
-        match byte {
-            0 => Ok(DataType::F32),
-            1 => Ok(DataType::F64),
-            2 => Ok(DataType::I32),
-            3 => Ok(DataType::I64),
-            _ => Err(InvalidMaskConfigError::DataType),
         }
     }
 }

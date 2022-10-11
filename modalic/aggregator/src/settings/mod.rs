@@ -19,8 +19,9 @@ use tracing_subscriber::filter::EnvFilter;
 use validator::{Validate, ValidationError, ValidationErrors};
 
 use modalic_core::{
-    mask::{BoundType, DataType, GroupType, MaskConfig, ModelType},
+    mask::{BoundType, GroupType, MaskConfig, ModelType},
     message::{SUM_COUNT_MIN, UPDATE_COUNT_MIN},
+    model::DataType,
 };
 
 #[cfg(feature = "model-persistence")]

@@ -140,7 +140,8 @@ mod tests {
     use super::*;
     use crate::{
         crypto::encrypt::EncryptKeyPair,
-        mask::config::{BoundType, DataType, GroupType, MaskConfig, ModelType},
+        mask::config::{BoundType, GroupType, MaskConfig, ModelType},
+        model::DataType,
     };
 
     #[test]
