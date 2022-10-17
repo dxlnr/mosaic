@@ -4,7 +4,7 @@ use futures::{future, task::Context};
 use rayon::ThreadPool;
 use tokio::sync::oneshot;
 use tower::{layer::Layer, limit::concurrency::ConcurrencyLimit, Service, ServiceBuilder};
-use tracing::{debug, info, trace, warn};
+use tracing::{debug, trace, warn};
 
 use crate::{
     services::messages::{BoxedServiceFuture, ServiceError},
@@ -186,7 +186,7 @@ where
         self.thread_pool.spawn(move || {
             let res = match req.buffer.as_ref().as_ref().check_signature() {
                 Ok(()) => {
-                    info!("found a valid message signature");
+                    debug!("found a valid message signature");
                     Ok(())
                 }
                 Err(e) => {
@@ -267,7 +267,7 @@ where
                         ServiceError::InvalidCoordinatorPublicKey,
                     )))
                 } else {
-                    info!("found a valid coordinator public key");
+                    debug!("found a valid coordinator public key");
                     let fut = self.next_svc.call(req);
                     Box::pin(async move { fut.await })
                 }
@@ -311,7 +311,6 @@ where
 
     fn call(&mut self, req: RawMessage<T>) -> Self::Future {
         let bytes = req.buffer.inner();
-        println!("parser: {:?}", &bytes.as_ref());
         future::ready(Message::from_byte_slice(&bytes).map_err(ServiceError::Parsing))
     }
 }

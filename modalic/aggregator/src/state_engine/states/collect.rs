@@ -9,7 +9,6 @@ use crate::{
         channel::{RequestError, StateEngineRequest, UpdateRequest},
         states::{
             SharedState, State, StateCondition, StateError, StateHandler, StateName, Update,
-            // UpdateError,
         },
         StateEngine,
     },
@@ -17,9 +16,13 @@ use crate::{
 };
 
 use modalic_core::{
-    mask::{Aggregation, MaskObject},
     model::ModelObject,
-    LocalSeedDict, SeedDict, UpdateParticipantPublicKey,
+    UpdateParticipantPublicKey,
+};
+#[cfg(feature = "secure")]
+use crate::{
+    mask::{Aggregation, MaskObject},
+    LocalSeedDict, SeedDict, 
 };
 
 #[derive(Debug)]
@@ -140,13 +143,11 @@ where
     ///
     async fn update_fedbuffer(
         &mut self,
-        pk: &UpdateParticipantPublicKey,
-        // local_seed_dict: &LocalSeedDict,
+        _pk: &UpdateParticipantPublicKey,
         model_object: ModelObject,
     ) -> Result<(), RequestError> {
         #[cfg(not(feature = "redis"))]
         {   
-            println!("update fedbuffer????");
             self.private.fed_buffer.local_models.push(model_object);
         }
         #[cfg(feature = "redis")]

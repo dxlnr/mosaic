@@ -568,23 +568,15 @@ impl Message {
     /// [`MessageBuffer.verify_signature`] before parsing the message.
     pub fn from_byte_slice<T: AsRef<[u8]>>(buffer: &T) -> Result<Self, DecodeError> {
         let reader = MessageBuffer::new(buffer.as_ref())?;
-        println!("from_bytes_slice");
         let signature =
             Signature::from_byte_slice(&reader.signature()).context("failed to parse signature")?;
-        println!("from_bytes_slice : signature: {:?}", &signature);
         let participant_pk = PublicSigningKey::from_byte_slice(&reader.participant_pk())
             .context("failed to parse public key")?;
-        println!("from_bytes_slice : p pk: {:?}", &participant_pk);
         let coordinator_pk = PublicEncryptKey::from_byte_slice(&reader.coordinator_pk())
             .context("failed to parse public key")?;
 
-        println!("from_bytes_slice : coord pk: {:?}", &coordinator_pk);
-
         let tag = reader.tag().try_into()?;
         let is_multipart = reader.flags().contains(Flags::MULTIPART);
-
-        println!("from_bytes_slice : tag: {:?}", &tag);
-        println!("from_bytes_slice : is_multipart: {:?}", &is_multipart);
 
         let payload = if is_multipart {
             Chunk::from_byte_slice(&reader.payload()).map(Into::into)
@@ -596,8 +588,6 @@ impl Message {
             }
         }
         .context("failed to parse message payload")?;
-
-        println!("from_bytes_slice : payload: {:?}", &payload);
 
         Ok(Self {
             participant_pk,

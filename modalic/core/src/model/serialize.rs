@@ -9,10 +9,10 @@ use crate::{
         DecodeError,
     },
     model::{
+        bytes_to_ratio,
         config::{serialize::MODEL_CONFIG_BUFFER_LEN, ModelConfig},
-        ratio_to_bytes,
-        ModelObject
-    }
+        ratio_to_bytes, ModelObject,
+    },
 };
 
 const MODEL_CONFIG_FIELD: Range<usize> = range(0, MODEL_CONFIG_BUFFER_LEN);
@@ -182,7 +182,16 @@ impl ToBytes for ModelObject {
 
 impl FromBytes for ModelObject {
     fn from_byte_slice<T: AsRef<[u8]>>(buffer: &T) -> Result<Self, DecodeError> {
-        todo!()
+        let reader = ModelObjectBuffer::new(buffer.as_ref())?;
+
+        let config = ModelConfig::from_byte_slice(&reader.config())?;
+        let mut data = Vec::with_capacity(reader.numbers());
+        let bytes_per_number = config.bytes_per_number();
+        for chunk in reader.data().chunks(bytes_per_number) {
+            data.push(bytes_to_ratio(chunk, &config.data_type));
+        }
+
+        Ok(ModelObject { data, config })
     }
 
     fn from_byte_stream<I: Iterator<Item = u8> + ExactSizeIterator>(
@@ -196,7 +205,7 @@ impl FromBytes for ModelObject {
 pub(crate) mod tests {
     use super::*;
 
-    use crate::model::{ModelConfig, DataType};
+    use crate::model::{DataType, ModelConfig};
     use num::{bigint::BigInt, rational::Ratio};
 
     #[test]
@@ -218,7 +227,12 @@ pub(crate) mod tests {
             Ratio::new(BigInt::from(2_u8), BigInt::from(1_u8)),
         ];
 
-        let m_obj = ModelObject::new(data, ModelConfig { data_type: DataType::F32});
+        let m_obj = ModelObject::new(
+            data,
+            ModelConfig {
+                data_type: DataType::F32,
+            },
+        );
         let mut buf = vec![0xff; m_obj.buffer_length()];
         m_obj.to_bytes(&mut buf);
     }

@@ -27,7 +27,7 @@ pub(crate) mod serialize;
 pub use self::{
     config::{ModelConfig, DataType},
     model::{
-        ratio_to_bytes, FromPrimitives, IntoPrimitives, Model, ModelCastError,
+        bytes_to_ratio, ratio_to_bytes, FromPrimitives, IntoPrimitives, Model, ModelCastError,
         PrimitiveCastError,
     },
     object::ModelObject,

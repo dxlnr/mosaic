@@ -79,9 +79,7 @@ impl PetMessageHandler {
 
     pub async fn handle_message(&mut self, enc_data: Vec<u8>) -> Result<(), ServiceError> {
         let raw_message = self.decrypt(enc_data).await?;
-        println!("Decrypted? Got the raw message?: {:?}", &raw_message);
         let message = self.parse(raw_message).await?;
-        println!("Got the message?: {:?}", &message);
         match self.handle_multipart(message).await? {
             Some(message) => {
                 let message = self.validate_task(message).await?;

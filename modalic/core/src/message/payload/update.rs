@@ -10,23 +10,25 @@ use anyhow::{anyhow, Context};
 
 use crate::{
     crypto::ByteObject,
-    mask::{
-        object::{serialization::MaskObjectBuffer, MaskObject},
-    },
     message::{
-        traits::{FromBytes, LengthValueBuffer, ToBytes},
+        traits::{FromBytes, ToBytes},
         utils::range,
         DecodeError,
     },
-    model::{ModelObject, serialize::ModelObjectBuffer},
-    LocalSeedDict,
+    model::{serialize::ModelObjectBuffer, ModelObject},
     ParticipantTaskSignature,
+};
+#[cfg(feature = "secure")]
+use crate::{
+    mask::object::serialization::{MaskObject, MaskObjectBuffer},
+    message::traits::LengthValueBuffer,
+    LocalSeedDict,
 };
 
 #[cfg(not(feature = "secure"))]
 const SUM_SIGNATURE_RANGE: Range<usize> = range(0, 0);
 
-#[cfg(feature = "secure")] 
+#[cfg(feature = "secure")]
 const SUM_SIGNATURE_RANGE: Range<usize> = range(0, ParticipantTaskSignature::LENGTH);
 const UPDATE_SIGNATURE_RANGE: Range<usize> =
     range(SUM_SIGNATURE_RANGE.end, ParticipantTaskSignature::LENGTH);
@@ -47,9 +49,6 @@ impl<T: AsRef<[u8]>> UpdateBuffer<T> {
     /// Fails if the `bytes` are smaller than a minimal-sized update message buffer.
     pub fn new(bytes: T) -> Result<Self, DecodeError> {
         let buffer = Self { inner: bytes };
-        println!("new updatebuffer : len : {:?}", &buffer.inner.as_ref().len());
-        println!("new updatebuffer : len : {:?}", &UPDATE_SIGNATURE_RANGE);
-        println!("new updatebuffer : {:?}", &buffer.inner.as_ref());
         buffer
             .check_buffer_length()
             .context("invalid UpdateBuffer")?;
@@ -74,19 +73,18 @@ impl<T: AsRef<[u8]>> UpdateBuffer<T> {
                 len,
                 UPDATE_SIGNATURE_RANGE.end
             ));
-        } 
-        println!("ERRROR? in length?");
+        }
         #[cfg(not(feature = "secure"))]
         {
             ModelObjectBuffer::new(&self.inner.as_ref()[self.model_offset()..])
-            .context("invalid masked object field")?;
+                .context("invalid masked object field")?;
         }
 
         #[cfg(feature = "secure")]
         {
             // Check length of the masked object field
             MaskObjectBuffer::new(&self.inner.as_ref()[self.model_offset()..])
-            .context("invalid masked object field")?;
+                .context("invalid masked object field")?;
 
             // Check the length of the local seed dictionary field
             let _ = LengthValueBuffer::new(&self.inner.as_ref()[self.local_seed_dict_offset()..])
@@ -100,7 +98,8 @@ impl<T: AsRef<[u8]>> UpdateBuffer<T> {
     fn model_offset(&self) -> usize {
         UPDATE_SIGNATURE_RANGE.end
     }
-    
+
+    #[cfg(feature = "secure")]
     /// Gets the offset of the local seed dictionary field.
     ///
     /// # Panics
@@ -206,8 +205,6 @@ impl<T: AsRef<[u8]> + AsMut<[u8]>> UpdateBuffer<T> {
         let offset = self.local_seed_dict_offset();
         &mut self.inner.as_mut()[offset..]
     }
-
-
 }
 
 #[cfg(not(feature = "secure"))]
@@ -229,8 +226,7 @@ pub struct Update {
 #[cfg(not(feature = "secure"))]
 impl ToBytes for Update {
     fn buffer_length(&self) -> usize {
-        UPDATE_SIGNATURE_RANGE.end
-            + self.model_object.buffer_length()
+        UPDATE_SIGNATURE_RANGE.end + self.model_object.buffer_length()
     }
 
     fn to_bytes<T: AsMut<[u8]> + AsRef<[u8]>>(&self, buffer: &mut T) {
@@ -244,9 +240,7 @@ impl ToBytes for Update {
 #[cfg(not(feature = "secure"))]
 impl FromBytes for Update {
     fn from_byte_slice<T: AsRef<[u8]>>(buffer: &T) -> Result<Self, DecodeError> {
-        println!("Update: from_byte_slice.");
         let reader = UpdateBuffer::new(buffer.as_ref())?;
-        println!("RRRRRRREADER: {:?}", &reader);
         Ok(Self {
             update_signature: ParticipantTaskSignature::from_byte_slice(&reader.update_signature())
                 .context("invalid update signature")?,
@@ -256,12 +250,11 @@ impl FromBytes for Update {
     }
 
     fn from_byte_stream<I: Iterator<Item = u8> + ExactSizeIterator>(
-        iter: &mut I,
+        _iter: &mut I,
     ) -> Result<Self, DecodeError> {
         todo!()
     }
 }
-
 
 #[cfg(feature = "secure")]
 #[derive(Debug, Eq, PartialEq, Clone)]

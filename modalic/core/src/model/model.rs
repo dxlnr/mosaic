@@ -291,7 +291,21 @@ pub fn ratio_to_bytes(ratio: &Ratio<BigInt>, dtype: DataType) -> Vec<u8> {
             .unwrap_or(0)
             .to_le_bytes()
             .to_vec(),
-        // _ => None,
+    }
+}
+
+pub fn bytes_to_ratio(bytes: &[u8], dtype: &DataType) -> Ratio<BigInt> {
+    match dtype {
+        DataType::F32 => {
+            let chunk: [u8; 4] = bytes.try_into().unwrap();
+            float_to_ratio_bounded(f32::from_be_bytes(chunk))
+        }
+        DataType::F64 => {
+            let chunk: [u8; 8] = bytes.try_into().unwrap();
+            float_to_ratio_bounded(f64::from_be_bytes(chunk))
+        }
+        DataType::I32 => unimplemented!(),
+        DataType::I64 => unimplemented!(),
     }
 }
 

@@ -9,11 +9,11 @@ use std::convert::TryInto;
 use anyhow::{anyhow, Context};
 
 use crate::{
-    model::config::ModelConfig,
     message::{
         traits::{FromBytes, ToBytes},
         DecodeError,
     },
+    model::config::ModelConfig,
 };
 
 const DATA_TYPE_FIELD: usize = 0;

@@ -85,7 +85,7 @@ impl Counter {
     pub fn increment_accepted(&mut self, k: &u32, round_id: &u32) {
         self.accepted += 1;
         info!(
-            "[{}/{}] messages accepted for training round {}",
+            "[{}/{}] messages accepted for training round {}.",
             self.accepted, k, round_id
         );
     }
@@ -141,10 +141,8 @@ where
         tx: ResponseSender,
         counter: &mut MessageCounter,
     ) {
-        println!("process a single request.");
         let _span_guard = span.enter();
         let response = self.handle_request(req).await;
-        println!("response: {:?}", &response);
         counter.increment(&response, &self.shared.aggr.round_id);
         let _ = tx.send(response);
     }

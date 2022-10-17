@@ -7,7 +7,7 @@ use tower::{
     limit::concurrency::{future::ResponseFuture, ConcurrencyLimit},
     Service,
 };
-use tracing::{debug, info, trace};
+use tracing::{debug, trace};
 
 use crate::{
     services::messages::{BoxedServiceFuture, ServiceError},
@@ -50,10 +50,9 @@ where
         let keys = self.keys_events.get_latest().event;
         let (tx, rx) = oneshot::channel::<Result<Self::Response, Self::Error>>();
 
-        println!("data: {:?}", &data.as_ref());
         trace!("spawning decryption task on threadpool");
         self.thread_pool.spawn(move || {
-            info!("decrypting message");
+            debug!("decrypting message");
             let res = keys
                 .secret
                 .decrypt(data.as_ref(), &keys.public)
