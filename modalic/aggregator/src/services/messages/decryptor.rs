@@ -50,6 +50,7 @@ where
         let keys = self.keys_events.get_latest().event;
         let (tx, rx) = oneshot::channel::<Result<Self::Response, Self::Error>>();
 
+        println!("data: {:?}", &data.as_ref());
         trace!("spawning decryption task on threadpool");
         self.thread_pool.spawn(move || {
             info!("decrypting message");
@@ -73,9 +74,9 @@ where
 pub struct Decryptor(ConcurrencyLimit<RawDecryptor>);
 
 impl Decryptor {
-    pub fn new(state_machine_events: &EventSubscriber, thread_pool: Arc<ThreadPool>) -> Self {
+    pub fn new(state_engine_events: &EventSubscriber, thread_pool: Arc<ThreadPool>) -> Self {
         let limit = thread_pool.current_num_threads();
-        let keys_events = state_machine_events.keys_listener();
+        let keys_events = state_engine_events.keys_listener();
         let service = RawDecryptor {
             keys_events,
             thread_pool,

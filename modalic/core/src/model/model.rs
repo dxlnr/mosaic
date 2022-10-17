@@ -19,59 +19,7 @@ use num::{
 use serde::{Deserialize, Serialize};
 use thiserror::Error;
 
-pub struct InvalidDataType;
-
-#[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
-#[repr(u8)]
-/// The original primitive data type of the numerical values to be masked.
-pub enum DataType {
-    /// Numbers of type f32.
-    F32 = 0,
-    /// Numbers of type f64.
-    F64 = 1,
-    /// Numbers of type i32.
-    I32 = 2,
-    /// Numbers of type i64.
-    I64 = 3,
-}
-
-impl TryFrom<u8> for DataType {
-    type Error = InvalidDataType;
-
-    fn try_from(byte: u8) -> Result<Self, Self::Error> {
-        match byte {
-            0 => Ok(DataType::F32),
-            1 => Ok(DataType::F64),
-            2 => Ok(DataType::I32),
-            3 => Ok(DataType::I64),
-            _ => Err(InvalidDataType),
-        }
-    }
-}
-
-impl TryInto<u8> for DataType {
-    type Error = InvalidDataType;
-
-    fn try_into(self) -> Result<u8, Self::Error> {
-        match self {
-            DataType::F32 => Ok(0),
-            DataType::F64 => Ok(1),
-            DataType::I32 => Ok(2),
-            DataType::I64 => Ok(3),
-        }
-    }
-}
-
-impl DataType {
-    pub(crate) fn bytes_per_number(&self) -> usize {
-        match self {
-            DataType::F32 => 4,
-            DataType::F64 => 8,
-            DataType::I32 => 4,
-            DataType::I64 => 8,
-        }
-    }
-}
+use crate::model::DataType;
 
 #[derive(
     Debug, Clone, PartialEq, Eq, Hash, From, Index, IndexMut, Into, Serialize, Deserialize,

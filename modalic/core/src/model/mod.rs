@@ -19,13 +19,15 @@
 //! );
 //! ```
 //!
+pub(crate) mod config;
 pub(crate) mod model;
 pub(crate) mod object;
 pub(crate) mod serialize;
 
 pub use self::{
+    config::{ModelConfig, DataType},
     model::{
-        ratio_to_bytes, DataType, FromPrimitives, IntoPrimitives, Model, ModelCastError,
+        ratio_to_bytes, FromPrimitives, IntoPrimitives, Model, ModelCastError,
         PrimitiveCastError,
     },
     object::ModelObject,

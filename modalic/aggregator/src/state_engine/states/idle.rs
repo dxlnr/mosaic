@@ -2,7 +2,7 @@ use async_trait::async_trait;
 use displaydoc::Display;
 // use sodiumoxide::crypto::hash::sha256;
 use thiserror::Error;
-use tracing::{debug, info};
+use tracing::debug;
 
 use crate::{
     state_engine::{
@@ -50,6 +50,7 @@ where
 
     fn publish(&mut self) {
         self.publish_keys();
+        self.broadcast_params();
     }
 
     async fn next(self) -> Option<StateEngine<T>> {
@@ -68,7 +69,7 @@ impl<T> StateCondition<Idle, T> {
 
     /// Generates fresh round credentials.
     fn gen_round_keypair(&mut self) {
-        debug!("updating the keys");
+        debug!("updating the keys for the upcoming round {:?}.", &self.shared.aggr.round_id);
         self.shared.aggr.keys = EncryptKeyPair::generate();
         self.shared.aggr.round_params.pk = self.shared.aggr.keys.public;
     }
@@ -80,6 +81,14 @@ impl<T> StateCondition<Idle, T> {
             .publisher
             .broadcast_keys(self.shared.aggr.keys.clone());
     }
+
+    /// Broadcasts the round parameters.
+    fn broadcast_params(&mut self) {
+        debug!("broadcasting new round parameters");
+        self.shared
+            .publisher
+            .broadcast_params(self.shared.aggr.round_params.clone());
+    }
 }
 
 impl<T> StateCondition<Idle, T>
@@ -88,7 +97,7 @@ where
 {
     /// Persists the coordinator state to the store.
     async fn set_aggr_state_to_store(&mut self) -> Result<(), IdleError> {
-        info!("storing new coordinator state");
+        debug!("storing new coordinator state");
         self.shared
             .store
             .set_coordinator_state(&self.shared.aggr)

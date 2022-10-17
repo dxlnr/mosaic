@@ -10,7 +10,7 @@ use crate::{ModelStore, MosaicClientTrait, Notify};
 
 /// Returned a dynamically dispatched [`IO`] object
 pub(crate) fn boxed_io<X, M, N>(
-    xaynet_client: X,
+    mosaic_client: X,
     model_store: M,
     notifier: N,
 ) -> Box<dyn IO<Model = Box<dyn AsRef<Model> + Send>>>
@@ -19,7 +19,7 @@ where
     M: ModelStore + Send + 'static,
     N: Notify + Send + 'static,
 {
-    Box::new(StateMachineIO::new(xaynet_client, model_store, notifier))
+    Box::new(StateMachineIO::new(mosaic_client, model_store, notifier))
 }
 
 #[cfg(test)]
@@ -79,16 +79,16 @@ pub(crate) trait IO: Send + 'static {
 /// Internal struct that implements the [`IO`] trait. It is not used as is in the state
 /// machine. Instead, we box it and use it as a `dyn IO` object.
 struct StateMachineIO<X, M, N> {
-    xaynet_client: X,
+    mosaic_client: X,
     model_store: M,
     notifier: N,
 }
 
 impl<X, M, N> StateMachineIO<X, M, N> {
     /// Create a new `StateMachineIO`
-    pub fn new(xaynet_client: X, model_store: M, notifier: N) -> Self {
+    pub fn new(mosaic_client: X, model_store: M, notifier: N) -> Self {
         Self {
-            xaynet_client,
+            mosaic_client,
             model_store,
             notifier,
         }
@@ -113,14 +113,14 @@ where
     }
 
     async fn get_round_params(&mut self) -> Result<RoundParameters, Box<dyn Error>> {
-        self.xaynet_client
+        self.mosaic_client
             .get_round_params()
             .await
             .map_err(|e| Box::new(e) as Box<dyn Error>)
     }
 
     async fn get_sums(&mut self) -> Result<Option<SumDict>, Box<dyn Error>> {
-        self.xaynet_client
+        self.mosaic_client
             .get_sums()
             .await
             .map_err(|e| Box::new(e) as Box<dyn Error>)
@@ -130,21 +130,21 @@ where
         &mut self,
         pk: SumParticipantPublicKey,
     ) -> Result<Option<UpdateSeedDict>, Box<dyn Error>> {
-        self.xaynet_client
+        self.mosaic_client
             .get_seeds(pk)
             .await
             .map_err(|e| Box::new(e) as Box<dyn Error>)
     }
 
     async fn get_model(&mut self) -> Result<Option<Model>, Box<dyn Error>> {
-        self.xaynet_client
+        self.mosaic_client
             .get_model()
             .await
             .map_err(|e| Box::new(e) as Box<dyn Error>)
     }
 
     async fn send_message(&mut self, msg: Vec<u8>) -> Result<(), Box<dyn Error>> {
-        self.xaynet_client
+        self.mosaic_client
             .send_message(msg)
             .await
             .map_err(|e| Box::new(e) as Box<dyn Error>)
@@ -180,6 +180,7 @@ impl IO for Box<dyn IO<Model = Box<dyn AsRef<Model> + Send>>> {
     }
 
     async fn get_round_params(&mut self) -> Result<RoundParameters, Box<dyn Error>> {
+        println!("calling get_round_params");
         self.as_mut().get_round_params().await
     }
 

@@ -1,9 +1,7 @@
-use std::collections::HashMap;
-
 use async_trait::async_trait;
-use displaydoc::Display;
-use thiserror::Error;
-use tracing::{debug, info, warn};
+// use displaydoc::Display;
+// use thiserror::Error;
+// use tracing::{debug, info, warn};
 
 use crate::{
     aggr::buffer::FedBuffer,
@@ -11,7 +9,7 @@ use crate::{
         channel::{RequestError, StateEngineRequest, UpdateRequest},
         states::{
             SharedState, State, StateCondition, StateError, StateHandler, StateName, Update,
-            UpdateError,
+            // UpdateError,
         },
         StateEngine,
     },
@@ -40,7 +38,7 @@ where
 
     async fn perform(&mut self) -> Result<(), StateError> {
         self.process().await?;
-        // self.get_fedbuff().await?;
+
         Ok(())
     }
 
@@ -105,6 +103,7 @@ impl<T> StateCondition<Collect, T>
 where
     T: Storage,
 {
+    #[cfg(feature = "secure")]
     /// Add message to buffer for current training round described in
     /// [FedBuff](https://arxiv.org/abs/2106.06639).
     ///
@@ -135,41 +134,33 @@ where
         }
         Ok(())
     }
-    // /// Updates the local seed dict and aggregates the masked model.
-    // async fn update_seed_dict_and_aggregate_mask(
-    //     &mut self,
-    //     pk: &UpdateParticipantPublicKey,
-    //     local_seed_dict: &LocalSeedDict,
-    //     mask_object: MaskObject,
-    // ) -> Result<(), RequestError> {
-    //     // // Check if aggregation can be performed. It is important to
-    //     // // do that _before_ updating the seed dictionary, because we
-    //     // // don't want to add the local seed dict if the corresponding
-    //     // // masked model is invalid
-    //     // debug!("checking whether the masked model can be aggregated");
-    //     // self.private
-    //     //     .model_agg
-    //     //     .validate_aggregation(&mask_object)
-    //     //     .map_err(|e| {
-    //     //         warn!("model aggregation error: {}", e);
-    //     //         RequestError::AggregationFailed
-    //     //     })?;
-
-    //     // Try to update local seed dict first. If this fail, we do
-    //     // not want to aggregate the model.
-
-    //     info!("updating the global seed dictionary");
-    //     self.add_local_seed_dict(pk, local_seed_dict)
-    //         .await
-    //         .map_err(|err| {
-    //             warn!("invalid local seed dictionary, ignoring update message");
-    //             err
-    //         })?;
-
-    //     info!("aggregating the masked model and scalar");
-    //     self.private.model_agg.aggregate(mask_object);
-    //     Ok(())
-    // }
+    #[cfg(not(feature = "secure"))]
+    /// Add message to buffer for current training round described in
+    /// [FedBuff](https://arxiv.org/abs/2106.06639).
+    ///
+    async fn update_fedbuffer(
+        &mut self,
+        pk: &UpdateParticipantPublicKey,
+        // local_seed_dict: &LocalSeedDict,
+        model_object: ModelObject,
+    ) -> Result<(), RequestError> {
+        #[cfg(not(feature = "redis"))]
+        {   
+            println!("update fedbuffer????");
+            self.private.fed_buffer.local_models.push(model_object);
+        }
+        #[cfg(feature = "redis")]
+        {
+            debug!("updating the global seed dictionary");
+            self.add_local_seed_dict(pk, local_seed_dict)
+                .await
+                .map_err(|err| {
+                    warn!("invalid local seed dictionary, ignoring update message");
+                    err
+                })?;
+        }
+        Ok(())
+    }
 
     #[cfg(feature = "redis")]
     /// Adds a local seed dictionary to the global seed dictionary.

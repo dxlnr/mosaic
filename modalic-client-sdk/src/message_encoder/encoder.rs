@@ -128,6 +128,8 @@ impl MessageEncoder {
             return Err(InvalidEncodingInput::PayloadSize);
         }
 
+        println!("NEWWWWWWWWWWWWWWWWW MESSAGE: \naggr pk: {:?}", &coordinator_pk);
+
         if max_payload_size != 0 && payload.buffer_length() > max_payload_size {
             Ok(Self::new_multipart(
                 keys,

@@ -1,9 +1,8 @@
-use std::{path::PathBuf, process, sync::WaitTimeoutResult};
+use std::{path::PathBuf, process};
 
-use ::redis::RedisError;
 use structopt::StructOpt;
 use tokio::signal;
-use tracing::{debug, warn};
+use tracing::warn;
 use tracing_subscriber::*;
 
 #[cfg(feature = "metrics")]
@@ -12,13 +11,13 @@ use aggregator::{metrics, settings::InfluxSettings};
 use aggregator::{
     rest::{serve, RestError},
     services,
-    settings::{LoggingSettings, RedisSettings, Settings},
+    settings::{LoggingSettings, Settings},
     state_engine::init::StateEngineInitializer,
     storage::{Storage, Store},
 };
 
 #[cfg(feature = "redis")]
-use aggregator::storage::aggr_storage::redis;
+use aggregator::{settings::RedisSettings, storage::aggr_storage::redis};
 
 #[cfg(feature = "model-persistence")]
 use aggregator::{settings::S3Settings, storage::model_storage::s3};

@@ -3,7 +3,7 @@ use std::sync::Arc;
 use async_trait::async_trait;
 use displaydoc::Display;
 use thiserror::Error;
-use tracing::{debug, info, warn};
+// use tracing::{debug, info, warn};
 
 use crate::{
     aggr::buffer::FedBuffer,
@@ -17,7 +17,7 @@ use crate::{
 
 use modalic_core::{
     mask::{Aggregation, MaskObject, UnmaskingError},
-    model::Model,
+    model::{Model, ModelObject},
     LocalSeedDict, SeedDict, UpdateParticipantPublicKey,
 };
 
@@ -84,7 +84,8 @@ impl<T> StateCondition<Update, T> {
 impl<T> StateCondition<Update, T>
 where
     T: Storage,
-{
+{   
+    #[cfg(feature = "secure")]
     /// Updates the local seed dict and aggregates the masked model.
     async fn aggregate_mask(
         &mut self,
@@ -111,5 +112,14 @@ where
         }
         // self.private.aggr.aggregate(mask_object);
         Ok(())
+    }
+
+    #[cfg(not(feature = "secure"))]
+    async fn aggregate_mask(
+        &mut self,
+        pk: &UpdateParticipantPublicKey,
+        model_object: ModelObject,
+    ) -> Result<(), RequestError> {
+        todo!()
     }
 }

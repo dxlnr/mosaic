@@ -1,7 +1,7 @@
 use async_trait::async_trait;
 use std::collections::HashMap;
 use tokio::signal;
-use tracing::{debug, info};
+use tracing::{debug, info, Span};
 // use crate::aggr::counter::MessageCounter;
 
 use crate::{
@@ -12,28 +12,28 @@ use crate::{
     storage::Storage,
 };
 
-use crate::services::messages::ServiceError;
-
 #[derive(Debug, Default, Clone, PartialEq)]
 pub struct MessageCounter {
     /// Hashmap containing a message counting object for every training round.
     pub counter: HashMap<u32, Counter>,
-    /// The number of messages that should be processed to close the collect state and perform aggregation.
-    ceiling: u32,
+    /// The number of messages that should be processed to close the collect state 
+    /// and perform aggregation.
+    k: u32,
 }
 
 impl MessageCounter {
-    pub fn new(ceiling: u32) -> Self {
+    pub fn new(k: u32) -> Self {
         Self {
             counter: HashMap::new(),
-            ceiling,
+            k,
         }
     }
     /// Checks if the enough messages arrived from participants for closing the message collecting
     /// for a specific training round.
-    pub fn reached_ceiling(&mut self, round_id: &u32) -> bool {
+    /// 
+    pub fn reached_k(&mut self, round_id: &u32) -> bool {
         match self.counter.get_mut(round_id) {
-            Some(counter) => counter.accepted >= self.ceiling,
+            Some(counter) => counter.accepted >= self.k,
             _ => {
                 debug!("index {} corresponding to round_id in message counter object is not accessible.", round_id);
                 false
@@ -41,15 +41,15 @@ impl MessageCounter {
         }
     }
     /// Include the message to the counter.
-    pub fn include(&mut self, msg_result: &Result<(), ServiceError>, msg_idx: &u32, cid: &u32) {
-        if !self.counter.contains_key(msg_idx) {
-            self.counter.insert(*msg_idx, Counter::default());
+    pub fn increment(&mut self, req_result: &Result<(), RequestError>, round_id: &u32) {
+        if !self.counter.contains_key(round_id) {
+            self.counter.insert(*round_id, Counter::default());
         }
 
-        if let Some(c) = self.counter.get_mut(msg_idx) {
-            match msg_result {
-                Ok(()) => c.increment_accepted(&self.ceiling, msg_idx, cid),
-                _ => c.increment_rejected(msg_idx),
+        if let Some(c) = self.counter.get_mut(round_id) {
+            match req_result {
+                Ok(()) => c.increment_accepted(&self.k, round_id),
+                _ => c.increment_rejected(round_id),
             }
         }
     }
@@ -82,11 +82,11 @@ impl Default for Counter {
 
 impl Counter {
     /// Increments the counter for accepted messages.
-    pub fn increment_accepted(&mut self, ceiling: &u32, round_id: &u32, client_id: &u32) {
+    pub fn increment_accepted(&mut self, k: &u32, round_id: &u32) {
         self.accepted += 1;
         info!(
-            "[{}/{}] messages accepted for training round {}. Sent by client {}",
-            self.accepted, ceiling, round_id, client_id
+            "[{}/{}] messages accepted for training round {}",
+            self.accepted, k, round_id
         );
     }
     /// Increments the counter for rejected messages.
@@ -115,7 +115,7 @@ where
 {
     /// Processes requests.
     pub async fn process(&mut self) -> Result<(), StateError> {
-        let mut counter = MessageCounter::new(0);
+        let mut counter = MessageCounter::new(5);
         loop {
             tokio::select! {
                 biased;
@@ -125,10 +125,10 @@ where
                 }
                 next = self.next_request() => {
                     let (req, span, tx) = next?;
-                    self.process_single(req, tx, &mut counter).await;
+                    self.process_single(req, span, tx, &mut counter).await;
                 }
             }
-            if counter.reached_ceiling(&0) {
+            if counter.reached_k(&1) {
                 break Ok(());
             }
         }
@@ -137,10 +137,15 @@ where
     async fn process_single(
         &mut self,
         req: StateEngineRequest,
+        span: Span,
         tx: ResponseSender,
         counter: &mut MessageCounter,
     ) {
+        println!("process a single request.");
+        let _span_guard = span.enter();
         let response = self.handle_request(req).await;
+        println!("response: {:?}", &response);
+        counter.increment(&response, &self.shared.aggr.round_id);
         let _ = tx.send(response);
     }
 }

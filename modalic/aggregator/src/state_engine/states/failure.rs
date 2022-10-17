@@ -1,8 +1,6 @@
 use std::time::Duration;
 
 use async_trait::async_trait;
-use displaydoc::Display;
-use thiserror::Error;
 use tokio::time::sleep;
 use tracing::{debug, error};
 

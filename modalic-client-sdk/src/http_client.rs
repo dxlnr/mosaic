@@ -145,6 +145,7 @@ where
     async fn get_round_params(&mut self) -> Result<RoundParameters, Self::Error> {
         let url = self.url("params");
         let round_params: Option<RoundParameters> = self.get(&url).await?;
+        println!("after get_round_params: {:?}", &round_params.as_ref().unwrap().pk);
         round_params.ok_or_else(|| {
             ClientError::Other("failed to fetch round parameters: empty response".to_string())
         })

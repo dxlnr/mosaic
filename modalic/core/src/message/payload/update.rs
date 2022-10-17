@@ -47,6 +47,9 @@ impl<T: AsRef<[u8]>> UpdateBuffer<T> {
     /// Fails if the `bytes` are smaller than a minimal-sized update message buffer.
     pub fn new(bytes: T) -> Result<Self, DecodeError> {
         let buffer = Self { inner: bytes };
+        println!("new updatebuffer : len : {:?}", &buffer.inner.as_ref().len());
+        println!("new updatebuffer : len : {:?}", &UPDATE_SIGNATURE_RANGE);
+        println!("new updatebuffer : {:?}", &buffer.inner.as_ref());
         buffer
             .check_buffer_length()
             .context("invalid UpdateBuffer")?;
@@ -64,14 +67,15 @@ impl<T: AsRef<[u8]>> UpdateBuffer<T> {
     pub fn check_buffer_length(&self) -> Result<(), DecodeError> {
         let len = self.inner.as_ref().len();
         // First, check the fixed size portion of the
-        // header. UPDATE_SIGNATURE_RANGE is the last field
+        // header. UPDATE_SIGNATURE_RANGE is the last field.
         if len < UPDATE_SIGNATURE_RANGE.end {
             return Err(anyhow!(
                 "invalid buffer length: {} < {}",
                 len,
                 UPDATE_SIGNATURE_RANGE.end
             ));
-        }  
+        } 
+        println!("ERRROR? in length?");
         #[cfg(not(feature = "secure"))]
         {
             ModelObjectBuffer::new(&self.inner.as_ref()[self.model_offset()..])
@@ -240,7 +244,9 @@ impl ToBytes for Update {
 #[cfg(not(feature = "secure"))]
 impl FromBytes for Update {
     fn from_byte_slice<T: AsRef<[u8]>>(buffer: &T) -> Result<Self, DecodeError> {
+        println!("Update: from_byte_slice.");
         let reader = UpdateBuffer::new(buffer.as_ref())?;
+        println!("RRRRRRREADER: {:?}", &reader);
         Ok(Self {
             update_signature: ParticipantTaskSignature::from_byte_slice(&reader.update_signature())
                 .context("invalid update signature")?,

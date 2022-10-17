@@ -335,14 +335,11 @@ impl Client {
             ..
         } = self;
 
-        println!("before runtime.");
-
         runtime.block_on(async {
             let mut stored_model = store.0.lock().await;
             *stored_model = Some(model)
         });
-
-        // println!("I gu")
+        
         self.should_set_model = false;
         println!("I set the model now what?");
     }

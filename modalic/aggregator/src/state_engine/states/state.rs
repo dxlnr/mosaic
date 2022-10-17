@@ -2,7 +2,8 @@ use async_trait::async_trait;
 use derive_more::Display;
 use futures::StreamExt;
 use thiserror::Error;
-use tracing::{debug, info, warn, Span};
+use tracing::{debug, error_span, info, warn, Span};
+use tracing_futures::Instrument;
 
 use crate::{
     aggr::Aggregator,
@@ -81,8 +82,11 @@ where
     /// Runs the current State to completion.
     pub async fn run_state(mut self) -> Option<StateEngine<T>> {
         info!("Aggregator runs in state: {:?}", &Self::NAME);
+        let span = error_span!("run_phase", state = %&Self::NAME);
 
         async move {
+            self.shared.publisher.broadcast_state(Self::NAME);
+
             if let Err(err) = self.perform().await {
                 warn!(
                     "Aggregator failed to perform task of state {:?}",
@@ -96,13 +100,14 @@ where
             debug!("transitioning to the next state.");
             self.next().await
         }
+        .instrument(span)
         .await
     }
     /// Receives the next ['StateEngineRequest'].
     pub async fn next_request(
         &mut self,
     ) -> Result<(StateEngineRequest, Span, ResponseSender), StateError> {
-        debug!("Aggregator waiting for the next incoming request");
+        info!("Aggregator waiting for the next incoming request");
         self.shared
             .rx
             .next()

@@ -311,12 +311,16 @@ where
 
     fn call(&mut self, req: RawMessage<T>) -> Self::Future {
         let bytes = req.buffer.inner();
+        println!("parser: {:?}", &bytes.as_ref());
         future::ready(Message::from_byte_slice(&bytes).map_err(ServiceError::Parsing))
     }
 }
 
+// type InnerService = BufferWrapper<
+//     PhaseFilter<ConcurrencyLimit<SignatureVerifier<CoordinatorPublicKeyValidator<Parser>>>>,
+// >;
 type InnerService = BufferWrapper<
-    PhaseFilter<ConcurrencyLimit<SignatureVerifier<CoordinatorPublicKeyValidator<Parser>>>>,
+    ConcurrencyLimit<SignatureVerifier<CoordinatorPublicKeyValidator<Parser>>>,
 >;
 
 #[derive(Debug, Clone)]
@@ -341,12 +345,27 @@ where
 }
 
 impl MessageParser {
+    #[cfg(feature = "secure")]
     pub fn new(events: &EventSubscriber, thread_pool: Arc<ThreadPool>) -> Self {
         let inner = ServiceBuilder::new()
             .layer(BufferWrapperLayer)
             .layer(PhaseFilterLayer {
                 phase: events.state_listener(),
             })
+            .layer(SignatureVerifierLayer { thread_pool })
+            .layer(CoordinatorPublicKeyValidatorLayer {
+                keys: events.keys_listener(),
+            })
+            .service(Parser);
+        Self(inner)
+    }
+    #[cfg(not(feature = "secure"))]
+    pub fn new(events: &EventSubscriber, thread_pool: Arc<ThreadPool>) -> Self {
+        let inner = ServiceBuilder::new()
+            .layer(BufferWrapperLayer)
+            // .layer(PhaseFilterLayer {
+            //     phase: events.state_listener(),
+            // })
             .layer(SignatureVerifierLayer { thread_pool })
             .layer(CoordinatorPublicKeyValidatorLayer {
                 keys: events.keys_listener(),

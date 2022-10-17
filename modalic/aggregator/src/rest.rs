@@ -94,6 +94,7 @@ async fn handle_message(
     body: Bytes,
     mut handler: PetMessageHandler,
 ) -> Result<impl warp::Reply, Infallible> {
+    println!("JOOOO: Handle client message?");
     let _ = handler.handle_message(body.to_vec()).await.map_err(|e| {
         warn!("failed to handle message: {:?}", e);
     });
