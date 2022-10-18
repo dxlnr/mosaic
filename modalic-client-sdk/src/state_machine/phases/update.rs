@@ -9,11 +9,11 @@ use modalic_core::{
     crypto::Signature,
     message::Update as UpdateMessage,
     model::{Model, ModelObject},
-    LocalSeedDict, ParticipantTaskSignature,
+    ParticipantTaskSignature,
 };
 
 #[cfg(features = "secure")]
-use modalic_core::mask::{MaskObject, MaskSeed, Masker};
+use modalic_core::{mask::{MaskObject, MaskSeed, Masker}, LocalSeedDict};
 
 use crate::{
     state_machine::{
@@ -205,14 +205,13 @@ impl Phase<Update> {
 
     pub(crate) async fn load_model(mut self) -> Progress<Update> {
         if self.state.private.has_loaded_model() {
-            debug!("already loaded the model, continuing");
+            debug!("already loaded the model, continuing.");
             return Progress::Continue(self);
         }
 
         debug!("loading local model");
         match self.io.load_model().await {
             Ok(Some(model)) => {
-                println!("update : load_model : Progress::Updated");
                 // #[cfg(not(feature = "secure"))]
                 // {
                 //     self.state.private.model = Some(model);
@@ -225,12 +224,10 @@ impl Phase<Update> {
                 Progress::Updated(self.into())
             }
             Ok(None) => {
-                println!("update : load_model : Progress::Stuck");
-                debug!("model is not ready");
+                debug!("model not ready yet. stuck.");
                 Progress::Stuck(self)
             }
             Err(e) => {
-                println!("update : load_model : Progress::Stuck : Error !");
                 warn!("failed to load model: {:?}", e);
                 Progress::Stuck(self)
             }
@@ -284,7 +281,7 @@ impl Phase<Update> {
 
         let model_object = ModelObject::new(
             model.0,
-            self.state.shared.round_params.mask_config.vect.data_type,
+            self.state.shared.round_params.model_config,
         );
 
         let update = UpdateMessage {

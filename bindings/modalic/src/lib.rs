@@ -87,7 +87,7 @@ impl Client {
     }
 
     // #[text_signature = "($self)"]
-    pub fn tick(&mut self) -> PyResult<()> {
+    pub fn step(&mut self) -> PyResult<()> {
         let inner = match self.inner {
             Some(ref mut inner) => inner,
             None => {
@@ -97,7 +97,7 @@ impl Client {
             }
         };
 
-        inner.tick();
+        inner.step();
         Ok(())
     }
 

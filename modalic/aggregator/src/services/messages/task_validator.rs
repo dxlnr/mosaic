@@ -52,37 +52,48 @@ impl Service<Message> for TaskValidator {
             Payload::Sum2(ref _sum2) => unimplemented!(),
             _ => return future::ready(Err(ServiceError::UnexpectedMessage)),
         };
-        let params = self.params_listener.get_latest().event;
-        let seed = params.seed.as_slice();
 
-        // // Check whether the participant is eligible for the sum task
-        // let has_valid_sum_signature = message
-        //     .participant_pk
-        //     .verify_detached(&sum_signature, &[seed, b"sum"].concat());
-        // let is_summer = has_valid_sum_signature && sum_signature.is_eligible(params.sum);
+        #[cfg(feature = "secure")]
+        {
+            let params = self.params_listener.get_latest().event;
+            let seed = params.seed.as_slice();
+            
+            // Check whether the participant is eligible for the update task
+            let has_valid_update_signature = message
+                .participant_pk
+                .verify_detached(&update_signature, &[seed, b"update"].concat());
+
+            // // Check whether the participant is eligible for the sum task
+            // let has_valid_sum_signature = message
+            //     .participant_pk
+            //     .verify_detached(&sum_signature, &[seed, b"sum"].concat());
+            // let is_summer = has_valid_sum_signature && sum_signature.is_eligible(params.sum);
+
+            // Check whether the participant is eligible for the update task
+            // let has_valid_update_signature = update_signature
+            //     .map(|sig| {
+            //         message
+            //             .participant_pk
+            //             .verify_detached(&sig, &[seed, b"update"].concat())
+            //     })
+            //     .unwrap_or(false);
+
+            // // Check whether the participant is eligible for the update task
+            // let has_valid_update_signature = message
+            //     .participant_pk
+            //     .verify_detached(&update_signature, &[seed, b"update"].concat());
+
+            // let is_updater = !is_summer
+            //     && has_valid_update_signature
+            //     && update_signature
+            //         .map(|sig| sig.is_eligible(params.update))
+            //         .unwrap_or(false);
+
+            // TODO:
+            // let is_updater = has_valid_update_signature;
+        }
         let is_summer = false;
-
-        // Check whether the participant is eligible for the update task
-        // let has_valid_update_signature = update_signature
-        //     .map(|sig| {
-        //         message
-        //             .participant_pk
-        //             .verify_detached(&sig, &[seed, b"update"].concat())
-        //     })
-        //     .unwrap_or(false);
-
-        // Check whether the participant is eligible for the update task
-        let has_valid_update_signature = message
-            .participant_pk
-            .verify_detached(&update_signature, &[seed, b"update"].concat());
-        // let is_updater = !is_summer
-        //     && has_valid_update_signature
-        //     && update_signature
-        //         .map(|sig| sig.is_eligible(params.update))
-        //         .unwrap_or(false);
-
-        // TODO:
-        let is_updater = has_valid_update_signature;
+        let is_updater = true;
 
         match message.payload {
             Payload::Sum(_) | Payload::Sum2(_) => {

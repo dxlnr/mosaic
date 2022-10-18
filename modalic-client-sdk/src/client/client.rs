@@ -8,7 +8,7 @@ use tokio::{
     runtime::Runtime,
     sync::{mpsc, Mutex},
 };
-use tracing::warn;
+use tracing::{debug, warn};
 
 use modalic_core::model::Model;
 
@@ -135,7 +135,7 @@ pub enum Task {
 
 /// A participant. It embeds an internal state machine that executes the PET
 /// protocol. However, it is the caller's responsibility to drive this state machine by
-/// calling [`Participant::tick()`], and to take action when the participant state
+/// calling [`Participant::step()`], and to take action when the participant state
 /// changes.
 pub struct Client {
     /// Internal state machine
@@ -150,7 +150,7 @@ pub struct Client {
     /// Xaynet client
     http_client: HttpClient<reqwest::Client>,
     /// Whether the participant state changed after the last call to
-    /// [`Participant::tick()`]
+    /// [`Participant::step()`]
     made_progress: bool,
     /// Whether the participant should load its model into the store.
     should_set_model: bool,
@@ -247,14 +247,14 @@ impl Client {
     ///   [`Participant::task()`]
     /// - whether the participant should load its model into the store by calling
     ///   [`Participant::should_set_model()`]
-    pub fn tick(&mut self) {
-        println!("\tParticipant tick!");
+    pub fn step(&mut self) {
         // UNWRAP_SAFE: the state machine is always set.
         let state_machine = self.state_machine.take().unwrap();
         let outcome = self
             .runtime
             .block_on(async { state_machine.transition().await });
-        println!("\tParticipant tick : {:?}", &outcome);
+
+        debug!("\tClient state while progressing: \n{:?}", &outcome);
         match outcome {
             TransitionOutcome::Pending(new_state_machine) => {
                 self.made_progress = false;

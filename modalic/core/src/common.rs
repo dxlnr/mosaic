@@ -1,7 +1,12 @@
 use serde::{Deserialize, Serialize};
 use sodiumoxide::{self, crypto::box_};
 
-use crate::{crypto::ByteObject, mask::MaskConfigPair, CoordinatorPublicKey};
+#[cfg(feature = "secure")]
+use crate::mask::MaskConfigPair;
+#[cfg(not(feature = "secure"))]
+use crate::model::ModelConfig;
+
+use crate::{crypto::ByteObject, CoordinatorPublicKey};
 
 /// The round parameters.
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
@@ -14,6 +19,10 @@ pub struct RoundParameters {
     // pub update: f64,
     /// The random round seed.
     pub seed: RoundSeed,
+    #[cfg(not(feature = "secure"))]
+    /// [`ModelConfig`]
+    pub model_config: ModelConfig,
+    #[cfg(feature = "secure")]
     /// The masking configuration
     pub mask_config: MaskConfigPair,
     // /// The length of the model.

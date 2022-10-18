@@ -21,7 +21,7 @@ use validator::{Validate, ValidationError, ValidationErrors};
 use modalic_core::{
     mask::{BoundType, GroupType, MaskConfig, ModelType},
     message::{SUM_COUNT_MIN, UPDATE_COUNT_MIN},
-    model::DataType,
+    model::{ModelConfig, DataType},
 };
 
 #[cfg(feature = "model-persistence")]
@@ -189,7 +189,12 @@ impl Settings {
                 ValueKind::String("M3".to_string()),
             )
             .unwrap_or_default()
-            .set_default("model.length", ValueKind::I64(0))
+            // .set_default("model.length", ValueKind::I64(0))
+            // .unwrap_or_default()
+            .set_default(
+                "model.data_type",
+                ValueKind::String("F32".to_string()),
+            )
             .unwrap_or_default()
             .set_default(
                 "metrics.influxdb.url",
@@ -728,22 +733,49 @@ impl From<MaskSettings> for MaskConfig {
 #[cfg_attr(test, derive(PartialEq))]
 /// Model settings.
 pub struct ModelSettings {
-    /// The expected length of the model. The model length corresponds to the number of elements.
-    /// This value is used to validate the uniform length of the submitted models/masks.
+    // /// The expected length of the model. The model length corresponds to the number of elements.
+    // /// This value is used to validate the uniform length of the submitted models/masks.
+    // ///
+    // /// # Examples
+    // ///
+    // /// **TOML**
+    // /// ```text
+    // /// [model]
+    // /// length = 100
+    // /// ```
+    // ///
+    // /// **Environment variable**
+    // /// ```text
+    // /// XAYNET__MODEL__LENGTH=100
+    // /// ```
+    // pub length: usize,
+    /// The data type of the model.
     ///
     /// # Examples
     ///
     /// **TOML**
     /// ```text
-    /// [model]
-    /// length = 100
+    /// [mask]
+    /// data_type = "F32"
     /// ```
     ///
     /// **Environment variable**
     /// ```text
-    /// XAYNET__MODEL__LENGTH=100
+    /// MOSAIC__MODEL__DATA_TYPE=F32
     /// ```
-    pub length: usize,
+    pub data_type: DataType,
+}
+
+impl From<ModelSettings> for ModelConfig {
+    fn from(
+        ModelSettings {
+            data_type,
+        }: ModelSettings,
+    ) -> ModelConfig {
+        ModelConfig {
+            data_type,
+        }
+    }
 }
 
 #[derive(Debug, Deserialize, Validate)]

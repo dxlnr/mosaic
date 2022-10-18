@@ -2,14 +2,18 @@ use serde::{Deserialize, Serialize};
 
 use crate::settings::{
     MaskSettings,
-    // ModelSettings,
+    ModelSettings,
 };
 
 use modalic_core::{
     common::{RoundParameters, RoundSeed},
     crypto::{ByteObject, EncryptKeyPair},
-    mask::MaskConfig,
 };
+#[cfg(feature = "secure")]
+use modalic_core::mask::MaskConfig;
+
+#[cfg(not(feature = "secure"))]
+use modalic_core::model::ModelConfig;
 
 pub mod buffer;
 pub mod protocol;
@@ -30,9 +34,10 @@ pub struct Aggregator {
 }
 
 impl Aggregator {
-    pub fn new(mask_settings: MaskSettings) -> Self {
+    pub fn new(mask_settings: MaskSettings, model_settings: ModelSettings) -> Self {
         let keys = EncryptKeyPair::generate();
 
+        #[cfg(feature = "secure")]
         let round_params = RoundParameters {
             pk: keys.public,
             // sum: pet_settings.sum.prob,
@@ -40,6 +45,12 @@ impl Aggregator {
             seed: RoundSeed::zeroed(),
             mask_config: MaskConfig::from(mask_settings).into(),
             // model_length: model_settings.length,
+        };
+        #[cfg(not(feature = "secure"))]
+        let round_params = RoundParameters {
+            pk: keys.public,
+            seed: RoundSeed::zeroed(),
+            model_config: ModelConfig::from(model_settings).into(),
         };
 
         Self {

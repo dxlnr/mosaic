@@ -127,7 +127,7 @@ where
             //     self.mask_settings,
             //     self.model_settings.clone(),
             // ),
-            Aggregator::new(self.mask_settings),
+            Aggregator::new(self.mask_settings, self.model_settings.clone()),
             ModelUpdate::Invalidate,
         ))
     }

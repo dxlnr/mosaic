@@ -13,10 +13,16 @@ use crate::{
 use modalic_core::{
     common::{RoundParameters, RoundSeed},
     crypto::{ByteObject, PublicEncryptKey, SigningKeyPair},
-    mask::{self, MaskConfig, Scalar},
+    mask::Scalar,
     message::Payload,
     model::{self, DataType, Model},
 };
+
+#[cfg(feature = "secure")]
+use modalic_core::mask::{self, MaskConfig};
+
+#[cfg(not(feature = "secure"))]
+use modalic_core::model::ModelConfig;
 
 /// State of the state machine
 #[derive(Debug, Serialize, Deserialize)]
@@ -77,6 +83,7 @@ pub struct SharedState {
 /// temporarily use them in the [`SharedState`] when creating a new state machine. The
 /// first thing the state machine does when it runs, is to fetch the real round
 /// parameters from the coordinator.
+#[cfg(feature = "secure")]
 fn dummy_round_parameters() -> RoundParameters {
     RoundParameters {
         pk: PublicEncryptKey::zeroed(),
@@ -91,6 +98,17 @@ fn dummy_round_parameters() -> RoundParameters {
         }
         .into(),
         // model_length: 0,
+    }
+}
+#[cfg(not(feature = "secure"))]
+fn dummy_round_parameters() -> RoundParameters {
+    RoundParameters {
+        pk: PublicEncryptKey::zeroed(),
+        seed: RoundSeed::zeroed(),
+        model_config: ModelConfig {
+            data_type: model::DataType::F32,
+        }
+        .into(),
     }
 }
 
@@ -162,7 +180,7 @@ where
         match self.check_round_freshness().await {
             RoundFreshness::Unknown => TransitionOutcome::Pending(self.into()),
             RoundFreshness::Outdated => {
-                info!("a new round started: updating the round parameters and resetting the state machine");
+                info!("a new round started: updating the round parameters and resetting state.");
                 self.io.notify_new_round();
                 TransitionOutcome::Complete(
                     Phase::<NewRound>::new(
@@ -184,15 +202,15 @@ where
     async fn check_round_freshness(&mut self) -> RoundFreshness {
         match self.io.get_round_params().await {
             Err(e) => {
-                warn!("failed to fetch round parameters {:?}", e);
+                warn!("failed to fetch round parameters {:?}.", e);
                 RoundFreshness::Unknown
             }
             Ok(params) => {
                 if params == self.state.shared.round_params {
-                    debug!("round parameters didn't change");
+                    debug!("round parameters did not change.");
                     RoundFreshness::Fresh
                 } else {
-                    info!("fetched fresh round parameters");
+                    debug!("fetched fresh round parameters.");
                     self.state.shared.round_params = params;
                     RoundFreshness::Outdated
                 }
@@ -242,15 +260,23 @@ impl<P> Phase<P> {
 
     /// Return the local model configuration of the model that is expected in the update phase.
     pub fn local_model_config(&self) -> LocalModelConfig {
+        #[cfg(feature = "secure")]
         LocalModelConfig {
             data_type: self.state.shared.round_params.mask_config.vect.data_type,
+            // len: self.state.shared.round_params.model_length,
+            len: 0,
+        };
+
+        #[cfg(not(feature = "secure"))]
+        LocalModelConfig {
+            data_type: self.state.shared.round_params.model_config.data_type,
             // len: self.state.shared.round_params.model_length,
             len: 0,
         }
     }
 
     #[cfg(test)]
-    pub(crate) fn with_io_mock<F>(&mut self, f: F)
+    pub(crate) fn _with_io_mock<F>(&mut self, f: F)
     where
         F: FnOnce(&mut super::MockIO),
     {
@@ -260,7 +286,7 @@ impl<P> Phase<P> {
     }
 
     #[cfg(test)]
-    pub(crate) fn check_io_mock(&mut self) {
+    pub(crate) fn _check_io_mock(&mut self) {
         // dropping the mock forces the checks to run. We replace it
         // by an empty one, so that we detect if a method is called
         // un-expectedly afterwards
@@ -306,12 +332,8 @@ pub enum RoundFreshness {
 pub enum SerializableState {
     NewRound(State<NewRound>),
     Awaiting(State<Awaiting>),
-    // Sum(State<Sum>),
     Update(State<Update>),
-    // Sum2(State<Sum2>),
-    // SendingSum(State<SendingSum>),
     SendingUpdate(State<SendingUpdate>),
-    // SendingSum2(State<SendingSum2>),
 }
 
 impl<P> From<Phase<P>> for SerializableState

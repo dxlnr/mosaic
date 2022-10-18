@@ -2,7 +2,7 @@ from abc import ABC, abstractmethod
 from http import server
 import threading
 import time
-from typing import Optional, List
+from typing import Any, Optional, List
 from justbackoff import Backoff
 import itertools
 import numpy as np
@@ -19,7 +19,6 @@ LOG = logging.getLogger("client")
 
 class ModalicClient(threading.Thread):
     def __init__(self, server_address: str, client, state: Optional[List[int]] = None, scalar: float = 1.0):
-        print("\n")
         self._modalic_client = modalic_sdk.Client(server_address, scalar, state)
 
         # Client API
@@ -56,6 +55,19 @@ class ModalicClient(threading.Thread):
         raise NotImplementedError()
 
     @abstractmethod
+    def deserialize_global_model(self, global_model: list) -> Any:
+        r"""
+        Deserializes the `global_model` from a `list` to the specific model type.
+        The data type of the elements matches the data type defined.
+        If no global model exists (usually in the first round), the method is
+        not called.
+
+        :param global_model: The global model.
+        :returns:
+        """
+        raise NotImplementedError()
+
+    @abstractmethod
     def on_new_global_model(self, model):
         r"""."""
         raise NotImplementedError()
@@ -68,11 +80,10 @@ class ModalicClient(threading.Thread):
             modalic_sdk.GlobalModelUnavailable,
             modalic_sdk.GlobalModelDataTypeMisMatch,
         ) as err:
-            print("failed to get global model: %s", err)
             self._error_on_fetch_global_model = True
         else:
             if global_model is not None:
-                self._global_model = self._client.deserialize_training_input(
+                self._global_model = self._client.deserialize_global_model(
                     global_model
                 )
             else:
@@ -102,12 +113,10 @@ class ModalicClient(threading.Thread):
                 the data type defined in the coordinator configuration.
         """
         try:
-            print("test test test")
             self._modalic_client.set_model(local_model)
         except (
             modalic_sdk.UninitializedParticipant,
         ) as err:
-            print("failed to set local model: %s", err)
             self._exit_event.set()
 
     def run(self):
@@ -116,26 +125,20 @@ class ModalicClient(threading.Thread):
         try:
             self._run()
         except Exception as err:
-            print("run error ? : ", err)
             self._exit_event.set()
 
     def _run(self):
-        print(f"\t : Protocol is beeing performed : ")
         while not self._exit_event.is_set():
             self._step()
 
     def _step(self):
         with self._step_lock:
-            print(f"\t(n) Performing single step: ")
             self._modalic_client.tick()
-
-            # self._fetch_global_model()
 
             if (
                 self._modalic_client.new_global_model()
                 or self._error_on_fetch_global_model
             ):
-                print("fetching.")
                 self._fetch_global_model()
 
                 if not self._error_on_fetch_global_model:
@@ -146,12 +149,9 @@ class ModalicClient(threading.Thread):
                 and self._client.participate_in_update_task()
                 and not self._error_on_fetch_global_model
             ):
-                print("train.")
                 self._train()
 
-            # self._train()
             made_progress = self._modalic_client.made_progress()
-            print("________________________________________made progress?: ", made_progress)
 
         if made_progress:
             self._poll_period.reset()
@@ -166,17 +166,14 @@ class ModalicClient(threading.Thread):
         # local_update_ = self._client.serialize_training(local_update)
         print(local_update)
         try:
-            print("helloooooo")
             self._set_local_model(local_update)
         except (
             modalic_sdk.LocalModelLengthMisMatch,
             modalic_sdk.LocalModelDataTypeMisMatch,
         ) as err:
-            print("helloooooo noooooooooo")
             print("failed to set local model: %s", err)
 
     def _run_standalone(self):
-        print(f"\t : Protocol is beeing performed : ")
         while not self._exit_event.is_set():
             self._step()
 
@@ -212,6 +209,10 @@ class PyClient:
     def participate_in_update_task(self) -> bool:
         r"""."""
         return True
+
+    def deserialize_global_model(self, global_model):
+        print("global model: ", global_model)
+        return np.array(global_model)
 
     # def _torch_model_to_modalic_tensors(self, model):
     #     r"""."""
