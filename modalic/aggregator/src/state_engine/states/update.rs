@@ -3,13 +3,14 @@ use std::sync::Arc;
 use async_trait::async_trait;
 use displaydoc::Display;
 use thiserror::Error;
-// use tracing::{debug, info, warn};
+use tracing::{debug, info, warn};
 
 use crate::{
     aggr::buffer::FedBuffer,
     state_engine::{
+        events::ModelUpdate,
         channel::RequestError,
-        states::{SharedState, Shutdown, State, StateCondition, StateError, StateName},
+        states::{Idle, SharedState, State, StateCondition, StateError, StateName},
         StateEngine,
     },
     storage::{Storage, StorageError},
@@ -48,23 +49,29 @@ where
     const NAME: StateName = StateName::Update;
 
     async fn perform(&mut self) -> Result<(), StateError> {
+
+        #[cfg(feature = "model-persistence")]
+        self.save_global_model().await?;
+
         Ok(())
     }
 
+    fn publish(&mut self) {
+        info!("publishing the new global model.");
+        let global_model =
+            self.private.global_model.take().expect(
+                "unreachable: never fails when `publish()` is called after `end_round()`",
+            );
+        self.shared
+            .publisher
+            .broadcast_model(ModelUpdate::New(global_model));
+    }
+
     async fn next(self) -> Option<StateEngine<T>> {
-        Some(StateCondition::<Shutdown, _>::new(self.shared).into())
+        Some(StateCondition::<Idle, _>::new(self.shared).into())
     }
 }
 
-// #[async_trait]
-// impl<T> StateHandler for StateCondition<Update, T>
-// where
-//     T: Storage,
-// {
-//     async fn handle_request(&mut self, _req: StateEngineRequest) -> Result<(), RequestError> {
-//         Ok(())
-//     }
-// }
 
 impl<T> StateCondition<Update, T> {
     pub fn new(shared: SharedState<T>, fed_buffer: FedBuffer) -> Self {

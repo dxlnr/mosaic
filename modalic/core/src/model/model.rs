@@ -39,6 +39,14 @@ impl Model {
     pub fn len(&self) -> usize {
         self.0.len()
     }
+    /// Returns bool whether tuple is empty.
+    pub fn is_empty(&self) -> bool {
+        self.0.is_empty()
+    }
+    /// Returns model with all zeros given a fixed length.
+    pub fn zeros(length: &usize) -> Self {
+        Model(vec![Ratio::<BigInt>::zero(); *length])
+    }
 
     /// Creates an iterator that yields references to the weights/parameters of this model.
     pub fn iter(&self) -> Iter<Ratio<BigInt>> {

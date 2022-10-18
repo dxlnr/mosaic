@@ -12,10 +12,11 @@ use modalic_core::{
 };
 
 pub mod buffer;
+pub mod protocol;
 
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub struct Aggregator {
-    /// The credentials of the coordinator.
+    /// The credentials of the aggregator.
     pub keys: EncryptKeyPair,
     /// Current progress towards an aggregation goal.
     pub round_id: u32,
