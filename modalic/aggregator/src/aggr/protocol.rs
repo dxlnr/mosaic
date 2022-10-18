@@ -32,8 +32,8 @@ pub struct Aggregation {
 #[allow(clippy::len_without_is_empty)]
 impl Aggregation {
     /// Creates a new, empty aggregator for masks or masked models.
-    pub fn new(global_model: Model) -> Self {
-        Self { global_model }
+    pub fn new() -> Self {
+        Self { global_model: Model::default() }
     }
 
     /// Gets the length of the aggregated mask object.

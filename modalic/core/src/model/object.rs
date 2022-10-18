@@ -13,12 +13,12 @@ pub struct ModelObject {
 }
 
 impl ModelObject {
-    /// Creates a new [`ModelObject`] from given data vector and [`DataType`].
+    /// Creates a new [`ModelObject`] from given data vector and [`ModelConfig`].
     ///
     pub fn new(data: Vec<Ratio<BigInt>>, config: ModelConfig) -> Self {
         Self { config, data }
     }
-    /// Creates a new empty [`ModelObject`] and [`DataType`].
+    /// Creates a new empty [`ModelObject`] and [`ModelConfig`].
     ///
     pub fn empty(config: ModelConfig) -> Self {
         Self {

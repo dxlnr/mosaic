@@ -12,9 +12,7 @@ use anyhow::Context;
 use crate::{
     mask::object::{
         serialization::{unit::MaskUnitBuffer, vect::MaskVectBuffer},
-        MaskObject,
-        MaskUnit,
-        MaskVect,
+        MaskObject, MaskUnit, MaskVect,
     },
     message::{
         traits::{FromBytes, ToBytes},
@@ -86,6 +84,7 @@ impl<T: AsRef<[u8]>> MaskObjectBuffer<T> {
         &self.inner.as_ref()[offset..]
     }
 
+    #[allow(dead_code)]
     /// Gets the expected number of bytes of this buffer.
     ///
     /// # Panics
@@ -148,7 +147,8 @@ impl FromBytes for MaskObject {
 #[cfg(test)]
 pub(crate) mod tests {
     use super::*;
-    use crate::{mask::{
+    use crate::{
+        mask::{
             config::{BoundType, GroupType, MaskConfig, ModelType},
             object::serialization::{unit::tests::mask_unit, vect::tests::mask_vect},
             MaskObject,

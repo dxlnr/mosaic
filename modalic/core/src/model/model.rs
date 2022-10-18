@@ -9,7 +9,7 @@ use std::{
     slice::{Iter, IterMut},
 };
 
-use derive_more::{Display, From, Index, IndexMut, Into};
+use derive_more::{Display, Index, IndexMut, Into};
 use num::{
     bigint::BigInt,
     clamp,
@@ -22,7 +22,7 @@ use thiserror::Error;
 use crate::model::DataType;
 
 #[derive(
-    Debug, Clone, PartialEq, Eq, Hash, From, Index, IndexMut, Into, Serialize, Deserialize,
+    Debug, Default, Clone, PartialEq, Eq, Hash, Index, IndexMut, Into, Serialize, Deserialize,
 )]
 /// A numerical representation of a machine learning model.
 pub struct Model(pub Vec<Ratio<BigInt>>);
@@ -30,6 +30,12 @@ pub struct Model(pub Vec<Ratio<BigInt>>);
 impl std::convert::AsRef<Model> for Model {
     fn as_ref(&self) -> &Model {
         self
+    }
+}
+
+impl From<Vec<Ratio<BigInt>>> for Model {
+    fn from(data: Vec<Ratio<BigInt>>) -> Self {
+        Model(data)
     }
 }
 

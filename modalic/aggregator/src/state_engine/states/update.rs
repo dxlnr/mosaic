@@ -3,32 +3,43 @@ use std::sync::Arc;
 use async_trait::async_trait;
 use displaydoc::Display;
 use thiserror::Error;
-use tracing::{debug, info, warn};
+// use tracing::{debug, info, warn};
+use tracing::info;
 
 use crate::{
     aggr::buffer::FedBuffer,
     state_engine::{
         events::ModelUpdate,
-        channel::RequestError,
         states::{Idle, SharedState, State, StateCondition, StateError, StateName},
         StateEngine,
     },
-    storage::{Storage, StorageError},
+    storage::Storage,
 };
 
-use modalic_core::{
-    mask::{Aggregation, MaskObject, UnmaskingError},
-    model::{Model, ModelObject},
-    LocalSeedDict, SeedDict, UpdateParticipantPublicKey,
+#[cfg(not(feature = "secure"))]
+use crate::aggr::{Aggregation, AggregationError};
+use modalic_core::model::Model;
+
+#[cfg(feature = "secure")]
+use crate::{
+    mask::{Aggregation, MaskObject},
+    LocalSeedDict, SeedDict, 
 };
 
 /// Errors which can occur during the update phase.
 #[derive(Debug, Display, Error)]
 pub enum UpdateError {
+    #[cfg(feature = "secure")]
     /// Seed dictionary does not exists.
     NoSeedDict,
+    #[cfg(feature = "secure")]
     /// Fetching seed dictionary failed: {0}.
-    FetchSeedDict(StorageError),
+    FetchSeedDict(crate::storage::StorageError),
+    #[cfg(feature = "model-persistence")]
+    /// Saving the global model failed: {0}.
+    SaveGlobalModel(crate::storage::StorageError),
+    /// AggregationError
+    AggregationError,
 }
 
 #[derive(Debug)]
@@ -49,6 +60,8 @@ where
     const NAME: StateName = StateName::Update;
 
     async fn perform(&mut self) -> Result<(), StateError> {
+        #[cfg(not(feature = "secure"))]
+        self.aggregate_model().await.map_err(|_|StateError::Update(UpdateError::AggregationError))?;
 
         #[cfg(feature = "model-persistence")]
         self.save_global_model().await?;
@@ -75,6 +88,9 @@ where
 
 impl<T> StateCondition<Update, T> {
     pub fn new(shared: SharedState<T>, fed_buffer: FedBuffer) -> Self {
+        #[cfg(not(feature = "secure"))]
+        let aggr = Aggregation::new();
+        #[cfg(feature = "secure")]
         let aggr = Aggregation::new(shared.aggr.round_params.mask_config, 0);
 
         Self {
@@ -122,11 +138,9 @@ where
     }
 
     #[cfg(not(feature = "secure"))]
-    async fn aggregate_mask(
+    async fn aggregate_model(
         &mut self,
-        pk: &UpdateParticipantPublicKey,
-        model_object: ModelObject,
-    ) -> Result<(), RequestError> {
-        todo!()
+    ) -> Result<(), AggregationError> {
+        self.private.aggr.aggregate(self.private.fed_buffer.local_models.as_slice())
     }
 }

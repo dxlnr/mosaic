@@ -12,7 +12,8 @@ use modalic_core::{
     model::ModelObject,
 };
 
-use modalic_core::model::ModelObject;
+#[cfg(not(feature = "secure"))]
+use modalic_core::model::Model;
 
 #[cfg(not(feature = "secure"))]
 #[derive(Debug, Clone)]
@@ -20,7 +21,7 @@ pub struct FedBuffer {
     /// [`MessageCounter`]
     pub counter: MessageCounter,
     /// Buffered [`MaskObject`].
-    pub local_models: Vec<ModelObject>,
+    pub local_models: Vec<Model>,
 }
 
 impl Default for FedBuffer {

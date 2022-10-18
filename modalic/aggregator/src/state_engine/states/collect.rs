@@ -148,7 +148,7 @@ where
     ) -> Result<(), RequestError> {
         #[cfg(not(feature = "redis"))]
         {   
-            self.private.fed_buffer.local_models.push(model_object);
+            self.private.fed_buffer.local_models.push(model_object.data.into());
         }
         #[cfg(feature = "redis")]
         {

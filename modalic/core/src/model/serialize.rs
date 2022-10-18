@@ -195,7 +195,7 @@ impl FromBytes for ModelObject {
     }
 
     fn from_byte_stream<I: Iterator<Item = u8> + ExactSizeIterator>(
-        iter: &mut I,
+        _iter: &mut I,
     ) -> Result<Self, DecodeError> {
         todo!()
     }
