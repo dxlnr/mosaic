@@ -12,8 +12,8 @@
 //! the [BASecAgg](https://arxiv.org/abs/2110.02177) protocol is choosen.
 //!
 pub mod aggr;
-pub mod configs;
-pub mod grpc;
+pub mod rest;
 pub mod services;
+pub mod settings;
 pub mod state_engine;
-// pub mod buffer;
+pub mod storage;

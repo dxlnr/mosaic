@@ -1,10 +1,9 @@
 [workspace]
 members = [
   "aggregator",
-  "coordinator",
+  # "coordinator",
   "core",
   "selector",
-  "server",
 ]
 
 [workspace.metadata]

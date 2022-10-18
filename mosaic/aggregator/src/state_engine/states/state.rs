@@ -1,17 +1,19 @@
 use async_trait::async_trait;
 use derive_more::Display;
-use thiserror::Error;
 use futures::StreamExt;
-use tracing::{debug, info, warn};
+use thiserror::Error;
+use tracing::{debug, error_span, info, warn, Span};
+use tracing_futures::Instrument;
 
 use crate::{
     aggr::Aggregator,
     state_engine::{
         channel::{RequestReceiver, ResponseSender, StateEngineRequest},
-        event::EventPublisher,
-        Failure,
-        StateEngine,
+        events::EventPublisher,
+        states::{IdleError, UpdateError},
+        Failure, StateEngine,
     },
+    storage::Storage,
 };
 
 /// Handling state errors when running ['StateEngine'].
@@ -19,6 +21,10 @@ use crate::{
 pub enum StateError {
     /// Request channel error: {0}.
     RequestChannel(&'static str),
+    /// Idle phase failed: {0}.
+    Idle(#[from] IdleError),
+    /// Update phase failed: {0}.
+    Update(#[from] UpdateError),
 }
 
 #[derive(Clone, Copy, Debug, Display, Eq, PartialEq)]
@@ -30,6 +36,8 @@ pub enum StateName {
     Collect,
     #[display(fmt = "Update")]
     Update,
+    #[display(fmt = "Unmask")]
+    Unmask,
     #[display(fmt = "Failure")]
     Failure,
     #[display(fmt = "Shutdown")]
@@ -38,7 +46,10 @@ pub enum StateName {
 
 /// A trait that must be implemented by a state in order to perform its tasks and to move to a next state.
 #[async_trait]
-pub trait State {
+pub trait State<T>
+where
+    T: Storage,
+{
     /// The name of the current state.
     const NAME: StateName;
 
@@ -49,30 +60,38 @@ pub trait State {
     fn publish(&mut self) {}
 
     /// Moves from the current state to the next state.
-    async fn next(self) -> Option<StateEngine>;
+    async fn next(self) -> Option<StateEngine<T>>;
 }
 
 #[allow(dead_code)]
-pub struct StateCondition<S> {
+pub struct StateCondition<S, T> {
     /// Private Identifier of the state.
-    /// 
+    ///
     pub(in crate::state_engine) private: S,
     /// [`SharedState`] that the Aggregator holds.
     ///
-    pub(in crate::state_engine) shared: SharedState,
+    pub(in crate::state_engine) shared: SharedState<T>,
 }
 
-impl<S> StateCondition<S>
+impl<S, T> StateCondition<S, T>
 where
-    Self: State,
+    S: Send,
+    T: Storage,
+    Self: State<T>,
 {
     /// Runs the current State to completion.
-    pub async fn run_state(mut self) -> Option<StateEngine> {
+    pub async fn run_state(mut self) -> Option<StateEngine<T>> {
         info!("Aggregator runs in state: {:?}", &Self::NAME);
+        let span = error_span!("run_phase", state = %&Self::NAME);
 
         async move {
+            self.shared.publisher.broadcast_state(Self::NAME);
+
             if let Err(err) = self.perform().await {
-                warn!("Aggregator failed to perform task of state {:?}", &Self::NAME);
+                warn!(
+                    "Aggregator failed to perform task of state {:?}",
+                    &Self::NAME
+                );
                 return Some(self.into_failure_state(err));
             }
 
@@ -81,13 +100,14 @@ where
             debug!("transitioning to the next state.");
             self.next().await
         }
+        .instrument(span)
         .await
     }
     /// Receives the next ['StateEngineRequest'].
     pub async fn next_request(
         &mut self,
-    ) -> Result<(StateEngineRequest, ResponseSender), StateError> {
-        debug!("Aggregator waiting for the next incoming request");
+    ) -> Result<(StateEngineRequest, Span, ResponseSender), StateError> {
+        info!("Aggregator waiting for the next incoming request");
         self.shared
             .rx
             .next()
@@ -99,7 +119,7 @@ where
 
     pub fn try_next_request(
         &mut self,
-    ) -> Result<Option<(StateEngineRequest, ResponseSender)>, StateError> {
+    ) -> Result<Option<(StateEngineRequest, Span, ResponseSender)>, StateError> {
         match self.shared.rx.try_recv() {
             Some(Some(item)) => Ok(Some(item)),
             None => {
@@ -115,30 +135,33 @@ where
         }
     }
 
-    fn into_failure_state(self, err: StateError) -> StateEngine {
-        StateCondition::<Failure>::new(err, self.shared).into()
+    fn into_failure_state(self, err: StateError) -> StateEngine<T> {
+        StateCondition::<Failure, _>::new(self.shared, err).into()
     }
 }
 
 /// [`SharedState`]
-pub struct SharedState {
+pub struct SharedState<T> {
     /// [`Aggregator`]
-    pub aggr: Aggregator,
+    pub(in crate::state_engine) aggr: Aggregator,
     /// [`RequestReceiver`] for enabling receiving requests from the client.
-    /// 
-    pub rx: RequestReceiver,
+    ///
+    pub(in crate::state_engine) rx: RequestReceiver,
     /// [`EventPublisher`] responsible for publishing the latest updates.
     ///
-    pub publisher: EventPublisher,
+    pub(in crate::state_engine) publisher: EventPublisher,
+    /// The store for storing coordinator and model data.
+    pub(in crate::state_engine) store: T,
 }
 
-impl SharedState {
+impl<T> SharedState<T> {
     /// Init new [`SharedState`] for the aggregation server.
-    pub fn new(aggr: Aggregator, rx: RequestReceiver, publisher: EventPublisher) -> Self {
+    pub fn new(aggr: Aggregator, publisher: EventPublisher, rx: RequestReceiver, store: T) -> Self {
         SharedState {
             aggr,
             rx,
             publisher,
+            store,
         }
     }
 }

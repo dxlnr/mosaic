@@ -1,29 +1,34 @@
-use futures::task::Context;
 use std::task::Poll;
-use tower::Service;
 
-// use mosaic_core::message::Message;
+use futures::task::Context;
+use tower::Service;
+use mosaic_core::message::Message;
+
 use crate::{
-    services::{error::ServiceError, messages::BoxedServiceFuture},
-    state_engine::channel::{RequestSender, StateEngineRequest},
+    services::messages::{BoxedServiceFuture, ServiceError},
+    state_engine::channel::RequestSender,
 };
 
-/// [`StateEngineService`]
+/// A service that hands the requests to the [`StateEngine`] that runs in the background.
+///
+/// [`StateEngine`]: crate::state_machine::StateEngine
 #[derive(Debug, Clone)]
-pub struct StateEngineService {
-    pub handle: RequestSender,
+pub struct StateEngine {
+    handle: RequestSender,
 }
 
-impl StateEngineService {
-    /// Create a new (tower) service with a handler for forwarding
-    /// requests from gRPC [`AggrServer`] to the [`StateEngine`].
+impl StateEngine {
+    /// Create a new service with the given handle for forwarding
+    /// requests to the state machine. The handle should be obtained
+    /// via [`init()`].
     ///
+    /// [`init()`]: crate::state_machine::initializer::StateEngineInitializer::init
     pub fn new(handle: RequestSender) -> Self {
         Self { handle }
     }
 }
 
-impl Service<StateEngineRequest> for StateEngineService {
+impl Service<Message> for StateEngine {
     type Response = ();
     type Error = ServiceError;
     type Future = BoxedServiceFuture<Self::Response, Self::Error>;
@@ -32,13 +37,13 @@ impl Service<StateEngineRequest> for StateEngineService {
         Poll::Ready(Ok(()))
     }
 
-    fn call(&mut self, req: StateEngineRequest) -> Self::Future {
-        let mut handle = self.handle.clone();
+    fn call(&mut self, req: Message) -> Self::Future {
+        let handle = self.handle.clone();
         Box::pin(async move {
             handle
-                .send(req)
+                .request(req.into(), tracing::Span::none())
                 .await
-                .map_err(|_| ServiceError::RequestError)
+                .map_err(ServiceError::StateEngine)
         })
     }
 }

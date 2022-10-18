@@ -9,6 +9,9 @@ rust-version = "1.61.0"
 readme = "README.md"
 
 [dependencies]
+# external dependencies
+anyhow = "1.0.62"
+bitflags = "1.3.2"
 # Common features add-ons.
 derive_more = { version = "0.99.17", default-features = false, features = [
     "as_ref",
@@ -20,16 +23,20 @@ derive_more = { version = "0.99.17", default-features = false, features = [
     "into",
 ] }
 
-protobuf = "2.27.1"
-thiserror = "1.0.34"
+num = { version = "0.4.0", features = ["serde"] }
+rand = "0.8.5"
+rand_chacha = "0.3.1"
 serde = { version = "1.0.144", features = ["derive"] }
-# 
 sodiumoxide = "0.2.7"
-rug = "1.17.0"
+thiserror = "1.0.32"
 
-# tokio ecosystem
-prost = "0.11.0"
-tonic = "0.8.1"
+[features]
+default = []
+full = ["async", "secure"]
 
-[build-dependencies]
-tonic-build = "0.8"
+# Set features.
+async = []
+secure = []
+
+[dev-dependencies]
+paste = "1.0.8"

@@ -1,9 +1,43 @@
 //! Wrappers around some of the [sodiumoxide] crypto primitives.
 //!
+//! The wrappers provide methods defined on structs instead of the sodiumoxide functions. This is
+//! done for the `C25519` encryption and `Ed25519` signature key pairs and their corresponding seeds
+//! as well as the `SHA256` hash function. Additionally, some methods for slicing and signature
+//! eligibility are available.
+//!
+//! # Examples
+//! ## Encryption of messages
+//! ```
+//! # use xaynet_core::crypto::EncryptKeyPair;
+//! let keys = EncryptKeyPair::generate();
+//! let message = b"Hello world!".to_vec();
+//! let cipher = keys.public.encrypt(&message);
+//! assert_eq!(message, keys.secret.decrypt(&cipher, &keys.public).unwrap());
+//! ```
+//!
+//! ## Signing of messages
+//! ```
+//! # use xaynet_core::crypto::SigningKeyPair;
+//! let keys = SigningKeyPair::generate();
+//! let message = b"Hello world!".to_vec();
+//! let signature = keys.secret.sign_detached(&message);
+//! assert!(keys.public.verify_detached(&signature, &message));
+//! ```
+//!
+//! [sodiumoxide]: https://docs.rs/sodiumoxide/
+
+pub(crate) mod encrypt;
+pub(crate) mod hash;
+pub(crate) mod prng;
 pub(crate) mod sign;
 
+use sodiumoxide::randombytes::randombytes;
+
 pub use self::{
-    sign::{PublicSigningKey, SecretSigningKey, Signature, SigningKeyPair},
+    encrypt::{EncryptKeyPair, EncryptKeySeed, PublicEncryptKey, SecretEncryptKey, SEALBYTES},
+    hash::Sha256,
+    prng::generate_integer,
+    sign::{PublicSigningKey, SecretSigningKey, Signature, SigningKeyPair, SigningKeySeed},
 };
 
 /// An interface for slicing into cryptographic byte objects.
@@ -34,7 +68,7 @@ pub trait ByteObject: Sized {
     /// Generates an object with random bytes
     fn generate() -> Self {
         // safe unwrap: length of slice is guaranteed by constants
-        Self::from_slice_unchecked(sodiumoxide::randombytes::randombytes(Self::LENGTH).as_slice())
+        Self::from_slice_unchecked(randombytes(Self::LENGTH).as_slice())
     }
 
     /// A helper for instantiating an object filled with the given value

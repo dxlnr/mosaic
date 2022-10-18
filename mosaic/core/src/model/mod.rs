@@ -1,44 +1,34 @@
-//! ML Model representation.
+//! Model
 //!
-pub mod serde;
-pub mod tensor;
+//! # Models
+//! A [`Model`] is a collection of weights/parameters which are represented as finite numerical
+//! values (i.e. rational numbers) of arbitrary precision. As such, a model in itself is not bound
+//! to any particular primitive data type, but it can be created from those and converted back into
+//! them.
+//!
+//! Currently, the primitive data types [`f32`], [`f64`], [`i32`] and [`i64`] are supported and
+//! this might be extended in the future.
+//!
+//! ```
+//! # use xaynet_core::mask::{FromPrimitives, IntoPrimitives, Model};
+//! let weights = vec![0_f32; 10];
+//! let model = Model::from_primitives_bounded(weights.into_iter());
+//! assert_eq!(
+//!     model.into_primitives_unchecked().collect::<Vec<f32>>(),
+//!     vec![0_f32; 10],
+//! );
+//! ```
+//!
+pub(crate) mod config;
+pub(crate) mod model;
+pub(crate) mod object;
+pub(crate) mod serialize;
 
-use crate::model::tensor::Tensor;
-use std::slice::Iter;
-
-use crate::protos::mosaic::protos::TensorProto;
-
-/// [`Model`] represents a Machine Learning model, adapted to FL.
-///
-#[derive(Debug, Clone, Default)]
-pub struct Model {
-    /// Actual ['Model'] content.
-    pub tensors: Vec<Tensor>,
-    /// Model version which returns the round_id in which the local model was trained
-    /// or aggregated by the server.
-    pub model_version: u32,
-}
-
-impl Model {
-    pub fn new(tensors: Vec<Tensor>, model_version: u32) -> Self {
-        Self {
-            tensors,
-            model_version,
-        }
-    }
-    /// Returns the number of single tensors within a model.
-    pub fn len(&self) -> usize {
-        self.tensors.len()
-    }
-    /// Creates an iterator that yields references to the weights/parameters of this model.
-    pub fn iter(&self) -> Iter<Tensor> {
-        self.tensors.iter()
-    }
-    /// Instantiate a [`Model`] via repeated [`TensorProto`] objects.
-    /// 
-    pub fn from_proto(proto_tensors: Vec<TensorProto>, model_version: u32) -> Self {
-        let ts = proto_tensors.iter().map(|tp| Tensor::from_proto(tp)).collect();
-
-        Self {tensors: ts, model_version}
-    }
-}
+pub use self::{
+    config::{DataType, ModelConfig},
+    model::{
+        bytes_to_ratio, ratio_to_bytes, FromPrimitives, IntoPrimitives, Model, ModelCastError,
+        PrimitiveCastError,
+    },
+    object::ModelObject,
+};

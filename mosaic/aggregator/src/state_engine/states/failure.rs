@@ -1,8 +1,15 @@
-use async_trait::async_trait;
+use std::time::Duration;
 
-use crate::state_engine::{
-    states::{SharedState, State, StateCondition, StateError, StateName},
-    StateEngine,
+use async_trait::async_trait;
+use tokio::time::sleep;
+use tracing::{debug, error};
+
+use crate::{
+    state_engine::{
+        states::{SharedState, State, StateCondition, StateError, StateName},
+        StateEngine,
+    },
+    storage::Storage,
 };
 
 #[derive(Debug)]
@@ -13,23 +20,42 @@ pub struct Failure {
 }
 
 #[async_trait]
-impl State for StateCondition<Failure> {
+impl<T> State<T> for StateCondition<Failure, T>
+where
+    T: Storage,
+{
     const NAME: StateName = StateName::Failure;
 
     async fn perform(&mut self) -> Result<(), StateError> {
         Ok(())
     }
 
-    async fn next(self) -> Option<StateEngine> {
+    async fn next(self) -> Option<StateEngine<T>> {
         None
     }
 }
 
-impl StateCondition<Failure> {
-    pub fn new(error: StateError, shared: SharedState) -> Self {
+impl<T> StateCondition<Failure, T> {
+    pub fn new(shared: SharedState<T>, error: StateError) -> Self {
         Self {
             private: Failure { error },
             shared,
+        }
+    }
+}
+
+impl<T> StateCondition<Failure, T>
+where
+    T: Storage,
+{
+    /// Waits until the [`Store`] is ready.
+    ///
+    /// [`Store`]: crate::storage::Store
+    async fn wait_for_store_readiness(&mut self) {
+        while let Err(err) = <T as Storage>::is_ready(&mut self.shared.store).await {
+            error!("store not ready: {}", err);
+            debug!("try again in 5 sec");
+            sleep(Duration::from_secs(5)).await;
         }
     }
 }
