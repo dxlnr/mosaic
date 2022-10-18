@@ -23,41 +23,30 @@ pub enum AggregationError {
     ScalarMismatch,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Default, Clone)]
 /// An aggregator for aggregating models.
 pub struct Aggregation {
-    global_model: Model,
+    // pub global_model: Model,
 }
 
 #[allow(clippy::len_without_is_empty)]
 impl Aggregation {
-    /// Creates a new, empty aggregator for masks or masked models.
-    pub fn new() -> Self {
-        Self { global_model: Model::default() }
-    }
-
-    /// Gets the length of the aggregated mask object.
-    pub fn len(&self) -> usize {
-        self.global_model.len()
-    }
-
-    pub fn aggregate(&mut self, local_models: &[Model]) -> Result<(), AggregationError> {
+    pub fn aggregate(&mut self, local_models: &Vec<Model>) -> Result<Model, AggregationError> {
         if local_models.is_empty() {
             error!("No local models available for aggregating.");
             return Err(AggregationError::NoModels);
         }
 
-        self.global_model = Model::zeros(&local_models[0].len());
+        let mut global_model = Model::zeros(&local_models[0].len());
         let stakes = Ratio::<BigInt>::new(
             BigInt::from(1_i64),
-            BigInt::from(*&local_models[0].len() as i64),
+            BigInt::from(local_models.len() as i64),
         );
 
         local_models
             .iter()
             .map(|local_model| {
-                self.global_model.0 = self
-                    .global_model
+                global_model.0 = global_model
                     .0
                     .iter()
                     .zip(&local_model.0)
@@ -68,6 +57,6 @@ impl Aggregation {
             .collect::<Vec<_>>()
             .to_vec();
 
-        Ok(())
+        Ok(global_model)
     }
 }

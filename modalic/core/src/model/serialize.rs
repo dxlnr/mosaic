@@ -208,16 +208,15 @@ pub(crate) mod tests {
     use crate::model::{DataType, ModelConfig};
     use num::{bigint::BigInt, rational::Ratio};
 
-    #[test]
-    pub fn serialize_model_object() {
+    pub fn model_obj() -> (ModelObject, Vec<u8>) {
         let mut bytes = vec![0x00];
         bytes.extend(vec![
             // number of elements
             0x00, 0x00, 0x00, 0x04, // data (1 weight => 4 bytes with f32)
-            0x01, 0x00, 0x00, 0x00, // 1
-            0x02, 0x00, 0x00, 0x00, // 2
-            0x01, 0x00, 0x00, 0x00, // 1
-            0x02, 0x00, 0x00, 0x00, // 2
+            0x00, 0x00, 0x80, 0x3F, // 1
+            0x00, 0x00, 0x00, 0x40, // 2
+            0x00, 0x00, 0x80, 0x3F, // 1
+            0x00, 0x00, 0x00, 0x40, // 2
         ]);
 
         let data = vec![
@@ -233,7 +232,21 @@ pub(crate) mod tests {
                 data_type: DataType::F32,
             },
         );
-        let mut buf = vec![0xff; m_obj.buffer_length()];
+
+        (m_obj, bytes)
+    }
+
+    #[test]
+    pub fn serialize_model_object() {
+        let (m_obj, expected) = model_obj();
+        let mut buf = vec![0xff; expected.len()];
         m_obj.to_bytes(&mut buf);
+        assert_eq!(buf, expected);
+    }
+
+    #[test]
+    fn deserialize_mask_vect() {
+        let (expected, bytes) = model_obj();
+        assert_eq!(ModelObject::from_byte_slice(&&bytes[..]).unwrap(), expected);
     }
 }

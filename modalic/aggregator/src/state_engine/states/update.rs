@@ -23,7 +23,7 @@ use modalic_core::model::Model;
 #[cfg(feature = "secure")]
 use crate::{
     mask::{Aggregation, MaskObject},
-    LocalSeedDict, SeedDict, 
+    LocalSeedDict, SeedDict,
 };
 
 /// Errors which can occur during the update phase.
@@ -61,7 +61,9 @@ where
 
     async fn perform(&mut self) -> Result<(), StateError> {
         #[cfg(not(feature = "secure"))]
-        self.aggregate_model().await.map_err(|_|StateError::Update(UpdateError::AggregationError))?;
+        self.aggregate_model()
+            .await
+            .map_err(|_| StateError::Update(UpdateError::AggregationError))?;
 
         #[cfg(feature = "model-persistence")]
         self.save_global_model().await?;
@@ -71,10 +73,11 @@ where
 
     fn publish(&mut self) {
         info!("publishing the new global model.");
-        let global_model =
-            self.private.global_model.take().expect(
-                "unreachable: never fails when `publish()` is called after `end_round()`",
-            );
+        let global_model = self
+            .private
+            .global_model
+            .take()
+            .expect("unreachable: never fails when `publish()` is called after `end_round()`");
         self.shared
             .publisher
             .broadcast_model(ModelUpdate::New(global_model));
@@ -85,11 +88,10 @@ where
     }
 }
 
-
 impl<T> StateCondition<Update, T> {
     pub fn new(shared: SharedState<T>, fed_buffer: FedBuffer) -> Self {
         #[cfg(not(feature = "secure"))]
-        let aggr = Aggregation::new();
+        let aggr = Aggregation::default();
         #[cfg(feature = "secure")]
         let aggr = Aggregation::new(shared.aggr.round_params.mask_config, 0);
 
@@ -107,7 +109,7 @@ impl<T> StateCondition<Update, T> {
 impl<T> StateCondition<Update, T>
 where
     T: Storage,
-{   
+{
     #[cfg(feature = "secure")]
     /// Updates the local seed dict and aggregates the masked model.
     async fn aggregate_mask(
@@ -138,9 +140,12 @@ where
     }
 
     #[cfg(not(feature = "secure"))]
-    async fn aggregate_model(
-        &mut self,
-    ) -> Result<(), AggregationError> {
-        self.private.aggr.aggregate(self.private.fed_buffer.local_models.as_slice())
+    async fn aggregate_model(&mut self) -> Result<(), AggregationError> {
+        self.private.global_model =
+            Some(Arc::new(self.private.aggr.aggregate(
+                &self.private.fed_buffer.local_models,
+            )?));
+
+        Ok(())
     }
 }

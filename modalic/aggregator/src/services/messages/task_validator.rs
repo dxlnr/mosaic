@@ -47,9 +47,9 @@ impl Service<Message> for TaskValidator {
         };
         #[cfg(not(feature = "secure"))]
         let update_signature = match message.payload {
-            Payload::Sum(ref sum) => unimplemented!(),
+            Payload::Sum(ref _sum) => unimplemented!(),
             Payload::Update(ref update) => update.update_signature,
-            Payload::Sum2(ref sum2) => unimplemented!(),
+            Payload::Sum2(ref _sum2) => unimplemented!(),
             _ => return future::ready(Err(ServiceError::UnexpectedMessage)),
         };
         let params = self.params_listener.get_latest().event;

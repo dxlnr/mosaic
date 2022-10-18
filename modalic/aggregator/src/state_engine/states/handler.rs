@@ -115,7 +115,7 @@ where
 {
     /// Processes requests.
     pub async fn process(&mut self) -> Result<(), StateError> {
-        let mut counter = MessageCounter::new(5);
+        let mut counter = MessageCounter::new(2);
         loop {
             tokio::select! {
                 biased;
@@ -128,7 +128,7 @@ where
                     self.process_single(req, span, tx, &mut counter).await;
                 }
             }
-            if counter.reached_k(&1) {
+            if counter.reached_k(&0) {
                 break Ok(());
             }
         }

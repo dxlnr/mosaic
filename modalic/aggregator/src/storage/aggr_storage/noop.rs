@@ -2,25 +2,12 @@
 
 use crate::{
     aggr::Aggregator,
-    // state_engine::coordinator::Aggregator,
     storage::{
-        trust_anchor::noop::NoOp,
         AggregatorStorage,
-        // AggregatorStorage,
-        LocalSeedDictAdd,
-        MaskScoreIncr,
-        ModelStorage,
-        Storage,
         StorageResult,
-        SumPartAdd,
-        TrustAnchor,
     },
 };
 use async_trait::async_trait;
-use modalic_core::{
-    common::RoundSeed, mask::MaskObject, model::Model, LocalSeedDict, SeedDict, SumDict,
-    SumParticipantEphemeralPublicKey, SumParticipantPublicKey, UpdateParticipantPublicKey,
-};
 
 #[derive(Clone)]
 pub struct AggrNoOp;
@@ -35,45 +22,6 @@ impl AggregatorStorage for AggrNoOp {
         Ok(None)
     }
 
-    // async fn add_sum_participant(
-    //     &mut self,
-    //     pk: &SumParticipantPublicKey,
-    //     ephm_pk: &SumParticipantEphemeralPublicKey,
-    // ) -> StorageResult<SumPartAdd> {
-    //     todo!()
-    // }
-
-    // async fn sum_dict(&mut self) -> StorageResult<Option<SumDict>> {
-    //     todo!()
-    // }
-
-    // async fn add_local_seed_dict(
-    //     &mut self,
-    //     update_pk: &UpdateParticipantPublicKey,
-    //     local_seed_dict: &LocalSeedDict,
-    // ) -> StorageResult<LocalSeedDictAdd> {
-    //     todo!()
-    // }
-
-    // async fn seed_dict(&mut self) -> StorageResult<Option<SeedDict>> {
-    //     todo!()
-    // }
-
-    // async fn incr_mask_score(
-    //     &mut self,
-    //     pk: &SumParticipantPublicKey,
-    //     mask: &MaskObject,
-    // ) -> StorageResult<MaskScoreIncr> {
-    //     todo!()
-    // }
-
-    // async fn best_masks(&mut self) -> StorageResult<Option<Vec<(MaskObject, u64)>>> {
-    //     todo!()
-    // }
-
-    // async fn number_of_unique_masks(&mut self) -> StorageResult<u64> {
-    //     todo!()
-    // }
     async fn delete_coordinator_data(&mut self) -> StorageResult<()> {
         Ok(())
     }

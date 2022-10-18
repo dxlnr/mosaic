@@ -312,11 +312,11 @@ pub fn bytes_to_ratio(bytes: &[u8], dtype: &DataType) -> Ratio<BigInt> {
     match dtype {
         DataType::F32 => {
             let chunk: [u8; 4] = bytes.try_into().unwrap();
-            float_to_ratio_bounded(f32::from_be_bytes(chunk))
+            float_to_ratio_bounded(f32::from_le_bytes(chunk))
         }
         DataType::F64 => {
             let chunk: [u8; 8] = bytes.try_into().unwrap();
-            float_to_ratio_bounded(f64::from_be_bytes(chunk))
+            float_to_ratio_bounded(f64::from_le_bytes(chunk))
         }
         DataType::I32 => unimplemented!(),
         DataType::I64 => unimplemented!(),
