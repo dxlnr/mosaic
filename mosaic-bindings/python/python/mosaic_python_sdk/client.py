@@ -8,18 +8,18 @@ import itertools
 import numpy as np
 
 from .model import CNN
-from python_sdk import modalic_sdk
+from python.mosaic_python_sdk import mosaic_python_sdk
 
-# print(modalic_sdk.__all__)
+print(mosaic_python_sdk.__all__)
 
 import logging
-modalic_sdk.init_logging()
+mosaic_python_sdk.init_logging()
 LOG = logging.getLogger("client")
 
 
 class ModalicClient(threading.Thread):
     def __init__(self, server_address: str, client, state: Optional[List[int]] = None, scalar: float = 1.0):
-        self._modalic_client = modalic_sdk.Client(server_address, scalar, state)
+        self._modalic_client = mosaic_python_sdk.Client(server_address, scalar, state)
 
         # Client API
         #
@@ -74,8 +74,8 @@ class ModalicClient(threading.Thread):
         try:
             global_model = self._modalic_client.global_model()
         except (
-            modalic_sdk.GlobalModelUnavailable,
-            modalic_sdk.GlobalModelDataTypeMisMatch,
+            mosaic_python_sdk.GlobalModelUnavailable,
+            mosaic_python_sdk.GlobalModelDataTypeError,
         ) as err:
             self._error_on_fetch_global_model = True
         else:
@@ -112,7 +112,7 @@ class ModalicClient(threading.Thread):
         try:
             self._modalic_client.set_model(local_model)
         except (
-            modalic_sdk.UninitializedParticipant,
+            mosaic_python_sdk.UninitializedClient,
         ) as err:
             self._exit_event.set()
 
@@ -161,8 +161,8 @@ class ModalicClient(threading.Thread):
         try:
             self._set_local_model(local_update)
         except (
-            modalic_sdk.LocalModelLengthMisMatch,
-            modalic_sdk.LocalModelDataTypeMisMatch,
+            mosaic_python_sdk.LocalModelLengthMisMatch,
+            mosaic_python_sdk.LocalModelDataTypeError,
         ) as err:
             print("failed to set local model: %s", err)
 
@@ -210,7 +210,7 @@ class PyClient:
     #     r"""."""
     #     layers = [val.cpu().numpy() for _, val in model.state_dict().items()]
     #     tensors = [
-    #         modalic_sdk.modalicTensor(list(layer.flatten()), 0, list(layer.shape))
+    #         mosaic_python_sdk.modalicTensor(list(layer.flatten()), 0, list(layer.shape))
     #         for layer in layers
     #     ]
     #     return tensors

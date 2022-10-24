@@ -3,7 +3,7 @@ requires = ["maturin>=0.12,<0.13"]
 build-backend = "maturin"
 
 [project]
-name = "mosaic_sdk"
+name = "mosaic_python_sdk"
 requires-python = ">=3.7"
 classifiers = [
     "Programming Language :: Rust",
@@ -12,4 +12,4 @@ classifiers = [
 ]
 
 [tool.maturin]
-python-source = "test"
+python-source = "python"

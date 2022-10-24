@@ -9,11 +9,11 @@ use mosaic_client_sdk::settings::MaxMessageSize;
 use mosaic_core::model::{DataType, FromPrimitives, IntoPrimitives, Model};
 
 create_exception!(mosaic_python_sdk, CryptoInit, PyException);
-create_exception!(mosaic_python_sdk, ParticipantInit, PyException);
-create_exception!(mosaic_python_sdk, ParticipantRestore, PyException);
-create_exception!(mosaic_python_sdk, UninitializedParticipant, PyException);
+create_exception!(mosaic_python_sdk, ClientInit, PyException);
+create_exception!(mosaic_python_sdk, ClientRestore, PyException);
+create_exception!(mosaic_python_sdk, UninitializedClient, PyException);
 create_exception!(mosaic_python_sdk, LocalModelLengthMisMatch, PyException);
-create_exception!(mosaic_python_sdk, LocalModelDataTypeMisMatch, PyException);
+create_exception!(mosaic_python_sdk, LocalModelDataTypeError, PyException);
 create_exception!(mosaic_python_sdk, GlobalModelUnavailable, PyException);
 create_exception!(mosaic_python_sdk, GlobalModelDataTypeMisMatch, PyException);
 
@@ -23,19 +23,16 @@ fn mosaic_python_sdk(py: Python, m: &PyModule) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(init_logging, m)?)?;
 
     m.add("CryptoInit", py.get_type::<CryptoInit>())?;
-    m.add("ParticipantInit", py.get_type::<ParticipantInit>())?;
-    m.add("ParticipantRestore", py.get_type::<ParticipantRestore>())?;
-    m.add(
-        "UninitializedParticipant",
-        py.get_type::<UninitializedParticipant>(),
-    )?;
+    m.add("ClientInit", py.get_type::<ClientInit>())?;
+    m.add("ClientRestore", py.get_type::<ClientRestore>())?;
+    m.add("UninitializedClient", py.get_type::<UninitializedClient>())?;
     m.add(
         "LocalModelLengthMisMatch",
         py.get_type::<LocalModelLengthMisMatch>(),
     )?;
     m.add(
-        "LocalModelDataTypeMisMatch",
-        py.get_type::<LocalModelDataTypeMisMatch>(),
+        "LocalModelDataTypeError",
+        py.get_type::<LocalModelDataTypeError>(),
     )?;
     m.add(
         "GlobalModelUnavailable",
@@ -63,12 +60,12 @@ impl Client {
             .map_err(|_| CryptoInit::new_err("failed to initialize crypto library"))?;
 
         let inner = if let Some(state) = state {
-            debug!("restore participant");
+            debug!("restore client");
             mosaic_client_sdk::Client::restore(&state, &url).map_err(|err| {
-                ParticipantRestore::new_err(format!("failed to restore participant: {}", err))
+                ClientRestore::new_err(format!("failed to restore client: {}", err))
             })?
         } else {
-            debug!("initialize participant");
+            debug!("initialize client");
             let mut settings = mosaic_client_sdk::Settings::new();
             settings.set_url(url);
             settings.set_keys(mosaic_core::crypto::SigningKeyPair::generate());
@@ -76,7 +73,7 @@ impl Client {
             settings.set_max_message_size(MaxMessageSize::unlimited());
 
             mosaic_client_sdk::Client::new(settings).map_err(|err| {
-                ParticipantInit::new_err(format!("failed to initialize participant: {}", err))
+                ClientInit::new_err(format!("failed to initialize client: {}", err))
             })?
         };
 
@@ -88,8 +85,8 @@ impl Client {
         let inner = match self.inner {
             Some(ref mut inner) => inner,
             None => {
-                return Err(UninitializedParticipant::new_err(
-                    "called 'tick' on an uninitialized participant. this is a bug.",
+                return Err(UninitializedClient::new_err(
+                    "called 'tick' on an uninitialized client. this is a bug.",
                 ))
             }
         };
@@ -103,8 +100,8 @@ impl Client {
         let inner = match self.inner {
             Some(ref mut inner) => inner,
             None => {
-                return Err(UninitializedParticipant::new_err(
-                    "called 'set_model' on an uninitialized participant. this is a bug.",
+                return Err(UninitializedClient::new_err(
+                    "called 'set_model' on an uninitialized client. this is a bug.",
                 ))
             }
         };
@@ -132,15 +129,15 @@ impl Client {
         }
     }
 
-    /// Check whether the participant internal state machine made progress while
-    /// executing the PET protocol. If so, the participant state likely changed.
+    /// Check whether the client internal state machine made progress while
+    /// executing the PET protocol. If so, the client state likely changed.
     // #[text_signature = "($self)"]
     pub fn made_progress(&self) -> PyResult<bool> {
         let inner = match self.inner {
             Some(ref inner) => inner,
             None => {
-                return Err(UninitializedParticipant::new_err(
-                    "called 'made_progress' on an uninitialized participant. this is a bug.",
+                return Err(UninitializedClient::new_err(
+                    "called 'made_progress' on an uninitialized client. this is a bug.",
                 ))
             }
         };
@@ -148,16 +145,16 @@ impl Client {
         Ok(inner.made_progress())
     }
 
-    /// Check whether the participant internal state machine is waiting for the
-    /// participant to load its model into the store. If this method returns `true`, the
-    /// caller should make sure to call [`Participant::set_model()`] at some point.
+    /// Check whether the client internal state machine is waiting for the
+    /// client to load its model into the store. If this method returns `true`, the
+    /// caller should make sure to call [`Client::set_model()`] at some point.
     // #[text_signature = "($self)"]
     pub fn should_set_model(&self) -> PyResult<bool> {
         let inner = match self.inner {
             Some(ref inner) => inner,
             None => {
-                return Err(UninitializedParticipant::new_err(
-                    "called 'should_set_model' on an uninitialized participant. this is a bug.",
+                return Err(UninitializedClient::new_err(
+                    "called 'should_set_model' on an uninitialized client. this is a bug.",
                 ))
             }
         };
@@ -170,8 +167,8 @@ impl Client {
         let inner = match self.inner {
             Some(ref inner) => inner,
             None => {
-                return Err(UninitializedParticipant::new_err(
-                    "called 'task' on an uninitialized participant. this is a bug.",
+                return Err(UninitializedClient::new_err(
+                    "called 'task' on an uninitialized client. this is a bug.",
                 ))
             }
         };
@@ -192,8 +189,8 @@ impl Client {
         let inner = match self.inner {
             Some(ref inner) => inner,
             None => {
-                return Err(UninitializedParticipant::new_err(
-                    "called 'new_global_model' on an uninitialized participant. this is a bug.",
+                return Err(UninitializedClient::new_err(
+                    "called 'new_global_model' on an uninitialized client. this is a bug.",
                 ))
             }
         };
@@ -206,8 +203,8 @@ impl Client {
         let inner = match self.inner {
             Some(ref mut inner) => inner,
             None => {
-                return Err(UninitializedParticipant::new_err(
-                    "called 'global_model' on an uninitialized participant. this is a bug.",
+                return Err(UninitializedClient::new_err(
+                    "called 'global_model' on an uninitialized client. this is a bug.",
                 ))
             }
         };
@@ -234,8 +231,8 @@ impl Client {
         let inner = match self.inner.take() {
             Some(inner) => inner,
             None => {
-                return Err(UninitializedParticipant::new_err(
-                    "called 'save' on an uninitialized participant. this is a bug.",
+                return Err(UninitializedClient::new_err(
+                    "called 'save' on an uninitialized client. this is a bug.",
                 ))
             }
         };
@@ -265,13 +262,13 @@ macro_rules! into_primitives {
 macro_rules! from_primitives {
     ($client:expr, $local_model:expr, $data_type:ty) => {{
             let model: Vec<$data_type> = $local_model.extract()
-                .map_err(|err| LocalModelDataTypeMisMatch::new_err(format!("{}", err)))?;
+                .map_err(|err| LocalModelDataTypeError::new_err(format!("{}", err)))?;
             let converted_model = Model::from_primitives(model.into_iter());
             if let Ok(converted_model) = converted_model {
                 $client.set_model(converted_model);
                 Ok(())
             } else {
-                Err(LocalModelDataTypeMisMatch::new_err(
+                Err(LocalModelDataTypeError::new_err(
                     "the local model data type is incompatible with the data type of the current model configuration"
                 ))
             }}
