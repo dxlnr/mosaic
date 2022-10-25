@@ -19,7 +19,7 @@ classifiers = [
         "Operating System :: MacOS :: MacOS X",
         "Operating System :: POSIX :: Linux",
 ]
-requires-python = ">=3.7"
+requires-python = ">=3.8"
 python-source = "python"
 
 [lib]
@@ -31,7 +31,7 @@ crate-type = ["cdylib"]
 mosaic_core = { path = "../../mosaic/core" }
 mosaic-client-sdk = { path = "../../mosaic-client-sdk", version = "0.1.0"}
 # External Crates
-pyo3 = { version = "0.16.3", features = ["extension-module"] }
+pyo3 = { version = "0.17.2", features = ["extension-module"] }
 
 sodiumoxide = "0.2.7"
 tracing = "0.1.36"

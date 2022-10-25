@@ -2,7 +2,7 @@ use async_trait::async_trait;
 use derive_more::From;
 use serde::{Deserialize, Serialize};
 use thiserror::Error;
-use tracing::{debug, error, info, warn};
+use tracing::{debug, error, info};
 
 use super::{Awaiting, NewRound, SendingUpdate, Update, IO};
 use crate::{
@@ -202,7 +202,7 @@ where
     async fn check_round_freshness(&mut self) -> RoundFreshness {
         match self.io.get_round_params().await {
             Err(e) => {
-                warn!("failed to fetch round parameters {:?}.", e);
+                debug!("failed to fetch round parameters {:?}.", e);
                 RoundFreshness::Unknown
             }
             Ok(params) => {

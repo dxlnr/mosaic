@@ -27,7 +27,7 @@ impl IntoPhase<NewRound> for State<NewRound> {
 #[async_trait]
 impl Step for Phase<NewRound> {
     async fn step(mut self) -> TransitionOutcome {
-        info!("new_round task");
+        info!("Received task for next training round.");
 
         // info!("checking eligibility for sum task");
         // let sum_signature = self.sign(b"sum");
@@ -36,7 +36,6 @@ impl Step for Phase<NewRound> {
         //     return TransitionOutcome::Complete(self.into_sum(sum_signature).into());
         // }
 
-        info!("not eligible for sum task, checking eligibility for update task");
         // let update_signature = self.sign(b"update");
         // if update_signature.is_eligible(self.state.shared.round_params.update) {
         //     info!("eligible for update task");

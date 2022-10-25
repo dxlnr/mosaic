@@ -59,7 +59,7 @@ macro_rules! impl_sending {
                     info!("sending {} message", $phase);
                     self = try_progress!(self.send_next().await);
 
-                    info!("done sending {} message, going to {} phase", $phase, $next);
+                    debug!("done sending {} message, going to {} phase", $phase, $next);
                     let phase: Phase<$Next> = self.into();
                     TransitionOutcome::Complete(phase.into())
                 }

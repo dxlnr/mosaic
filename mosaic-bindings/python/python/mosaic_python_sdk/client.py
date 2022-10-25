@@ -6,6 +6,7 @@ from typing import Any, Optional, List
 from justbackoff import Backoff
 import itertools
 import numpy as np
+import backoff
 
 from .model import CNN
 from python.mosaic_python_sdk import mosaic_python_sdk
@@ -32,7 +33,7 @@ class ModalicClient(threading.Thread):
         self._error_on_fetch_global_model = False
         # threading internals
         self._exit_event = threading.Event()
-        self._poll_period = Backoff(min_ms=100, max_ms=10000, factor=1.2, jitter=False)
+        # self._poll_period = Backoff(min_ms=100, max_ms=10000, factor=1.2, jitter=False)
 
         # Primitive lock objects. Once a thread has acquired a lock,
         # subsequent attempts to acquire it block, until it is released;
@@ -128,6 +129,7 @@ class ModalicClient(threading.Thread):
         while not self._exit_event.is_set():
             self._step()
 
+    @backoff.on_predicate(backoff.constant, jitter=None, interval=1)
     def _step(self):
         with self._step_lock:
             self._modalic_client.step()
@@ -150,11 +152,11 @@ class ModalicClient(threading.Thread):
 
             made_progress = self._modalic_client.made_progress()
 
-        if made_progress:
-            self._poll_period.reset()
-            self._exit_event.wait(timeout=self._poll_period.duration())
-        else:
-            self._exit_event.wait(timeout=self._poll_period.duration())
+        # if made_progress:
+        #     self._poll_period.reset()
+        #     self._exit_event.wait(timeout=self._poll_period.duration())
+        # else:
+        #     self._exit_event.wait(timeout=self._poll_period.duration())
 
     def _train(self):
         local_update = self._client.train_single_update(self._global_model)

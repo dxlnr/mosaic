@@ -156,6 +156,8 @@ pub struct Client {
     should_set_model: bool,
     /// Whether a new global model is available.
     new_global_model: bool,
+    /// If clients idle & awaiting task.
+    awaitening: bool,
     /// The participant current task
     task: Task,
 }
@@ -218,6 +220,7 @@ impl Client {
             made_progress: true,
             should_set_model: false,
             new_global_model: false,
+            awaitening: false,
         };
         client.process_events();
         Ok(client)
@@ -311,6 +314,10 @@ impl Client {
     /// caller can call [`Participant::global_model()`] to fetch the new global model.
     pub fn new_global_model(&self) -> bool {
         self.new_global_model
+    }
+    /// Check wether the client is awaitening a task.
+    pub fn is_awaitening(&self) -> bool {
+        self.awaitening
     }
 
     /// Return the participant current task
