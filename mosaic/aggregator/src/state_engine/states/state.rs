@@ -2,7 +2,7 @@ use async_trait::async_trait;
 use derive_more::Display;
 use futures::StreamExt;
 use thiserror::Error;
-use tracing::{debug, error_span, info, warn, Span};
+use tracing::{debug, debug_span, info, warn, Span};
 use tracing_futures::Instrument;
 
 use crate::{
@@ -82,7 +82,7 @@ where
     /// Runs the current State to completion.
     pub async fn run_state(mut self) -> Option<StateEngine<T>> {
         info!("Aggregator runs in state: {:?}", &Self::NAME);
-        let span = error_span!("run_phase", state = %&Self::NAME);
+        let span = debug_span!("run_state", state = %&Self::NAME);
 
         async move {
             self.shared.publisher.broadcast_state(Self::NAME);

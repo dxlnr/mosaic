@@ -17,6 +17,7 @@ path = "src/bin/main.rs"
 mosaic_core = { path = "../core" }
 
 # External crates.
+# ansi_term = "0.12.1"
 anyhow = "1.0.62"
 async-trait = "0.1.57"
 base64 = "0.13.0"
@@ -74,7 +75,7 @@ tower = { version = "0.4.6", default-features = false, features = [
 ] }
 tracing = "0.1.36"
 tracing-futures = "0.2.5"
-tracing-subscriber = { version = "0.3.15", features = ["env-filter"] }
+tracing-subscriber = { version = "0.3.16", features = ["env-filter"] }
 validator = { version = "0.16.0", features = ["derive"] }
 warp = "0.3.1"
 

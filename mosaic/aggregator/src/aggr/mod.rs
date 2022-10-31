@@ -34,7 +34,7 @@ pub struct Aggregator {
 }
 
 impl Aggregator {
-    pub fn new(mask_settings: MaskSettings, model_settings: ModelSettings) -> Self {
+    pub fn new(_mask_settings: MaskSettings, model_settings: ModelSettings) -> Self {
         let keys = EncryptKeyPair::generate();
 
         #[cfg(feature = "secure")]
