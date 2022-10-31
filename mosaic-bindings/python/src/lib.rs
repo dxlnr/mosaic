@@ -2,8 +2,9 @@ use pyo3::create_exception;
 use pyo3::exceptions::PyException;
 use pyo3::types::PyList;
 use pyo3::{prelude::*, wrap_pyfunction};
-use tracing::{info, debug};
+use tracing::{debug, info};
 use tracing_subscriber::FmtSubscriber;
+use tracing_subscriber::*;
 
 use mosaic_client_sdk::settings::MaxMessageSize;
 use mosaic_core::model::{DataType, FromPrimitives, IntoPrimitives, Model};
@@ -277,7 +278,15 @@ macro_rules! from_primitives {
 
 #[pyfunction]
 fn init_logging() {
+    let format = fmt::format()
+        .with_level(true)
+        .with_target(false)
+        .with_thread_ids(false)
+        .with_thread_names(false)
+        .compact();
+
     let _fmt_subscriber = FmtSubscriber::builder()
+        .event_format(format)
         .with_env_filter("modalic=debug,info")
         .with_ansi(true)
         .init();

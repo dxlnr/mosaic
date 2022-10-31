@@ -1,5 +1,5 @@
-use std::{path::PathBuf, process};
 use std::fmt::Debug;
+use std::{path::PathBuf, process};
 
 use structopt::StructOpt;
 use tokio::signal;
@@ -109,12 +109,12 @@ async fn main() {
 
 fn init_tracing(settings: LoggingSettings) {
     let format = fmt::format()
-    // .with_timer(timer)
-    .with_level(true)
-    .with_target(false) 
-    .with_thread_ids(false) 
-    .with_thread_names(false)
-    .compact();
+        // .with_timer(timer)
+        .with_level(true)
+        .with_target(false)
+        .with_thread_ids(false)
+        .with_thread_names(false)
+        .compact();
 
     let _fmt_subscriber = FmtSubscriber::builder()
         .event_format(format)
