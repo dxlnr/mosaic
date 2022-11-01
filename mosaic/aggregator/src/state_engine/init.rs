@@ -1,5 +1,5 @@
-//! A state machine initializer.
-
+//! A state engine initializer.
+//! 
 use displaydoc::Display;
 use thiserror::Error;
 #[cfg(feature = "model-persistence")]
@@ -9,10 +9,9 @@ use tracing::{debug, info};
 use crate::settings::RestoreSettings;
 use crate::{
     aggr::Aggregator,
-    settings::{MaskSettings, ModelSettings, PetSettings},
+    settings::{MaskSettings, ModelSettings},
     state_engine::{
         channel::{RequestReceiver, RequestSender},
-        // coordinator::CoordinatorState,
         events::{EventPublisher, EventSubscriber, ModelUpdate},
         states::{Idle, SharedState, StateCondition, StateName},
         StateEngine,
@@ -29,9 +28,9 @@ type StateEngineInitializationResult<T> = Result<T, StateEngineInitializationErr
 pub enum StateEngineInitializationError {
     /// Initializing crypto library failed.
     CryptoInit,
-    /// Fetching coordinator state failed: {0}.
+    /// Fetching aggregator state failed: {0}.
     FetchCoordinatorState(StorageError),
-    /// Deleting coordinator data failed: {0}.
+    /// Deleting aggregator data failed: {0}.
     DeleteCoordinatorData(StorageError),
     /// Fetching latest global model id failed: {0}.
     FetchLatestGlobalModelId(StorageError),
@@ -43,9 +42,8 @@ pub enum StateEngineInitializationError {
     GlobalModelInvalid(String),
 }
 
-/// The state machine initializer that initializes a new state machine.
+/// The state engine initializer that initializes a new state engine.
 pub struct StateEngineInitializer<T> {
-    pet_settings: PetSettings,
     mask_settings: MaskSettings,
     model_settings: ModelSettings,
     #[cfg(feature = "model-persistence")]
@@ -56,14 +54,12 @@ pub struct StateEngineInitializer<T> {
 impl<T> StateEngineInitializer<T> {
     /// Creates a new [`StateEngineInitializer`].
     pub fn new(
-        pet_settings: PetSettings,
         mask_settings: MaskSettings,
         model_settings: ModelSettings,
         #[cfg(feature = "model-persistence")] restore_settings: RestoreSettings,
         store: T,
     ) -> Self {
         Self {
-            pet_settings,
             mask_settings,
             model_settings,
             #[cfg(feature = "model-persistence")]
@@ -107,18 +103,18 @@ where
         // crucial: init must be called before anything else in this module
         sodiumoxide::init().or(Err(StateEngineInitializationError::CryptoInit))?;
 
-        let (coordinator_state, global_model) = { self.from_settings().await? };
-        Ok(self.init_state_engine(coordinator_state, global_model))
+        let (aggregator_state, global_model) = { self.from_settings().await? };
+        Ok(self.init_state_engine(aggregator_state, global_model))
     }
 
     // Creates a new [`CoordinatorState`] from the given settings and deletes
-    // all coordinator data. Should only be called for the first start
+    // all aggregator data. Should only be called for the first start
     // or if we need to perform reset.
     pub(in crate::state_engine) async fn from_settings(
         &mut self,
     ) -> StateEngineInitializationResult<(Aggregator, ModelUpdate)> {
         self.store
-            .delete_coordinator_data()
+            .delete_aggregator_data()
             .await
             .map_err(StateEngineInitializationError::DeleteCoordinatorData)?;
         Ok((
@@ -139,7 +135,7 @@ impl<T> StateEngineInitializer<T>
 where
     T: Storage,
 {
-    /// Initializes a new [`StateEngine`] by trying to restore the previous coordinator state
+    /// Initializes a new [`StateEngine`] by trying to restore the previous aggregator state
     /// along with the latest global model. After a successful initialization, the state machine
     /// always starts from a new round. This means that the round id is increased by one.
     /// If the state machine is reset during the initialization, the state machine starts
@@ -148,17 +144,17 @@ where
     /// # Behavior
     /// ![](https://mermaid.ink/svg/eyJjb2RlIjoic2VxdWVuY2VEaWFncmFtXG4gICAgYWx0IHJlc3RvcmUuZW5hYmxlID0gZmFsc2VcbiAgICAgICAgQ29vcmRpbmF0b3ItPj4rUmVkaXM6IGZsdXNoIGRiXG4gICAgICAgIE5vdGUgb3ZlciBDb29yZGluYXRvcixSZWRpczogc3RhcnQgZnJvbSBzZXR0aW5nc1xuICAgIGVsc2VcbiAgICAgICAgQ29vcmRpbmF0b3ItPj4rUmVkaXM6IGdldCBzdGF0ZVxuICAgICAgICBSZWRpcy0tPj4tQ29vcmRpbmF0b3I6IHN0YXRlXG4gICAgICAgIGFsdCBzdGF0ZSBub24tZXhpc3RlbnRcbiAgICAgICAgICAgIENvb3JkaW5hdG9yLT4-K1JlZGlzOiBmbHVzaCBkYlxuICAgICAgICAgICAgTm90ZSBvdmVyIENvb3JkaW5hdG9yLFJlZGlzOiBzdGFydCBmcm9tIHNldHRpbmdzXG4gICAgICAgIGVsc2Ugc3RhdGUgZXhpc3RcbiAgICAgICAgICAgIENvb3JkaW5hdG9yLT4-K1JlZGlzOiBnZXQgbGF0ZXN0IGdsb2JhbCBtb2RlbCBpZFxuICAgICAgICAgICAgUmVkaXMtLT4-LUNvb3JkaW5hdG9yOiBnbG9iYWwgbW9kZWwgaWRcbiAgICAgICAgICAgIGFsdCBnbG9iYWwgbW9kZWwgaWQgbm9uLWV4aXN0ZW50XG4gICAgICAgICAgICAgICAgTm90ZSBvdmVyIENvb3JkaW5hdG9yLFMzOiByZXN0b3JlIGNvb3JkaW5hdG9yIHdpdGggbGF0ZXN0IHN0YXRlIGJ1dCB3aXRob3V0IGEgZ2xvYmFsIG1vZGVsXG4gICAgICAgICAgICBlbHNlIGdsb2JhbCBtb2RlbCBpZCBleGlzdFxuICAgICAgICAgICAgICBDb29yZGluYXRvci0-PitTMzogZ2V0IGdsb2JhbCBtb2RlbFxuICAgICAgICAgICAgICBTMy0tPj4tQ29vcmRpbmF0b3I6IGdsb2JhbCBtb2RlbFxuICAgICAgICAgICAgICBhbHQgZ2xvYmFsIG1vZGVsIG5vbi1leGlzdGVudFxuICAgICAgICAgICAgICAgIE5vdGUgb3ZlciBDb29yZGluYXRvcixTMzogZXhpdCB3aXRoIGVycm9yXG4gICAgICAgICAgICAgIGVsc2UgZ2xvYmFsIG1vZGVsIGV4aXN0XG4gICAgICAgICAgICAgICAgTm90ZSBvdmVyIENvb3JkaW5hdG9yLFMzOiByZXN0b3JlIGNvb3JkaW5hdG9yIHdpdGggbGF0ZXN0IHN0YXRlIGFuZCBsYXRlc3QgZ2xvYmFsIG1vZGVsXG4gICAgICAgICAgICAgIGVuZFxuICAgICAgICAgICAgZW5kXG4gICAgICAgICAgZW5kXG4gICAgICAgIGVuZCIsIm1lcm1haWQiOnsidGhlbWUiOiJkZWZhdWx0IiwidGhlbWVWYXJpYWJsZXMiOnsiYmFja2dyb3VuZCI6IndoaXRlIiwicHJpbWFyeUNvbG9yIjoiI0VDRUNGRiIsInNlY29uZGFyeUNvbG9yIjoiI2ZmZmZkZSIsInRlcnRpYXJ5Q29sb3IiOiJoc2woODAsIDEwMCUsIDk2LjI3NDUwOTgwMzklKSIsInByaW1hcnlCb3JkZXJDb2xvciI6ImhzbCgyNDAsIDYwJSwgODYuMjc0NTA5ODAzOSUpIiwic2Vjb25kYXJ5Qm9yZGVyQ29sb3IiOiJoc2woNjAsIDYwJSwgODMuNTI5NDExNzY0NyUpIiwidGVydGlhcnlCb3JkZXJDb2xvciI6ImhzbCg4MCwgNjAlLCA4Ni4yNzQ1MDk4MDM5JSkiLCJwcmltYXJ5VGV4dENvbG9yIjoiIzEzMTMwMCIsInNlY29uZGFyeVRleHRDb2xvciI6IiMwMDAwMjEiLCJ0ZXJ0aWFyeVRleHRDb2xvciI6InJnYig5LjUwMDAwMDAwMDEsIDkuNTAwMDAwMDAwMSwgOS41MDAwMDAwMDAxKSIsImxpbmVDb2xvciI6IiMzMzMzMzMiLCJ0ZXh0Q29sb3IiOiIjMzMzIiwibWFpbkJrZyI6IiNFQ0VDRkYiLCJzZWNvbmRCa2ciOiIjZmZmZmRlIiwiYm9yZGVyMSI6IiM5MzcwREIiLCJib3JkZXIyIjoiI2FhYWEzMyIsImFycm93aGVhZENvbG9yIjoiIzMzMzMzMyIsImZvbnRGYW1pbHkiOiJcInRyZWJ1Y2hldCBtc1wiLCB2ZXJkYW5hLCBhcmlhbCIsImZvbnRTaXplIjoiMTZweCIsImxhYmVsQmFja2dyb3VuZCI6IiNlOGU4ZTgiLCJub2RlQmtnIjoiI0VDRUNGRiIsIm5vZGVCb3JkZXIiOiIjOTM3MERCIiwiY2x1c3RlckJrZyI6IiNmZmZmZGUiLCJjbHVzdGVyQm9yZGVyIjoiI2FhYWEzMyIsImRlZmF1bHRMaW5rQ29sb3IiOiIjMzMzMzMzIiwidGl0bGVDb2xvciI6IiMzMzMiLCJlZGdlTGFiZWxCYWNrZ3JvdW5kIjoiI2U4ZThlOCIsImFjdG9yQm9yZGVyIjoiaHNsKDI1OS42MjYxNjgyMjQzLCA1OS43NzY1MzYzMTI4JSwgODcuOTAxOTYwNzg0MyUpIiwiYWN0b3JCa2ciOiIjRUNFQ0ZGIiwiYWN0b3JUZXh0Q29sb3IiOiJibGFjayIsImFjdG9yTGluZUNvbG9yIjoiZ3JleSIsInNpZ25hbENvbG9yIjoiIzMzMyIsInNpZ25hbFRleHRDb2xvciI6IiMzMzMiLCJsYWJlbEJveEJrZ0NvbG9yIjoiI0VDRUNGRiIsImxhYmVsQm94Qm9yZGVyQ29sb3IiOiJoc2woMjU5LjYyNjE2ODIyNDMsIDU5Ljc3NjUzNjMxMjglLCA4Ny45MDE5NjA3ODQzJSkiLCJsYWJlbFRleHRDb2xvciI6ImJsYWNrIiwibG9vcFRleHRDb2xvciI6ImJsYWNrIiwibm90ZUJvcmRlckNvbG9yIjoiI2FhYWEzMyIsIm5vdGVCa2dDb2xvciI6IiNmZmY1YWQiLCJub3RlVGV4dENvbG9yIjoiYmxhY2siLCJhY3RpdmF0aW9uQm9yZGVyQ29sb3IiOiIjNjY2IiwiYWN0aXZhdGlvbkJrZ0NvbG9yIjoiI2Y0ZjRmNCIsInNlcXVlbmNlTnVtYmVyQ29sb3IiOiJ3aGl0ZSIsInNlY3Rpb25Ca2dDb2xvciI6InJnYmEoMTAyLCAxMDIsIDI1NSwgMC40OSkiLCJhbHRTZWN0aW9uQmtnQ29sb3IiOiJ3aGl0ZSIsInNlY3Rpb25Ca2dDb2xvcjIiOiIjZmZmNDAwIiwidGFza0JvcmRlckNvbG9yIjoiIzUzNGZiYyIsInRhc2tCa2dDb2xvciI6IiM4YTkwZGQiLCJ0YXNrVGV4dExpZ2h0Q29sb3IiOiJ3aGl0ZSIsInRhc2tUZXh0Q29sb3IiOiJ3aGl0ZSIsInRhc2tUZXh0RGFya0NvbG9yIjoiYmxhY2siLCJ0YXNrVGV4dE91dHNpZGVDb2xvciI6ImJsYWNrIiwidGFza1RleHRDbGlja2FibGVDb2xvciI6IiMwMDMxNjMiLCJhY3RpdmVUYXNrQm9yZGVyQ29sb3IiOiIjNTM0ZmJjIiwiYWN0aXZlVGFza0JrZ0NvbG9yIjoiI2JmYzdmZiIsImdyaWRDb2xvciI6ImxpZ2h0Z3JleSIsImRvbmVUYXNrQmtnQ29sb3IiOiJsaWdodGdyZXkiLCJkb25lVGFza0JvcmRlckNvbG9yIjoiZ3JleSIsImNyaXRCb3JkZXJDb2xvciI6IiNmZjg4ODgiLCJjcml0QmtnQ29sb3IiOiJyZWQiLCJ0b2RheUxpbmVDb2xvciI6InJlZCIsImxhYmVsQ29sb3IiOiJibGFjayIsImVycm9yQmtnQ29sb3IiOiIjNTUyMjIyIiwiZXJyb3JUZXh0Q29sb3IiOiIjNTUyMjIyIiwiY2xhc3NUZXh0IjoiIzEzMTMwMCIsImZpbGxUeXBlMCI6IiNFQ0VDRkYiLCJmaWxsVHlwZTEiOiIjZmZmZmRlIiwiZmlsbFR5cGUyIjoiaHNsKDMwNCwgMTAwJSwgOTYuMjc0NTA5ODAzOSUpIiwiZmlsbFR5cGUzIjoiaHNsKDEyNCwgMTAwJSwgOTMuNTI5NDExNzY0NyUpIiwiZmlsbFR5cGU0IjoiaHNsKDE3NiwgMTAwJSwgOTYuMjc0NTA5ODAzOSUpIiwiZmlsbFR5cGU1IjoiaHNsKC00LCAxMDAlLCA5My41Mjk0MTE3NjQ3JSkiLCJmaWxsVHlwZTYiOiJoc2woOCwgMTAwJSwgOTYuMjc0NTA5ODAzOSUpIiwiZmlsbFR5cGU3IjoiaHNsKDE4OCwgMTAwJSwgOTMuNTI5NDExNzY0NyUpIn19LCJ1cGRhdGVFZGl0b3IiOmZhbHNlfQ)
     ///
-    /// - If the [`RestoreSettings.enable`] flag is set to `false`, the current coordinator
+    /// - If the [`RestoreSettings.enable`] flag is set to `false`, the current aggregator
     ///   state will be reset and a new [`StateEngine`] is created with the given settings.
-    /// - If no coordinator state exists, the current coordinator state will be reset and a new
+    /// - If no aggregator state exists, the current aggregator state will be reset and a new
     ///   [`StateEngine`] is created with the given settings.
-    /// - If a coordinator state exists but no global model has been created so far, the
-    ///   [`StateEngine`] will be restored with the coordinator state but without a global model.
-    /// - If a coordinator state and a global model exists, the [`StateEngine`] will be restored
-    ///   with the coordinator state and the global model.
+    /// - If a aggregator state exists but no global model has been created so far, the
+    ///   [`StateEngine`] will be restored with the aggregator state but without a global model.
+    /// - If a aggregator state and a global model exists, the [`StateEngine`] will be restored
+    ///   with the aggregator state and the global model.
     /// - If a global model has been created but does not exists, the initialization will fail with
     ///   [`StateEngineInitializationError::GlobalModelUnavailable`].
-    /// - If a global model exists but its properties do not match the coordinator model settings,
+    /// - If a global model exists but its properties do not match the aggregator model settings,
     ///   the initialization will fail with [`StateEngineInitializationError::GlobalModelInvalid`].
     /// - Any network error will cause the initialization to fail.
     pub async fn init(
@@ -167,40 +163,40 @@ where
         // crucial: init must be called before anything else in this module
         sodiumoxide::init().or(Err(StateEngineInitializationError::CryptoInit))?;
 
-        let (coordinator_state, global_model) = if self.restore_settings.enable {
+        let (aggregator_state, global_model) = if self.restore_settings.enable {
             self.from_previous_state().await?
         } else {
-            info!("restoring coordinator state is disabled");
+            info!("restoring aggregator state is disabled");
             info!("initialize state machine from settings");
             self.from_settings().await?
         };
 
-        Ok(self.init_state_engine(coordinator_state, global_model))
+        Ok(self.init_state_engine(aggregator_state, global_model))
     }
 
     // see [`StateEngineInitializer::init`]
     async fn from_previous_state(
         &mut self,
     ) -> StateEngineInitializationResult<(CoordinatorState, ModelUpdate)> {
-        let (coordinator_state, global_model) = if let Some(coordinator_state) = self
+        let (aggregator_state, global_model) = if let Some(aggregator_state) = self
             .store
-            .coordinator_state()
+            .aggregator_state()
             .await
             .map_err(StateEngineInitializationError::FetchCoordinatorState)?
         {
-            self.try_restore_state(coordinator_state).await?
+            self.try_restore_state(aggregator_state).await?
         } else {
-            // no coordinator state available seems to be a fresh start
+            // no aggregator state available seems to be a fresh start
             self.from_settings().await?
         };
 
-        Ok((coordinator_state, global_model))
+        Ok((aggregator_state, global_model))
     }
 
     // see [`StateEngineInitializer::init`]
     async fn try_restore_state(
         &mut self,
-        coordinator_state: CoordinatorState,
+        aggregator_state: CoordinatorState,
     ) -> StateEngineInitializationResult<(CoordinatorState, ModelUpdate)> {
         let global_model_id = match self
             .store
@@ -214,22 +210,22 @@ where
             // round has ever been completed
             None => {
                 debug!("apparently no round has been completed yet");
-                debug!("restore coordinator without a global model");
-                return Ok((coordinator_state, ModelUpdate::Invalidate));
+                debug!("restore aggregator without a global model");
+                return Ok((aggregator_state, ModelUpdate::Invalidate));
             }
             Some(global_model_id) => global_model_id,
         };
 
         let global_model = self
-            .load_global_model(&coordinator_state, &global_model_id)
+            .load_global_model(&aggregator_state, &global_model_id)
             .await?;
 
         debug!(
-            "restore coordinator with global model id: {}",
+            "restore aggregator with global model id: {}",
             global_model_id
         );
         Ok((
-            coordinator_state,
+            aggregator_state,
             ModelUpdate::New(std::sync::Arc::new(global_model)),
         ))
     }
@@ -237,7 +233,7 @@ where
     // Loads a global model and checks its properties for suitability.
     async fn load_global_model(
         &mut self,
-        coordinator_state: &CoordinatorState,
+        aggregator_state: &CoordinatorState,
         global_model_id: &str,
     ) -> StateEngineInitializationResult<Model> {
         match self
@@ -247,14 +243,14 @@ where
             .map_err(StateEngineInitializationError::FetchGlobalModel)?
         {
             Some(global_model) => {
-                if Self::model_properties_matches_settings(coordinator_state, &global_model) {
+                if Self::model_properties_matches_settings(aggregator_state, &global_model) {
                     Ok(global_model)
                 } else {
                     let error_msg = format!(
                         "the length of global model with the id {} does not match with the value of the model length setting {} != {}",
                         &global_model_id,
                         global_model.len(),
-                        coordinator_state.round_params.model_length);
+                        aggregator_state.round_params.model_length);
 
                     Err(StateEngineInitializationError::GlobalModelInvalid(
                         error_msg,
@@ -263,7 +259,7 @@ where
             }
             None => {
                 // the model id exists but we cannot find it in the model store
-                // here we better fail because if we restart a coordinator with an empty model
+                // here we better fail because if we restart a aggregator with an empty model
                 // the clients will throw away their current global model and start from scratch
                 Err(StateEngineInitializationError::GlobalModelUnavailable(
                     format!("cannot find global model {}", &global_model_id),
@@ -273,11 +269,11 @@ where
     }
 
     // Checks whether the properties of the loaded global model match the current
-    // model settings of the coordinator.
+    // model settings of the aggregator.
     fn model_properties_matches_settings(
-        coordinator_state: &CoordinatorState,
+        aggregator_state: &CoordinatorState,
         global_model: &Model,
     ) -> bool {
-        coordinator_state.round_params.model_length == global_model.len()
+        aggregator_state.round_params.model_length == global_model.len()
     }
 }

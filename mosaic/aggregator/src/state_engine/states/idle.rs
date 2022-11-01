@@ -16,7 +16,7 @@ use mosaic_core::crypto::EncryptKeyPair;
 /// Errors which can occur during the idle phase.
 #[derive(Debug, Display, Error)]
 pub enum IdleError {
-    /// Setting the coordinator state failed: {0}.
+    /// Setting the aggregator state failed: {0}.
     SetCoordinatorState(StorageError),
     /// Deleting the dictionaries failed: {0}.
     DeleteDictionaries(StorageError),
@@ -95,12 +95,12 @@ impl<T> StateCondition<Idle, T>
 where
     T: Storage,
 {
-    /// Persists the coordinator state to the store.
+    /// Persists the aggregator state to the store.
     async fn set_aggr_state_to_store(&mut self) -> Result<(), IdleError> {
-        debug!("storing new coordinator state");
+        debug!("storing new aggregator state");
         self.shared
             .store
-            .set_coordinator_state(&self.shared.aggr)
+            .set_aggregator_state(&self.shared.aggr)
             .await
             .map_err(IdleError::SetCoordinatorState)
     }

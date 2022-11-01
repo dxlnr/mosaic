@@ -46,7 +46,6 @@ async fn main() {
         process::exit(1);
     });
     let Settings {
-        pet: pet_settings,
         mask: mask_settings,
         api: api_settings,
         log: log_settings,
@@ -74,7 +73,6 @@ async fn main() {
     .await;
 
     let (state_machine, requests_tx, event_subscriber) = StateEngineInitializer::new(
-        pet_settings,
         mask_settings,
         model_settings,
         #[cfg(feature = "model-persistence")]

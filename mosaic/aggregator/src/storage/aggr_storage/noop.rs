@@ -14,15 +14,15 @@ pub struct AggrNoOp;
 
 #[async_trait]
 impl AggregatorStorage for AggrNoOp {
-    async fn set_coordinator_state(&mut self, _state: &Aggregator) -> StorageResult<()> {
+    async fn set_aggregator_state(&mut self, _state: &Aggregator) -> StorageResult<()> {
         Ok(())
     }
 
-    async fn coordinator_state(&mut self) -> StorageResult<Option<Aggregator>> {
+    async fn aggregator_state(&mut self) -> StorageResult<Option<Aggregator>> {
         Ok(None)
     }
 
-    async fn delete_coordinator_data(&mut self) -> StorageResult<()> {
+    async fn delete_aggregator_data(&mut self) -> StorageResult<()> {
         Ok(())
     }
 

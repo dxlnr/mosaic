@@ -6,11 +6,10 @@ use displaydoc::Display;
 use num_enum::TryFromPrimitive;
 use thiserror::Error;
 
-// use crate::state_engine::coordinator::Aggregator;
+// use crate::state_engine::aggregator::Aggregator;
 use crate::aggr::Aggregator;
 use mosaic_core::{
-    common::RoundSeed, crypto::ByteObject, mask::MaskObject, model::Model, LocalSeedDict, SeedDict,
-    SumDict, SumParticipantEphemeralPublicKey, SumParticipantPublicKey, UpdateParticipantPublicKey,
+    common::RoundSeed, crypto::ByteObject, model::Model,
 };
 
 /// The error type for storage operations that are not directly related to application domain.
@@ -21,7 +20,7 @@ pub type StorageError = anyhow::Error;
 pub type StorageResult<T> = Result<T, StorageError>;
 
 #[async_trait]
-/// An abstract coordinator storage.
+/// An abstract aggregator storage.
 pub trait AggregatorStorage
 where
     Self: Clone + Send + Sync + 'static,
@@ -32,7 +31,7 @@ where
     ///
     /// - If no state has been set yet, set the state and return `StorageResult::Ok(())`.
     /// - If a state already exists, override the state and return `StorageResult::Ok(())`.
-    async fn set_coordinator_state(&mut self, state: &Aggregator) -> StorageResult<()>;
+    async fn set_aggregator_state(&mut self, state: &Aggregator) -> StorageResult<()>;
 
     /// Returns a [`Aggregator`].
     ///
@@ -40,7 +39,7 @@ where
     ///
     /// - If no state has been set yet, return `StorageResult::Ok(Option::None)`.
     /// - If a state exists, return `StorageResult::Ok(Some(Aggregator))`.
-    async fn coordinator_state(&mut self) -> StorageResult<Option<Aggregator>>;
+    async fn aggregator_state(&mut self) -> StorageResult<Option<Aggregator>>;
 
     // /// Adds a sum participant entry to the [`SumDict`].
     // ///
@@ -119,9 +118,9 @@ where
     // /// Returns the number of unique masks.
     // async fn number_of_unique_masks(&mut self) -> StorageResult<u64>;
 
-    /// Deletes all coordinator data. This includes the coordinator
+    /// Deletes all aggregator data. This includes the aggregator
     /// state as well as the [`SumDict`], [`SeedDict`] and `mask` dictionary.
-    async fn delete_coordinator_data(&mut self) -> StorageResult<()>;
+    async fn delete_aggregator_data(&mut self) -> StorageResult<()>;
 
     /// Deletes the [`SumDict`], [`SeedDict`] and `mask` dictionary.
     async fn delete_dicts(&mut self) -> StorageResult<()>;

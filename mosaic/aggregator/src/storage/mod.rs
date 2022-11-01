@@ -1,5 +1,5 @@
 //! Storage backends for the coordinator.
-
+//!
 pub mod aggr_storage;
 pub mod model_storage;
 pub mod store;
@@ -10,7 +10,6 @@ pub use self::{
     store::Store,
     traits::{
         AggregatorStorage,
-        // CoordinatorStorage,
         LocalSeedDictAdd,
         LocalSeedDictAddError,
         MaskScoreIncr,

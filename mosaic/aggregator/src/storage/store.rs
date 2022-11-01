@@ -4,64 +4,62 @@ use async_trait::async_trait;
 
 use crate::{
     aggr::Aggregator,
-    // state_engine::coordinator::Aggregator,
     storage::{
         trust_anchor::noop::NoOp,
         AggregatorStorage,
-        LocalSeedDictAdd,
-        MaskScoreIncr,
         ModelStorage,
         Storage,
         StorageResult,
-        SumPartAdd,
         TrustAnchor,
     },
 };
+#[cfg(feature = "secure")]
+use mosaic_core::{mask::MaskObject, LocalSeedDict, SeedDict};
+
 use mosaic_core::{
-    common::RoundSeed, mask::MaskObject, model::Model, LocalSeedDict, SeedDict, SumDict,
-    SumParticipantEphemeralPublicKey, SumParticipantPublicKey, UpdateParticipantPublicKey,
+    common::RoundSeed, model::Model, UpdateParticipantPublicKey,
 };
 
 #[derive(Clone)]
 /// A generic store.
-pub struct Store<C, M, T>
+pub struct Store<A, M, T>
 where
-    C: AggregatorStorage,
+    A: AggregatorStorage,
     M: ModelStorage,
     T: TrustAnchor,
 {
-    /// A coordinator store.
-    coordinator: C,
+    /// An aggregator store.
+    aggregator: A,
     /// A model store.
     model: M,
     /// A trust anchor.
     trust_anchor: T,
 }
 
-impl<C, M, T> Store<C, M, T>
+impl<A, M, T> Store<A, M, T>
 where
-    C: AggregatorStorage,
+    A: AggregatorStorage,
     M: ModelStorage,
     T: TrustAnchor,
 {
-    pub fn new_with_trust_anchor(coordinator: C, model: M, trust_anchor: T) -> Self {
+    pub fn new_with_trust_anchor(aggregator: A, model: M, trust_anchor: T) -> Self {
         Self {
-            coordinator,
+            aggregator,
             model,
             trust_anchor,
         }
     }
 }
 
-impl<C, M> Store<C, M, NoOp>
+impl<A, M> Store<A, M, NoOp>
 where
-    C: AggregatorStorage,
+    A: AggregatorStorage,
     M: ModelStorage,
 {
-    /// Creates a new [`Store`].
-    pub fn new(coordinator: C, model: M) -> Self {
+    /// Areates a new [`Store`].
+    pub fn new(aggregator: A, model: M) -> Self {
         Self {
-            coordinator,
+            aggregator,
             model,
             trust_anchor: NoOp,
         }
@@ -69,18 +67,18 @@ where
 }
 
 #[async_trait]
-impl<C, M, T> AggregatorStorage for Store<C, M, T>
+impl<A, M, T> AggregatorStorage for Store<A, M, T>
 where
-    C: AggregatorStorage,
+    A: AggregatorStorage,
     M: ModelStorage,
     T: TrustAnchor,
 {
-    async fn set_coordinator_state(&mut self, state: &Aggregator) -> StorageResult<()> {
-        self.coordinator.set_coordinator_state(state).await
+    async fn set_aggregator_state(&mut self, state: &Aggregator) -> StorageResult<()> {
+        self.aggregator.set_aggregator_state(state).await
     }
 
-    async fn coordinator_state(&mut self) -> StorageResult<Option<Aggregator>> {
-        self.coordinator.coordinator_state().await
+    async fn aggregator_state(&mut self) -> StorageResult<Option<Aggregator>> {
+        self.aggregator.aggregator_state().await
     }
 
     // async fn add_sum_participant(
@@ -88,11 +86,11 @@ where
     //     pk: &SumParticipantPublicKey,
     //     ephm_pk: &SumParticipantEphemeralPublicKey,
     // ) -> StorageResult<SumPartAdd> {
-    //     self.coordinator.add_sum_participant(pk, ephm_pk).await
+    //     self.aggregator.add_sum_participant(pk, ephm_pk).await
     // }
 
     // async fn sum_dict(&mut self) -> StorageResult<Option<SumDict>> {
-    //     self.coordinator.sum_dict().await
+    //     self.aggregator.sum_dict().await
     // }
 
     // async fn add_local_seed_dict(
@@ -100,13 +98,13 @@ where
     //     update_pk: &UpdateParticipantPublicKey,
     //     local_seed_dict: &LocalSeedDict,
     // ) -> StorageResult<LocalSeedDictAdd> {
-    //     self.coordinator
+    //     self.aggregator
     //         .add_local_seed_dict(update_pk, local_seed_dict)
     //         .await
     // }
 
     // async fn seed_dict(&mut self) -> StorageResult<Option<SeedDict>> {
-    //     self.coordinator.seed_dict().await
+    //     self.aggregator.seed_dict().await
     // }
 
     // async fn incr_mask_score(
@@ -114,42 +112,42 @@ where
     //     pk: &SumParticipantPublicKey,
     //     mask: &MaskObject,
     // ) -> StorageResult<MaskScoreIncr> {
-    //     self.coordinator.incr_mask_score(pk, mask).await
+    //     self.aggregator.incr_mask_score(pk, mask).await
     // }
 
     // async fn best_masks(&mut self) -> StorageResult<Option<Vec<(MaskObject, u64)>>> {
-    //     self.coordinator.best_masks().await
+    //     self.aggregator.best_masks().await
     // }
 
     // async fn number_of_unique_masks(&mut self) -> StorageResult<u64> {
-    //     self.coordinator.number_of_unique_masks().await
+    //     self.aggregator.number_of_unique_masks().await
     // }
 
-    async fn delete_coordinator_data(&mut self) -> StorageResult<()> {
-        self.coordinator.delete_coordinator_data().await
+    async fn delete_aggregator_data(&mut self) -> StorageResult<()> {
+        self.aggregator.delete_aggregator_data().await
     }
 
     async fn delete_dicts(&mut self) -> StorageResult<()> {
-        self.coordinator.delete_dicts().await
+        self.aggregator.delete_dicts().await
     }
 
     async fn set_latest_global_model_id(&mut self, id: &str) -> StorageResult<()> {
-        self.coordinator.set_latest_global_model_id(id).await
+        self.aggregator.set_latest_global_model_id(id).await
     }
 
     async fn latest_global_model_id(&mut self) -> StorageResult<Option<String>> {
-        self.coordinator.latest_global_model_id().await
+        self.aggregator.latest_global_model_id().await
     }
 
     async fn is_ready(&mut self) -> StorageResult<()> {
-        self.coordinator.is_ready().await
+        self.aggregator.is_ready().await
     }
 }
 
 #[async_trait]
-impl<C, M, T> ModelStorage for Store<C, M, T>
+impl<A, M, T> ModelStorage for Store<A, M, T>
 where
-    C: AggregatorStorage,
+    A: AggregatorStorage,
     M: ModelStorage,
     T: TrustAnchor,
 {
@@ -174,9 +172,9 @@ where
 }
 
 #[async_trait]
-impl<C, M, T> TrustAnchor for Store<C, M, T>
+impl<A, M, T> TrustAnchor for Store<A, M, T>
 where
-    C: AggregatorStorage,
+    A: AggregatorStorage,
     M: ModelStorage,
     T: TrustAnchor,
 {
@@ -190,15 +188,15 @@ where
 }
 
 #[async_trait]
-impl<C, M, T> Storage for Store<C, M, T>
+impl<A, M, T> Storage for Store<A, M, T>
 where
-    C: AggregatorStorage,
+    A: AggregatorStorage,
     M: ModelStorage,
     T: TrustAnchor,
 {
     async fn is_ready(&mut self) -> StorageResult<()> {
         tokio::try_join!(
-            self.coordinator.is_ready(),
+            self.aggregator.is_ready(),
             self.model.is_ready(),
             self.trust_anchor.is_ready()
         )

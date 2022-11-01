@@ -16,7 +16,7 @@ use crate::{
 /// [`Failure`] state of the [`StateEngine`]
 ///
 pub struct Failure {
-    pub(in crate::state_engine) error: StateError,
+    pub(in crate::state_engine) _error: StateError,
 }
 
 #[async_trait]
@@ -38,7 +38,7 @@ where
 impl<T> StateCondition<Failure, T> {
     pub fn new(shared: SharedState<T>, error: StateError) -> Self {
         Self {
-            private: Failure { error },
+            private: Failure { _error: error },
             shared,
         }
     }
