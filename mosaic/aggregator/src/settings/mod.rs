@@ -47,6 +47,7 @@ pub enum SettingsError {
 /// Each section in the configuration file corresponds to the identically named settings field.
 pub struct Settings {
     pub api: ApiSettings,
+    pub protocol: ProtocolSettings,
     pub mask: MaskSettings,
     pub log: LoggingSettings,
     pub model: ModelSettings,
@@ -102,6 +103,10 @@ impl Settings {
                 "api.tls_key",
                 ValueKind::String("/app/ssl/tls.key".to_string()),
             )
+            .unwrap_or_default()
+            .set_default("protocol.training_rounds", ValueKind::I64(0))
+            .unwrap_or_default()
+            .set_default("protocol.participants", ValueKind::I64(0))
             .unwrap_or_default()
             .set_default(
                 "mask.group_type",
@@ -283,6 +288,41 @@ impl ApiSettings {
 #[cfg(feature = "tls")]
 fn validate_api(s: &ApiSettings) -> Result<(), ValidationError> {
     s.validate_api()
+}
+
+#[derive(Debug, Deserialize, Clone)]
+/// Hyperparameter regarding the Federated Learning training process.
+pub struct ProtocolSettings {
+    /// Defines the number of training rounds that will be performed.
+    ///
+    /// # Example
+    ///
+    /// **TOML**
+    /// ```text
+    /// [process]
+    /// training_rounds = 25
+    /// ```
+    pub training_rounds: u32,
+    /// Sets the number of participants one global epoch should at least contain.
+    ///
+    /// # Example
+    ///
+    /// **TOML**
+    /// ```text
+    /// [process]
+    /// participants = 10
+    /// ```
+    pub participants: u32,
+}
+
+impl std::fmt::Display for ProtocolSettings {
+    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+        write!(
+            f,
+            "[process]\n    training_rounds: {}\n    participants: {}\n",
+            self.training_rounds, self.participants
+        )
+    }
 }
 
 #[derive(Debug, Validate, Deserialize, Clone, Copy)]

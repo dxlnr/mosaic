@@ -27,7 +27,7 @@ impl IntoPhase<NewRound> for State<NewRound> {
 #[async_trait]
 impl Step for Phase<NewRound> {
     async fn step(mut self) -> TransitionOutcome {
-        info!("Received task for next training round.");
+        info!("Next task: Training.");
 
         // info!("checking eligibility for sum task");
         // let sum_signature = self.sign(b"sum");

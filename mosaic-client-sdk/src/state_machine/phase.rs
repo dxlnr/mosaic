@@ -180,7 +180,7 @@ where
         match self.check_round_freshness().await {
             RoundFreshness::Unknown => TransitionOutcome::Pending(self.into()),
             RoundFreshness::Outdated => {
-                info!("a new round started: updating the round parameters and resetting state.");
+                info!("Started new round: Updating parameters & resetting client state.");
                 self.io.notify_new_round();
                 TransitionOutcome::Complete(
                     Phase::<NewRound>::new(
