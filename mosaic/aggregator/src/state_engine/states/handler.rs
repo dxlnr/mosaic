@@ -121,9 +121,6 @@ where
             return Ok(());
         }
         loop {
-            if counter.reached_k(&self.shared.aggr.round_id) {
-                break Ok(());
-            }
             tokio::select! {
                 biased;
 
@@ -134,6 +131,9 @@ where
                     let (req, span, tx) = next?;
                     self.process_single(req, span, tx, &mut counter).await;
                 }
+            }
+            if counter.reached_k(&self.shared.aggr.round_id) {
+                break Ok(());
             }
         }
     }

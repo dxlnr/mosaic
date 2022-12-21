@@ -84,7 +84,7 @@ where
     }
 
     async fn next(self) -> Option<StateEngine<T>> {
-        if self.shared.aggr.get_round_id() > self.shared.aggr.round_params.training_rounds {
+        if self.shared.aggr.get_round_id() >= self.shared.aggr.round_params.training_rounds {
             Some(StateCondition::<Shutdown, _>::new(self.shared).into())
         } else {
             Some(
