@@ -51,7 +51,7 @@ where
     /// Waits until the [`Store`] is ready.
     ///
     /// [`Store`]: crate::storage::Store
-    async fn wait_for_store_readiness(&mut self) {
+    async fn _wait_for_store_readiness(&mut self) {
         while let Err(err) = <T as Storage>::is_ready(&mut self.shared.store).await {
             error!("store not ready: {}", err);
             debug!("try again in 5 sec");

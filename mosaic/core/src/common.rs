@@ -27,6 +27,10 @@ pub struct RoundParameters {
     pub mask_config: MaskConfigPair,
     // /// The length of the model.
     // pub model_length: usize,
+    /// Sets the amount of participants in each iteration.
+    pub per_round_participants: u32,
+    /// Defines the number of global epochs.
+    pub training_rounds: u32,
 }
 
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]

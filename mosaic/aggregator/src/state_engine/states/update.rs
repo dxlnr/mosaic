@@ -10,7 +10,7 @@ use crate::{
     aggr::buffer::FedBuffer,
     state_engine::{
         events::ModelUpdate,
-        states::{Idle, SharedState, State, StateCondition, StateError, StateName},
+        states::{Collect, Shutdown, SharedState, State, StateCondition, StateError, StateName},
         StateEngine,
     },
     storage::Storage,
@@ -72,7 +72,7 @@ where
     }
 
     fn publish(&mut self) {
-        info!("publishing the new global model.");
+        info!("Publishing the latest global model.");
         let global_model = self
             .private
             .global_model
@@ -84,7 +84,14 @@ where
     }
 
     async fn next(self) -> Option<StateEngine<T>> {
-        Some(StateCondition::<Idle, _>::new(self.shared).into())
+        if self.shared.aggr.get_round_id() > self.shared.aggr.round_params.training_rounds {
+            Some(StateCondition::<Shutdown, _>::new(self.shared).into())
+        } else {
+            Some(
+                StateCondition::<Collect, _>::new(self.shared)
+                    .into(),
+            )
+        }
     }
 }
 
@@ -122,7 +129,7 @@ where
         // do that _before_ updating the seed dictionary, because we
         // don't want to add the local seed dict if the corresponding
         // masked model is invalid
-        debug!("checking whether the masked model can be aggregated");
+        debug!("Checking whether the masked model can be aggregated.");
         self.private
             .aggr
             .validate_aggregation(&mask_object)
@@ -131,7 +138,7 @@ where
                 RequestError::AggregationFailed
             })?;
 
-        info!("aggregating the masked model and scalar");
+        info!("Aggregating the masked model and scalar.");
         for masked_model in self.private.fed_buffer.local_models.iter() {
             self.private.aggr.aggregate(masked_model.clone());
         }

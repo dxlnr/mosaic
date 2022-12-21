@@ -23,7 +23,7 @@ use validator::ValidationError;
 
 use mosaic_core::{
     mask::{BoundType, GroupType, MaskConfig, ModelType},
-    model::{ModelConfig, DataType},
+    model::{DataType, ModelConfig},
 };
 
 #[cfg(feature = "model-persistence")]
@@ -108,32 +108,17 @@ impl Settings {
             .unwrap_or_default()
             .set_default("protocol.participants", ValueKind::I64(0))
             .unwrap_or_default()
-            .set_default(
-                "mask.group_type",
-                ValueKind::String("Prime".to_string()),
-            )
+            .set_default("mask.group_type", ValueKind::String("Prime".to_string()))
             .unwrap_or_default()
-            .set_default(
-                "mask.data_type",
-                ValueKind::String("F32".to_string()),
-            )
+            .set_default("mask.data_type", ValueKind::String("F32".to_string()))
             .unwrap_or_default()
-            .set_default(
-                "mask.bound_type",
-                ValueKind::String("B0".to_string()),
-            )
+            .set_default("mask.bound_type", ValueKind::String("B0".to_string()))
             .unwrap_or_default()
-            .set_default(
-                "mask.model_type",
-                ValueKind::String("M3".to_string()),
-            )
+            .set_default("mask.model_type", ValueKind::String("M3".to_string()))
             .unwrap_or_default()
             // .set_default("model.length", ValueKind::I64(0))
             // .unwrap_or_default()
-            .set_default(
-                "model.data_type",
-                ValueKind::String("F32".to_string()),
-            )
+            .set_default("model.data_type", ValueKind::String("F32".to_string()))
             .unwrap_or_default()
             .set_default(
                 "metrics.influxdb.url",
@@ -170,10 +155,7 @@ impl Settings {
                 ]),
             )
             .unwrap_or_default()
-            .set_default(
-                "restore.enable",
-                ValueKind::Boolean(true),
-            )
+            .set_default("restore.enable", ValueKind::Boolean(true))
             .unwrap_or_default()
     }
 }
@@ -450,14 +432,8 @@ pub struct ModelSettings {
 }
 
 impl From<ModelSettings> for ModelConfig {
-    fn from(
-        ModelSettings {
-            data_type,
-        }: ModelSettings,
-    ) -> ModelConfig {
-        ModelConfig {
-            data_type,
-        }
+    fn from(ModelSettings { data_type }: ModelSettings) -> ModelConfig {
+        ModelConfig { data_type }
     }
 }
 

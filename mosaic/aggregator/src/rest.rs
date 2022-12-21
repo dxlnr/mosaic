@@ -7,7 +7,7 @@ use std::path::PathBuf;
 use bytes::Bytes;
 use serde::{Deserialize, Serialize};
 use thiserror::Error;
-use tracing::{error, warn};
+use tracing::{error, debug, warn};
 use warp::{
     http::{Response, StatusCode},
     reply::Reply,
@@ -44,7 +44,17 @@ pub async fn serve<F>(
 ) -> Result<(), RestError>
 where
     F: Fetcher + Sync + Send + 'static + Clone,
-{
+{   
+    let log = warp::log::custom(|info| {
+        debug!(
+            "{} {} from {} with {}.",
+            info.remote_addr().unwrap(),
+            info.method(),
+            info.path(),
+            info.status(),
+        );
+    });
+
     let message = warp::path!("message")
         .and(warp::post())
         .and(warp::body::bytes())
@@ -79,7 +89,7 @@ where
         .or(seed_dict)
         .or(model)
         .recover(handle_reject)
-        .with(warp::log("http"));
+        .with(log);
 
     #[cfg(not(feature = "tls"))]
     return run_http(routes, api_settings)
@@ -104,7 +114,7 @@ async fn handle_message(
 async fn handle_sums<F: Fetcher>(mut fetcher: F) -> Result<impl warp::Reply, Infallible> {
     Ok(match fetcher.sum_dict().await {
         Err(e) => {
-            warn!("failed to handle sum dict request: {:?}", e);
+            warn!("Failed to handle sum dict request: {:?}", e);
             Response::builder()
                 .status(StatusCode::INTERNAL_SERVER_ERROR)
                 .body(Vec::new())
@@ -132,7 +142,7 @@ async fn handle_seeds<F: Fetcher>(
 ) -> Result<impl warp::Reply, Infallible> {
     Ok(match fetcher.seed_dict().await {
         Err(e) => {
-            warn!("failed to handle seed dict request: {:?}", e);
+            warn!("Failed to handle seed dict request: {:?}", e);
             Response::builder()
                 .status(StatusCode::INTERNAL_SERVER_ERROR)
                 .body(Vec::new())
@@ -165,7 +175,7 @@ async fn handle_model<F: Fetcher>(mut fetcher: F) -> Result<impl warp::Reply, In
             .body(Vec::new())
             .unwrap(),
         Err(e) => {
-            warn!("failed to handle model request: {:?}", e);
+            warn!("Failed to handle model request: {:?}.", e);
             Response::builder()
                 .status(StatusCode::INTERNAL_SERVER_ERROR)
                 .body(Vec::new())
@@ -182,7 +192,7 @@ async fn handle_params<F: Fetcher>(mut fetcher: F) -> Result<impl warp::Reply, I
             .body(bincode::serialize(&params).unwrap())
             .unwrap(),
         Err(e) => {
-            warn!("failed to handle round parameters request: {:?}", e);
+            warn!("Failed to handle round parameters request: {:?}.", e);
             Response::builder()
                 .status(StatusCode::INTERNAL_SERVER_ERROR)
                 .body(Vec::new())
@@ -231,7 +241,7 @@ async fn handle_reject(err: warp::Rejection) -> Result<impl warp::Reply, Infalli
     } else if let Some(InvalidPublicKey) = err.find() {
         StatusCode::BAD_REQUEST
     } else {
-        error!("unhandled rejection: {:?}", err);
+        error!("Unhandled rejection: {:?}", err);
         StatusCode::INTERNAL_SERVER_ERROR
     };
     // reply with empty body; the status code is the interesting part
@@ -241,7 +251,7 @@ async fn handle_reject(err: warp::Rejection) -> Result<impl warp::Reply, Infalli
 #[derive(Debug, Error)]
 /// Errors of the rest server.
 pub enum RestError {
-    #[error("invalid TLS configuration was provided")]
+    #[error("Invalid TLS configuration was provided.")]
     InvalidTlsConfig,
 }
 

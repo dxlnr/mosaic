@@ -97,7 +97,7 @@ where
 
             self.publish();
 
-            debug!("transitioning to the next state.");
+            debug!("Transitioning to the next state.");
             self.next().await
         }
         .instrument(span)
@@ -107,7 +107,7 @@ where
     pub async fn next_request(
         &mut self,
     ) -> Result<(StateEngineRequest, Span, ResponseSender), StateError> {
-        info!("Aggregator waiting for the next incoming request");
+        info!("Aggregator waiting for the next incoming request.");
         self.shared
             .rx
             .next()
@@ -123,13 +123,13 @@ where
         match self.shared.rx.try_recv() {
             Some(Some(item)) => Ok(Some(item)),
             None => {
-                debug!("no pending request");
+                debug!("No pending request.");
                 Ok(None)
             }
             Some(None) => {
-                warn!("failed to get next pending request: Channel will be shut down.");
+                warn!("Failed to get next pending request: Channel will be shut down.");
                 Err(StateError::RequestChannel(
-                    "all message senders have been dropped!",
+                    "All message senders have been dropped!",
                 ))
             }
         }

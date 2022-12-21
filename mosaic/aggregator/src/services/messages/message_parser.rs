@@ -60,12 +60,12 @@ where
     }
 
     fn call(&mut self, req: T) -> Self::Future {
-        debug!("creating a RawMessage request");
+        debug!("Creating a raw message request.");
         match MessageBuffer::new(req) {
             Ok(buffer) => {
                 let fut = self.0.call(RawMessage::from(buffer));
                 Box::pin(async move {
-                    trace!("calling inner service");
+                    trace!("Calling inner service.");
                     fut.await
                 })
             }
@@ -108,7 +108,7 @@ where
     }
 
     fn call(&mut self, req: RawMessage<T>) -> Self::Future {
-        debug!("retrieving the current phase");
+        debug!("Retrieving the current state.");
         let phase = self.phase.get_latest().event;
         match req.buffer.tag().try_into() {
             // Ok(tag) => match (phase, tag) {
@@ -182,15 +182,15 @@ where
         let (tx, rx) = oneshot::channel::<Result<(), ServiceError>>();
 
         let req_clone = req.clone();
-        trace!("spawning signature verification task on thread-pool");
+        trace!("Spawning signature verification task on thread-pool.");
         self.thread_pool.spawn(move || {
             let res = match req.buffer.as_ref().as_ref().check_signature() {
                 Ok(()) => {
-                    debug!("found a valid message signature");
+                    debug!("Found a valid message signature.");
                     Ok(())
                 }
                 Err(e) => {
-                    warn!("invalid message signature: {:?}", e);
+                    warn!("Invalid message signature: {:?}.", e);
                     Err(ServiceError::InvalidMessageSignature)
                 }
             };
@@ -257,17 +257,17 @@ where
     }
 
     fn call(&mut self, req: RawMessage<T>) -> Self::Future {
-        debug!("retrieving the current keys");
+        debug!("Retrieving the current keys.");
         let coord_pk = self.keys.get_latest().event.public;
         match PublicEncryptKey::from_byte_slice(&req.buffer.as_ref().as_ref().coordinator_pk()) {
             Ok(pk) => {
                 if pk != coord_pk {
-                    warn!("found an invalid coordinator public key");
+                    warn!("Found an Invalid aggregator public key.");
                     Box::pin(future::ready(Err(
                         ServiceError::InvalidCoordinatorPublicKey,
                     )))
                 } else {
-                    debug!("found a valid coordinator public key");
+                    debug!("Found a valid aggregator public key.");
                     let fut = self.next_svc.call(req);
                     Box::pin(async move { fut.await })
                 }

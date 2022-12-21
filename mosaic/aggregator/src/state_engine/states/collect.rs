@@ -1,7 +1,4 @@
 use async_trait::async_trait;
-// use displaydoc::Display;
-// use thiserror::Error;
-// use tracing::{debug, info, warn};
 
 use crate::{
     aggr::buffer::FedBuffer,
@@ -22,7 +19,7 @@ use mosaic_core::{
 #[cfg(feature = "secure")]
 use crate::{
     mask::{Aggregation, MaskObject},
-    LocalSeedDict, SeedDict, 
+    LocalSeedDict, SeedDict,
 };
 
 #[derive(Debug)]
@@ -51,7 +48,9 @@ where
 }
 
 impl<T> StateCondition<Collect, T> {
-    pub fn new(shared: SharedState<T>) -> Self {
+    pub fn new(mut shared: SharedState<T>) -> Self {
+        shared.aggr.set_round_id(shared.aggr.get_round_id() + 1);
+
         Self {
             private: Collect {
                 fed_buffer: FedBuffer::default(),
@@ -147,7 +146,7 @@ where
         model_object: ModelObject,
     ) -> Result<(), RequestError> {
         #[cfg(not(feature = "redis"))]
-        {   
+        {
             self.private.fed_buffer.local_models.push(model_object.data.into());
         }
         #[cfg(feature = "redis")]

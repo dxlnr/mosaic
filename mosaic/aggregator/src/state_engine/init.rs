@@ -4,12 +4,13 @@ use displaydoc::Display;
 use thiserror::Error;
 #[cfg(feature = "model-persistence")]
 use tracing::{debug, info};
+use warp::hyper::ext::Protocol;
 
 #[cfg(feature = "model-persistence")]
 use crate::settings::RestoreSettings;
 use crate::{
     aggr::Aggregator,
-    settings::{MaskSettings, ModelSettings},
+    settings::{MaskSettings, ModelSettings, ProtocolSettings},
     state_engine::{
         channel::{RequestReceiver, RequestSender},
         events::{EventPublisher, EventSubscriber, ModelUpdate},
@@ -46,6 +47,7 @@ pub enum StateEngineInitializationError {
 pub struct StateEngineInitializer<T> {
     mask_settings: MaskSettings,
     model_settings: ModelSettings,
+    protocol_settings: ProtocolSettings,
     #[cfg(feature = "model-persistence")]
     restore_settings: RestoreSettings,
     store: T,
@@ -56,12 +58,14 @@ impl<T> StateEngineInitializer<T> {
     pub fn new(
         mask_settings: MaskSettings,
         model_settings: ModelSettings,
+        protocol_settings: ProtocolSettings,
         #[cfg(feature = "model-persistence")] restore_settings: RestoreSettings,
         store: T,
     ) -> Self {
         Self {
             mask_settings,
             model_settings,
+            protocol_settings,
             #[cfg(feature = "model-persistence")]
             restore_settings,
             store,
@@ -123,7 +127,7 @@ where
             //     self.mask_settings,
             //     self.model_settings.clone(),
             // ),
-            Aggregator::new(self.mask_settings, self.model_settings.clone()),
+            Aggregator::new(self.mask_settings, self.model_settings.clone(), &self.protocol_settings),
             ModelUpdate::Invalidate,
         ))
     }
@@ -166,8 +170,8 @@ where
         let (aggregator_state, global_model) = if self.restore_settings.enable {
             self.from_previous_state().await?
         } else {
-            info!("restoring aggregator state is disabled");
-            info!("initialize state machine from settings");
+            info!("Restoring aggregator state is disabled.");
+            info!("Initialize state engine from settings.");
             self.from_settings().await?
         };
 

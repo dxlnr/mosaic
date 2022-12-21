@@ -59,7 +59,7 @@ where
     }
 
     fn publish(&mut self) {
-        info!("broadcasting the new global model");
+        info!("Publishing the latest global model.");
         let global_model =
             self.private.global_model.take().expect(
                 "unreachable: never fails when `broadcast()` is called after `end_round()`",
@@ -162,7 +162,7 @@ where
     /// Persists the global model to the store.
     #[cfg(feature = "model-persistence")]
     async fn save_global_model(&mut self) -> Result<(), UnmaskError> {
-        info!("saving global model");
+        info!("Saving global model.");
         let global_model = self
             .private
             .global_model
@@ -195,7 +195,7 @@ where
 
     /// Publishes proof of the global model.
     async fn publish_proof(&mut self) -> Result<(), UnmaskError> {
-        info!("publishing proof of the new global model");
+        info!("Publishing proof of the latest global model.");
         let global_model = self
             .private
             .global_model

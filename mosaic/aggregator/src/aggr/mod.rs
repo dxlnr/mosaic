@@ -3,6 +3,7 @@ use serde::{Deserialize, Serialize};
 use crate::settings::{
     MaskSettings,
     ModelSettings,
+    ProtocolSettings,
 };
 
 use mosaic_core::{
@@ -34,7 +35,7 @@ pub struct Aggregator {
 }
 
 impl Aggregator {
-    pub fn new(_mask_settings: MaskSettings, model_settings: ModelSettings) -> Self {
+    pub fn new(_mask_settings: MaskSettings, model_settings: ModelSettings, protocol_settings: &ProtocolSettings) -> Self {
         let keys = EncryptKeyPair::generate();
 
         #[cfg(feature = "secure")]
@@ -51,6 +52,8 @@ impl Aggregator {
             pk: keys.public,
             seed: RoundSeed::zeroed(),
             model_config: ModelConfig::from(model_settings).into(),
+            per_round_participants: protocol_settings.participants,
+            training_rounds: protocol_settings.training_rounds,
         };
 
         Self {
@@ -59,6 +62,14 @@ impl Aggregator {
             round_params,
             params: AggrParams::default(),
         }
+    }
+    /// Sets the round ID to the given value.
+    pub fn set_round_id(&mut self, id: u32) {
+        self.round_id = id;
+    }
+    /// Returns the current round ID.
+    pub fn get_round_id(&self) -> u32 {
+        self.round_id
     }
 }
 

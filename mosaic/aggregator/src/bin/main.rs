@@ -50,6 +50,7 @@ async fn main() {
         api: api_settings,
         log: log_settings,
         model: model_settings,
+        protocol: protocol_settings,
         // redis: redis_settings,
         ..
     } = settings;
@@ -75,13 +76,14 @@ async fn main() {
     let (state_machine, requests_tx, event_subscriber) = StateEngineInitializer::new(
         mask_settings,
         model_settings,
+        protocol_settings,
         #[cfg(feature = "model-persistence")]
         settings.restore,
         store,
     )
     .init()
     .await
-    .expect("failed to initialize state machine");
+    .expect("Failed to initialize state engine.");
 
     let fetcher = services::fetchers::fetcher(&event_subscriber);
     let message_handler =
@@ -92,13 +94,13 @@ async fn main() {
 
         _ =  signal::ctrl_c() => {}
         _ = state_machine.run() => {
-            warn!("shutting down: Service terminated");
+            warn!("Shutting down: Service terminated.");
         }
         result = serve(api_settings, fetcher, message_handler) => {
             match result {
-                Ok(()) => warn!("shutting down: REST server terminated"),
+                Ok(()) => warn!("Shutting down: REST server terminated."),
                 Err(RestError::InvalidTlsConfig) => {
-                    warn!("shutting down: invalid TLS settings for REST server");
+                    warn!("Shutting down: Invalid TLS settings for REST server.");
                 },
             }
         }

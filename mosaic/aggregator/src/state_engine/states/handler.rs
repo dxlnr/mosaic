@@ -16,7 +16,7 @@ use crate::{
 pub struct MessageCounter {
     /// Hashmap containing a message counting object for every training round.
     pub counter: HashMap<u32, Counter>,
-    /// The number of messages that should be processed to close the collect state 
+    /// The number of messages that should be processed to close the collect state
     /// and perform aggregation.
     k: u32,
 }
@@ -30,12 +30,12 @@ impl MessageCounter {
     }
     /// Checks if the enough messages arrived from participants for closing the message collecting
     /// for a specific training round.
-    /// 
+    ///
     pub fn reached_k(&mut self, round_id: &u32) -> bool {
         match self.counter.get_mut(round_id) {
             Some(counter) => counter.accepted >= self.k,
             _ => {
-                debug!("index {} corresponding to round_id in message counter object is not accessible.", round_id);
+                debug!("Index {} corresponding to round_id in message counter object is not accessible.", round_id);
                 false
             }
         }
@@ -115,7 +115,7 @@ where
 {
     /// Processes requests.
     pub async fn process(&mut self) -> Result<(), StateError> {
-        let mut counter = MessageCounter::new(2);
+        let mut counter = MessageCounter::new(self.shared.aggr.round_params.per_round_participants);
         loop {
             tokio::select! {
                 biased;
@@ -128,7 +128,7 @@ where
                     self.process_single(req, span, tx, &mut counter).await;
                 }
             }
-            if counter.reached_k(&0) {
+            if counter.reached_k(&self.shared.aggr.round_id) {
                 break Ok(());
             }
         }

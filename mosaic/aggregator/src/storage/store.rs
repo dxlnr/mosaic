@@ -17,7 +17,7 @@ use crate::{
 use mosaic_core::{mask::MaskObject, LocalSeedDict, SeedDict};
 
 use mosaic_core::{
-    common::RoundSeed, model::Model, UpdateParticipantPublicKey,
+    common::RoundSeed, model::Model,
 };
 
 #[derive(Clone)]
