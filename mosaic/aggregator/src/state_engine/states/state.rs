@@ -89,7 +89,7 @@ where
 
             if let Err(err) = self.perform().await {
                 warn!(
-                    "Aggregator failed to perform task of state {:?}",
+                    "Aggregator failed to perform task of state {:?}.",
                     &Self::NAME
                 );
                 return Some(self.into_failure_state(err));

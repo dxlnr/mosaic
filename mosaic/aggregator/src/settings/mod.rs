@@ -104,9 +104,9 @@ impl Settings {
                 ValueKind::String("/app/ssl/tls.key".to_string()),
             )
             .unwrap_or_default()
-            .set_default("protocol.training_rounds", ValueKind::I64(0))
+            .set_default("protocol.training_rounds", ValueKind::I64(1))
             .unwrap_or_default()
-            .set_default("protocol.participants", ValueKind::I64(0))
+            .set_default("protocol.participants", ValueKind::I64(1))
             .unwrap_or_default()
             .set_default("mask.group_type", ValueKind::String("Prime".to_string()))
             .unwrap_or_default()

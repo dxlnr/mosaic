@@ -1,8 +1,7 @@
 use async_trait::async_trait;
 use std::collections::HashMap;
 use tokio::signal;
-use tracing::{debug, info, Span};
-// use crate::aggr::counter::MessageCounter;
+use tracing::{debug, info, Span, warn};
 
 use crate::{
     state_engine::{
@@ -116,7 +115,15 @@ where
     /// Processes requests.
     pub async fn process(&mut self) -> Result<(), StateError> {
         let mut counter = MessageCounter::new(self.shared.aggr.round_params.per_round_participants);
+
+        if self.shared.aggr.round_params.per_round_participants == 0 {
+            warn!("Participants per round parameter is 0. Consider setting `participants` in .toml config file.");
+            return Ok(());
+        }
         loop {
+            if counter.reached_k(&self.shared.aggr.round_id) {
+                break Ok(());
+            }
             tokio::select! {
                 biased;
 
@@ -127,9 +134,6 @@ where
                     let (req, span, tx) = next?;
                     self.process_single(req, span, tx, &mut counter).await;
                 }
-            }
-            if counter.reached_k(&self.shared.aggr.round_id) {
-                break Ok(());
             }
         }
     }
