@@ -56,10 +56,10 @@ macro_rules! impl_sending {
             #[async_trait]
             impl Step for Phase<[<Sending $Phase>]> {
                 async fn step(mut self) -> TransitionOutcome {
-                    info!("sending {} message", $phase);
+                    info!("Sent {} message.", $phase);
                     self = try_progress!(self.send_next().await);
 
-                    debug!("done sending {} message, going to {} phase", $phase, $next);
+                    debug!("Done sending {} message, going to {} phase.", $phase, $next);
                     let phase: Phase<$Next> = self.into();
                     TransitionOutcome::Complete(phase.into())
                 }
@@ -75,9 +75,8 @@ macro_rules! impl_sending {
             impl Phase<[<Sending $Phase>]> {
                 #[doc = "Tries to send a " $phase " message and reports back on the progress made."]
                 async fn try_send(mut self, data: Vec<u8>) -> Progress<[<Sending $Phase>]> {
-                    info!("sending {} message (size = {})", $phase, data.len());
                     if let Err(e) = self.io.send_message(data.clone()).await {
-                        error!("failed to send {} message: {:?}", $phase, e);
+                        error!("Failed to send {} message: {:?}", $phase, e);
                         self.state.private.failed = Some(data);
                         Progress::Stuck(self)
                     } else {
@@ -94,7 +93,7 @@ macro_rules! impl_sending {
                 async fn send_next(mut self) -> Progress<[<Sending $Phase>]> {
                     if let Some(data) = self.state.private.failed.take() {
                         debug!(
-                            "retrying to send {} message that couldn't be sent previously",
+                            "Retrying to send {} message that couldn't be sent previously",
                             $phase
                         );
                         self.try_send(data).await
@@ -105,7 +104,7 @@ macro_rules! impl_sending {
                                 self.try_send(data).await
                             }
                             None => {
-                                debug!("nothing left to send");
+                                debug!("Nothing left to send.");
                                 Progress::Continue(self)
                             }
                         }
