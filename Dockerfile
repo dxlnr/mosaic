@@ -11,4 +11,3 @@ RUN rustup component add rustfmt
 RUN cargo build --release
 
 CMD ["sh", "-c", "./scripts/run.sh"]
-

@@ -90,7 +90,7 @@ impl Settings {
     fn set_default() -> config::ConfigBuilder<config::builder::DefaultState> {
         Config::builder()
             .set_default(
-                "api.bind_address",
+                "api.server_address",
                 ValueKind::String("127.0.0.1:8080".to_string()),
             )
             .unwrap_or_default()
@@ -179,16 +179,16 @@ pub struct ApiSettings {
     /// **TOML**
     /// ```text
     /// [api]
-    /// bind_address = "0.0.0.0:8081"
+    /// server_address = "0.0.0.0:8080"
     /// # or
-    /// bind_address = "127.0.0.1:8081"
+    /// server_address = "127.0.0.1:8080"
     /// ```
     ///
     /// **Environment variable**
     /// ```text
-    /// XAYNET__API__BIND_ADDRESS=127.0.0.1:8081
+    /// MOSAIC__API__SERVER_ADDRESS=127.0.0.1:8080
     /// ```
-    pub bind_address: std::net::SocketAddr,
+    pub server_address: std::net::SocketAddr,
 
     #[cfg(feature = "tls")]
     #[cfg_attr(docsrs, doc(cfg(feature = "tls")))]
@@ -207,7 +207,7 @@ pub struct ApiSettings {
     ///
     /// **Environment variable**
     /// ```text
-    /// XAYNET__API__TLS_CERTIFICATE=path/to/tls/files/certificate.pem
+    /// MOSAIC__API__TLS_CERTIFICATE=path/to/tls/files/certificate.pem
     /// ```
     pub tls_certificate: Option<PathBuf>,
 
@@ -229,7 +229,7 @@ pub struct ApiSettings {
     ///
     /// **Environment variable**
     /// ```text
-    /// XAYNET__API__TLS_KEY=path/to/tls/files/key.rsa
+    /// MOSAIC__API__TLS_KEY=path/to/tls/files/key.rsa
     /// ```
     pub tls_key: Option<PathBuf>,
 
@@ -250,7 +250,7 @@ pub struct ApiSettings {
     ///
     /// **Environment variable**
     /// ```text
-    /// XAYNET__API__TLS_CLIENT_AUTH=path/to/tls/files/trust_anchor.pem
+    /// MOSAIC__API__TLS_CLIENT_AUTH=path/to/tls/files/trust_anchor.pem
     /// ```
     pub tls_client_auth: Option<PathBuf>,
 }
@@ -273,7 +273,7 @@ fn validate_api(s: &ApiSettings) -> Result<(), ValidationError> {
 }
 
 #[derive(Debug, Deserialize, Clone)]
-/// Hyperparameter regarding the Federated Learning training process.
+/// Hyperparameter controlling the Federated Learning training process.
 pub struct ProtocolSettings {
     /// Defines the number of training rounds that will be performed.
     ///
@@ -323,7 +323,7 @@ pub struct MaskSettings {
     ///
     /// **Environment variable**
     /// ```text
-    /// XAYNET__MASK__GROUP_TYPE=Integer
+    /// MOSAIC__MASK__GROUP_TYPE=Integer
     /// ```
     pub group_type: GroupType,
 
@@ -339,7 +339,7 @@ pub struct MaskSettings {
     ///
     /// **Environment variable**
     /// ```text
-    /// XAYNET__MASK__DATA_TYPE=F32
+    /// MOSAIC__MASK__DATA_TYPE=F32
     /// ```
     pub data_type: DataType,
 
@@ -355,7 +355,7 @@ pub struct MaskSettings {
     ///
     /// **Environment variable**
     /// ```text
-    /// XAYNET__MASK__BOUND_TYPE=B0
+    /// MOSAIC__MASK__BOUND_TYPE=B0
     /// ```
     pub bound_type: BoundType,
 
@@ -371,7 +371,7 @@ pub struct MaskSettings {
     ///
     /// **Environment variable**
     /// ```text
-    /// XAYNET__MASK__MODEL_TYPE=M3
+    /// MOSAIC__MASK__MODEL_TYPE=M3
     /// ```
     pub model_type: ModelType,
 }
@@ -395,7 +395,7 @@ impl From<MaskSettings> for MaskConfig {
 }
 
 #[derive(Debug, Deserialize, Clone)]
-#[cfg_attr(test, derive(PartialEq))]
+#[cfg_attr(test, derive(PartialEq, Eq))]
 /// Model settings.
 pub struct ModelSettings {
     // /// The expected length of the model. The model length corresponds to the number of elements.
@@ -411,7 +411,7 @@ pub struct ModelSettings {
     // ///
     // /// **Environment variable**
     // /// ```text
-    // /// XAYNET__MODEL__LENGTH=100
+    // /// MOSAIC__MODEL__LENGTH=100
     // /// ```
     // pub length: usize,
     /// The data type of the model.
@@ -461,7 +461,7 @@ pub struct InfluxSettings {
     ///
     /// **Environment variable**
     /// ```text
-    /// XAYNET__METRICS__INFLUXDB__URL=http://localhost:8086
+    /// MOSAIC__METRICS__INFLUXDB__URL=http://localhost:8086
     /// ```
     pub url: String,
 
@@ -477,7 +477,7 @@ pub struct InfluxSettings {
     ///
     /// **Environment variable**
     /// ```text
-    /// XAYNET__METRICS__INFLUXDB__DB=test
+    /// MOSAIC__METRICS__INFLUXDB__DB=test
     /// ```
     pub db: String,
 }
@@ -499,7 +499,7 @@ pub struct RedisSettings {
     ///
     /// **Environment variable**
     /// ```text
-    /// XAYNET__REDIS__URL=redis://127.0.0.1/
+    /// MOSAIC__REDIS__URL=redis://127.0.0.1/
     /// ```
     #[serde(deserialize_with = "deserialize_redis_url")]
     pub url: ConnectionInfo,
@@ -534,16 +534,9 @@ where
     deserializer.deserialize_str(ConnectionInfoVisitor)
 }
 
-#[derive(Debug, Deserialize, Validate)]
+#[derive(Debug, Default, Deserialize, Validate)]
 /// Trust anchor settings.
 pub struct TrustAnchorSettings {}
-
-// Default value for the global models bucket
-impl Default for TrustAnchorSettings {
-    fn default() -> Self {
-        Self {}
-    }
-}
 
 #[derive(Debug, Deserialize)]
 /// Logging settings.
@@ -561,7 +554,7 @@ pub struct LoggingSettings {
     ///
     /// **Environment variable**
     /// ```text
-    /// XAYNET__LOG__FILTER=info
+    /// MOSAIC__LOG__FILTER=info
     /// ```
     ///
     /// [here]: https://docs.rs/tracing-subscriber/0.2.15/tracing_subscriber/filter/struct.EnvFilter.html#directives
@@ -736,11 +729,11 @@ where
 //     #[cfg(feature = "tls")]
 //     #[test]
 //     fn test_validate_api() {
-//         let bind_address = ([0, 0, 0, 0], 0).into();
+//         let server_address = ([0, 0, 0, 0], 0).into();
 //         let some_path = Some(std::path::PathBuf::new());
 
 //         assert!(ApiSettings {
-//             bind_address,
+//             server_address,
 //             tls_certificate: some_path.clone(),
 //             tls_key: some_path.clone(),
 //             tls_client_auth: some_path.clone(),
@@ -748,7 +741,7 @@ where
 //         .validate()
 //         .is_ok());
 //         assert!(ApiSettings {
-//             bind_address,
+//             server_address,
 //             tls_certificate: some_path.clone(),
 //             tls_key: some_path.clone(),
 //             tls_client_auth: None,
@@ -756,7 +749,7 @@ where
 //         .validate()
 //         .is_ok());
 //         assert!(ApiSettings {
-//             bind_address,
+//             server_address,
 //             tls_certificate: None,
 //             tls_key: None,
 //             tls_client_auth: some_path.clone(),
@@ -765,7 +758,7 @@ where
 //         .is_ok());
 
 //         assert!(ApiSettings {
-//             bind_address,
+//             server_address,
 //             tls_certificate: some_path.clone(),
 //             tls_key: None,
 //             tls_client_auth: some_path.clone(),
@@ -773,7 +766,7 @@ where
 //         .validate()
 //         .is_err());
 //         assert!(ApiSettings {
-//             bind_address,
+//             server_address,
 //             tls_certificate: None,
 //             tls_key: some_path.clone(),
 //             tls_client_auth: some_path.clone(),
@@ -781,7 +774,7 @@ where
 //         .validate()
 //         .is_err());
 //         assert!(ApiSettings {
-//             bind_address,
+//             server_address,
 //             tls_certificate: some_path.clone(),
 //             tls_key: None,
 //             tls_client_auth: None,
@@ -789,7 +782,7 @@ where
 //         .validate()
 //         .is_err());
 //         assert!(ApiSettings {
-//             bind_address,
+//             server_address,
 //             tls_certificate: None,
 //             tls_key: some_path,
 //             tls_client_auth: None,
@@ -797,7 +790,7 @@ where
 //         .validate()
 //         .is_err());
 //         assert!(ApiSettings {
-//             bind_address,
+//             server_address,
 //             tls_certificate: None,
 //             tls_key: None,
 //             tls_client_auth: None,

@@ -1,18 +1,6 @@
 [api]
 server_address = "[::]:8080"
 
-[model]
-data_type = "F32"
-precision = 53
-
-[process]
+[protocol]
 training_rounds = 10
-participants = 5
-strategy = "FedAvg"
-
-[s3]
-access_key = "modalic"
-secret_access_key = "12345678"
-region = ["minio", "http://localhost:9000"]
-bucket = "mnist-cnn-testing"
-global_model = "cnn_global"
+participants = 2

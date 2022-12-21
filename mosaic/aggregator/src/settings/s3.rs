@@ -253,7 +253,7 @@ mod tests {
         fn with_api(mut self) -> Self {
             let api = r#"
             [api]
-            bind_address = "127.0.0.1:8081"
+            server_address = "127.0.0.1:8081"
             tls_certificate = "/app/ssl/tls.pem"
             tls_key = "/app/ssl/tls.key"
             "#;

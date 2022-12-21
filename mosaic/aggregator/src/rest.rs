@@ -299,7 +299,7 @@ where
     F: Filter + Clone + Send + Sync + 'static,
     F::Extract: Reply,
 {
-    warp::serve(filter).run(api_settings.bind_address).await;
+    warp::serve(filter).run(api_settings.server_address).await;
     Ok(())
 }
 
@@ -319,7 +319,7 @@ where
         api_settings.tls_key,
         api_settings.tls_client_auth,
     )?
-    .run(api_settings.bind_address)
+    .run(api_settings.server_address)
     .await;
     Ok(())
 }

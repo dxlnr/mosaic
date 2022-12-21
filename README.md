@@ -15,14 +15,14 @@
       <img src="https://img.shields.io/badge/PRs-welcome-6834D5.svg" /></a>
 </p>
 
-The *Mosaic* aggregation server is the backbone of the Modalic FL Operations Platform designed for enabling Federated Learning in production.
-All the aggregation converges at Mosaic which aims for safety, reliability and performance.
+The *Mosaic* aggregation server is the backbone of the Modalic FL Operations Platform designed for enabling Federated Learning in production. The server has three main components: Coordinator, Selector, and Aggregator and is influenced by [Papaya: Practical, Private, and Scalable Federated Learning](resources/Papaya%3A%20Practical%20private%20%26%20scalable%20Federated%20Learning.pdf).
+All the aggregation converges at **mosaic** which aims for safety, reliability and performance and is implemented in the *mosaic* directory. 
 
 ## Usage
 
 ## Building
 
-### Build from Source
+#### Build from Source
 
 If the preferred choice is to build from source, first install Rust. PATH environment variable may be needed to add to Cargo's bin directory. Restarting your computer will do this automatically.
 
@@ -37,20 +37,44 @@ If you already have Rust installed, make sure you're using the latest version by
 rustup update
 ```
 
-**Release Build** the aggregation server application by cloning this repository and running the following commands from the root
-directory of the repo:
+**Release Build** the aggregation server application by cloning this repository and running the following commands from the *mosaic/* directory of the repository:
 
 ```bash
-cargo build --release
+cd mosaic && cargo build --release
 ```
 
 This might take a while for the first time. Note that compilation is a memory intensive process. We recommend having 4 GiB of physical RAM or swap available.
 
+#### Running the Docs
+```shell
+cargo doc --open
+```
+
 ## Running the Server
+The server can be run with *default* parameters just by not providing any *.toml* configuration file. 
+In order to set important parameters use **-c ${configPATH}**:
+```toml
+# -c configs/config.toml
+
+# REST API settings.
+[api]
+# The address to which the REST API of the server
+# will be bound. All requests should be sent to this address.
+server_address = "127.0.0.1:8080"
+
+# Hyperparameter controlling the Federated Learning training process.
+[protocol]
+# Defines the number of training rounds (global epochs) 
+# that will be performed.
+training_rounds = 10
+# Sets the number of participants & local models 
+# one global epoch should at least contain.
+participants = 2
+```
 
 Start the server application by running:
 ```bash
-./target/release/mosaic -c configs/config.toml
+./mosaic/target/release/mosaic -c configs/config.toml
 ```
 
 
@@ -61,25 +85,13 @@ docker run \
   -p 9000:9000 \
   -p 9001:9001 \
   -e "MINIO_ROOT_USER=modalic" \
-  -e "MINIO_ROOT_PASSWORD=12345678" \
+  -e "MINIO_ROOT_PASSWORD=" \
   quay.io/minio/minio server /data --console-address ":9001"
 ```
 More information: [MinIO Docker Quickstart Guide](https://docs.min.io/docs/minio-docker-quickstart-guide.html)
 
-## Running the Docs
-```shell
-cargo doc --open
-```
-
-## Open Issues
-- Keep an eye on FedAdam as update averaged model is used as xt.
-- Implement clean aggregation strategy selection from config file (hardcoded at the moment).
-- Find a proper way to restrict the precision for the Rationals.
-- Add metadata to the stored objects (especially to global model)
-- Establish default values for settings (done) & just include the most important in example .toml (rest will be covered in docu) but maybe without extra toml file but rather as default values in code.
-- get rid of code duplication in fedopt algos
-- error handling.
-
 ## Contributing
 
 ## License
+
+The Mosaic Aggregation Module is distributed under the terms of the Apache License Version 2.0. A complete version of the license is available in [LICENSE](LICENSE).
