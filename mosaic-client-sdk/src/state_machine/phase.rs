@@ -109,6 +109,8 @@ fn dummy_round_parameters() -> RoundParameters {
             data_type: model::DataType::F32,
         }
         .into(),
+        per_round_participants: 0,
+        training_rounds: 0,
     }
 }
 
