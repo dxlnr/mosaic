@@ -2,7 +2,7 @@ use pyo3::create_exception;
 use pyo3::exceptions::PyException;
 use pyo3::types::PyList;
 use pyo3::{prelude::*, wrap_pyfunction};
-use tracing::{debug, info};
+use tracing::debug;
 use tracing_subscriber::FmtSubscriber;
 use tracing_subscriber::*;
 
