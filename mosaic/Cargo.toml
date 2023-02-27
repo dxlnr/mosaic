@@ -1,7 +1,6 @@
 [workspace]
 members = [
   "aggregator",
-  # "coordinator",
   "core",
   "selector",
 ]

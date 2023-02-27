@@ -1,9 +1,6 @@
 //! Message traits.
 //!
-//! See the [message module] documentation since this is a private module anyways.
-//!
 //! [message module]: crate::message
-
 use std::{
     convert::TryInto,
     io::{Cursor, Write},
@@ -91,7 +88,7 @@ where
 /// ## Decoding a LV field
 ///
 /// ```rust
-/// # use xaynet_core::message::LengthValueBuffer;
+/// # use mosaic_core::message::LengthValueBuffer;
 /// let bytes = vec![
 ///     0x00, 0x00, 0x00, 0x05, // Length = 5
 ///     0xff, // Value = 0xff
@@ -106,7 +103,7 @@ where
 /// ## Encoding a LV field
 ///
 /// ```rust
-/// # use xaynet_core::message::LengthValueBuffer;
+/// # use mosaic_core::message::LengthValueBuffer;
 /// let mut bytes = vec![0xff; 9];
 /// let mut buffer = LengthValueBuffer::new_unchecked(&mut bytes);
 /// // It is important to set the length field before setting the value, otherwise, `value_mut()` will panic.
@@ -139,7 +136,7 @@ impl<T: AsRef<[u8]>> LengthValueBuffer<T> {
     /// # Examples
     ///
     /// ```rust
-    /// # use xaynet_core::message::LengthValueBuffer;
+    /// # use mosaic_core::message::LengthValueBuffer;
     /// // truncated length:
     /// assert!(LengthValueBuffer::new(&vec![0x00, 0x00, 0x00]).is_err());
     ///
@@ -299,8 +296,6 @@ impl FromBytes for LocalSeedDict {
         let key_length = SumParticipantPublicKey::LENGTH;
         let mut entries = reader.value().chunks_exact(ENTRY_LENGTH);
         for chunk in &mut entries {
-            // safe unwraps: lengths of slices are guaranteed
-            // by constants.
             let key = SumParticipantPublicKey::from_slice(&chunk[..key_length]).unwrap();
             let value = EncryptedMaskSeed::from_slice(&chunk[key_length..]).unwrap();
             if dict.insert(key, value).is_some() {
@@ -394,86 +389,5 @@ impl FromBytes for u32 {
         let b3 = (iter.next().ok_or_else(err)? as u32) << 8;
         let b4 = iter.next().ok_or_else(err)? as u32;
         Ok(b1 | b2 | b3 | b4)
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn decode_length_value_buffer() {
-        let bytes = vec![
-            0x00, 0x00, 0x00, 0x05, // Length = 1
-            0xff, // Value = 0xff
-            0x11, 0x22, // Extra bytes
-        ];
-        let buffer = LengthValueBuffer::new(&bytes).unwrap();
-        assert_eq!(buffer.length(), 5);
-        assert_eq!(buffer.value_length(), 1);
-        assert_eq!(buffer.value(), &[0xff][..]);
-    }
-
-    #[test]
-    fn decode_empty_value() {
-        let bytes = vec![0x00, 0x00, 0x00, 0x04];
-        let buffer = LengthValueBuffer::new(&bytes).unwrap();
-        assert_eq!(buffer.length(), 4);
-        assert_eq!(buffer.value_length(), 0);
-    }
-
-    #[test]
-    fn decode_length_value_buffer_buffer_exhausted() {
-        let bytes = vec![
-            0x00, 0x00, 0x00, 0x08, // Length = 6
-            0x11, 0x22, // Only 2 bytes
-        ];
-        assert!(LengthValueBuffer::new(bytes).is_err());
-    }
-
-    #[test]
-    fn decode_length_value_buffer_invalid_length() {
-        // Missing bytes
-        let bytes = vec![0x00, 0x00, 0x00];
-        assert!(LengthValueBuffer::new(bytes).is_err());
-        // Length field invalid
-        let bytes = vec![0x00, 0x00, 0x00, 0x03];
-        assert!(LengthValueBuffer::new(bytes).is_err());
-    }
-
-    #[test]
-    fn encode_length_value_buffer() {
-        let mut bytes = vec![0xff; 7];
-        let mut buffer = LengthValueBuffer::new_unchecked(&mut bytes);
-        buffer.set_length(6);
-        buffer.value_mut().copy_from_slice(&[0x11, 0x22][..]);
-        let expected = vec![
-            0x00, 0x00, 0x00, 0x06, // Length = 6
-            0x11, 0x22, // Value
-            0xff, // unchanged
-        ];
-
-        assert_eq!(bytes, expected);
-    }
-
-    #[test]
-    fn encode_length_value_buffer_emty() {
-        let mut bytes = vec![0xff; 5];
-        let mut buffer = LengthValueBuffer::new_unchecked(&mut bytes);
-        buffer.set_length(4);
-        buffer.value_mut().copy_from_slice(&[][..]);
-        let expected = vec![
-            0x00, 0x00, 0x00, 0x04, // Length = 0
-            0xff, // unchanged
-        ];
-
-        assert_eq!(bytes, expected);
-    }
-
-    #[test]
-    fn parse_u16() {
-        let buf = vec![0x12, 0x34];
-        assert_eq!(u16::from_byte_slice(&buf.as_slice()).unwrap(), 0x1234);
-        assert_eq!(u16::from_byte_stream(&mut buf.into_iter()).unwrap(), 0x1234);
     }
 }

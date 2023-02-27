@@ -1,9 +1,6 @@
 //! Message buffers.
 //!
-//! See the [message module] documentation since this is a private module anyways.
-//!
 //! [message module]: crate::mask
-
 use std::convert::{TryFrom, TryInto};
 
 use anyhow::{anyhow, Context};
@@ -152,7 +149,7 @@ pub const HEADER_LENGTH: usize = ranges::RESERVED.end;
 ///
 /// ```rust
 /// use std::convert::TryFrom;
-/// use xaynet_core::message::{Flags, MessageBuffer, Tag};
+/// use mosaic_core::message::{Flags, MessageBuffer, Tag};
 ///
 /// let mut bytes = vec![0x11; 64]; // message signature
 /// bytes.extend(vec![0x22; 32]); // participant public signing key
@@ -182,7 +179,7 @@ pub const HEADER_LENGTH: usize = ranges::RESERVED.end;
 ///
 /// ```rust
 /// use std::convert::TryFrom;
-/// use xaynet_core::message::{Flags, MessageBuffer, Tag};
+/// use mosaic_core::message::{Flags, MessageBuffer, Tag};
 ///
 /// let mut expected = vec![0x11; 64]; // message signature
 /// expected.extend(vec![0x22; 32]); // participant public signing key
@@ -484,10 +481,7 @@ pub struct Message {
     /// Wether this is a multipart message
     pub is_multipart: bool,
     /// The type of message. This information is partially redundant
-    /// with the `payload` field. So when serializing the message,
-    /// this field is ignored if the payload is a [`Payload::Sum`],
-    /// [`Payload::Update`], or [`Payload::Sum2`]. However, it is
-    /// taken as is for [`Payload::Chunk`].
+    /// with the `payload` field.
     pub tag: Tag,
     /// Message payload
     pub payload: Payload,

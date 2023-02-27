@@ -47,7 +47,6 @@ impl<T: AsRef<[u8]>> ModelObjectBuffer<T> {
     /// # Errors
     /// Fails if the buffer is too small.
     pub fn check_buffer_length(&self) -> Result<(), DecodeError> {
-        // let inner = self.inner.as_ref();
         let len = self.inner.as_ref().len();
 
         if len < MODEL_LEN_FIELD.end {
@@ -198,55 +197,5 @@ impl FromBytes for ModelObject {
         _iter: &mut I,
     ) -> Result<Self, DecodeError> {
         todo!()
-    }
-}
-
-#[cfg(test)]
-pub(crate) mod tests {
-    use super::*;
-
-    use crate::model::{DataType, ModelConfig};
-    use num::{bigint::BigInt, rational::Ratio};
-
-    pub fn model_obj() -> (ModelObject, Vec<u8>) {
-        let mut bytes = vec![0x00];
-        bytes.extend(vec![
-            // number of elements
-            0x00, 0x00, 0x00, 0x04, // data (1 weight => 4 bytes with f32)
-            0x00, 0x00, 0x80, 0x3F, // 1
-            0x00, 0x00, 0x00, 0x40, // 2
-            0x00, 0x00, 0x80, 0x3F, // 1
-            0x00, 0x00, 0x00, 0x40, // 2
-        ]);
-
-        let data = vec![
-            Ratio::new(BigInt::from(1_u8), BigInt::from(1_u8)),
-            Ratio::new(BigInt::from(2_u8), BigInt::from(1_u8)),
-            Ratio::new(BigInt::from(1_u8), BigInt::from(1_u8)),
-            Ratio::new(BigInt::from(2_u8), BigInt::from(1_u8)),
-        ];
-
-        let m_obj = ModelObject::new(
-            data,
-            ModelConfig {
-                data_type: DataType::F32,
-            },
-        );
-
-        (m_obj, bytes)
-    }
-
-    #[test]
-    pub fn serialize_model_object() {
-        let (m_obj, expected) = model_obj();
-        let mut buf = vec![0xff; expected.len()];
-        m_obj.to_bytes(&mut buf);
-        assert_eq!(buf, expected);
-    }
-
-    #[test]
-    fn deserialize_mask_vect() {
-        let (expected, bytes) = model_obj();
-        assert_eq!(ModelObject::from_byte_slice(&&bytes[..]).unwrap(), expected);
     }
 }

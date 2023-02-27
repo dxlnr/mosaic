@@ -1,6 +1,5 @@
-//! Model
+//! # Model
 //!
-//! # Models
 //! A [`Model`] is a collection of weights/parameters which are represented as finite numerical
 //! values (i.e. rational numbers) of arbitrary precision. As such, a model in itself is not bound
 //! to any particular primitive data type, but it can be created from those and converted back into
@@ -10,7 +9,7 @@
 //! this might be extended in the future.
 //!
 //! ```
-//! # use xaynet_core::mask::{FromPrimitives, IntoPrimitives, Model};
+//! # use mosaic_core::mask::{FromPrimitives, IntoPrimitives, Model};
 //! let weights = vec![0_f32; 10];
 //! let model = Model::from_primitives_bounded(weights.into_iter());
 //! assert_eq!(

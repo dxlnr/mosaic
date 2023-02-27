@@ -1,10 +1,7 @@
-//! A state engine initializer.
-//! 
 use displaydoc::Display;
 use thiserror::Error;
 #[cfg(feature = "model-persistence")]
 use tracing::{debug, info};
-use warp::hyper::ext::Protocol;
 
 #[cfg(feature = "model-persistence")]
 use crate::settings::RestoreSettings;
@@ -20,7 +17,7 @@ use crate::{
     storage::{Storage, StorageError},
 };
 #[cfg(feature = "model-persistence")]
-use xaynet_core::mask::Model;
+use mosaic_core::mask::Model;
 
 type StateEngineInitializationResult<T> = Result<T, StateEngineInitializationError>;
 

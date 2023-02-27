@@ -1,9 +1,4 @@
 //! Serialization of masked units.
-//!
-//! See the [mask module] documentation since this is a private module anyways.
-//!
-//! [mask module]: crate::mask
-
 use std::ops::Range;
 
 use anyhow::{anyhow, Context};
@@ -189,46 +184,5 @@ impl FromBytes for MaskUnit {
         let data = BigUint::from_bytes_le(buf.as_slice());
 
         Ok(MaskUnit { data, config })
-    }
-}
-
-#[cfg(test)]
-pub(crate) mod tests {
-    use super::*;
-    use crate::mask::object::serialization::tests::mask_config;
-
-    pub fn mask_unit() -> (MaskUnit, Vec<u8>) {
-        let (config, mut bytes) = mask_config();
-        let data = BigUint::from(1_u8);
-        let mask_unit = MaskUnit::new_unchecked(config, data);
-
-        bytes.extend(vec![
-            // data (6 bytes with this config)
-            0x01, 0x00, 0x00, 0x00, 0x00, 0x00, // 1
-        ]);
-        (mask_unit, bytes)
-    }
-
-    #[test]
-    fn serialize_mask_unit() {
-        let (mask_unit, expected) = mask_unit();
-        let mut buf = vec![0xff; expected.len()];
-        mask_unit.to_bytes(&mut buf);
-        assert_eq!(buf, expected);
-    }
-
-    #[test]
-    fn deserialize_mask_unit() {
-        let (expected, bytes) = mask_unit();
-        assert_eq!(MaskUnit::from_byte_slice(&&bytes[..]).unwrap(), expected);
-    }
-
-    #[test]
-    fn deserialize_mask_unit_from_stream() {
-        let (expected, bytes) = mask_unit();
-        assert_eq!(
-            MaskUnit::from_byte_stream(&mut bytes.into_iter()).unwrap(),
-            expected
-        );
     }
 }

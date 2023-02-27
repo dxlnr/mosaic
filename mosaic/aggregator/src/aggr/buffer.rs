@@ -16,21 +16,12 @@ use mosaic_core::{
 use mosaic_core::model::Model;
 
 #[cfg(not(feature = "secure"))]
-#[derive(Debug, Clone)]
+#[derive(Debug, Default, Clone)]
 pub struct FedBuffer {
     /// [`MessageCounter`]
     pub counter: MessageCounter,
     /// Buffered [`MaskObject`].
     pub local_models: Vec<Model>,
-}
-
-impl Default for FedBuffer {
-    fn default() -> Self {
-        Self {
-            counter: MessageCounter::default(),
-            local_models: Vec::new(),
-        }
-    }
 }
 
 #[cfg(feature = "secure")]

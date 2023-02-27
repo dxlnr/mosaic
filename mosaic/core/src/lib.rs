@@ -4,25 +4,15 @@
     forbid(rustdoc::broken_intra_doc_links, rustdoc::private_intra_doc_links)
 )]
 #![doc(
-    html_logo_url = "https://raw.githubusercontent.com/xaynetwork/xaynet/master/assets/xaynet_banner.png",
-    html_favicon_url = "https://raw.githubusercontent.com/xaynetwork/xaynet/master/assets/favicon.png",
-    issue_tracker_base_url = "https://github.com/xaynetwork/xaynet/issues"
+    html_logo_url = "https://raw.githubusercontent.com/modalic/python-sdk/main/docs/source/_static/mo-logo.svg",
+    issue_tracker_base_url = "https://github.com/modalic/mosaic/issues"
 )]
-//! `xaynet_core` provides basic building blocks for implementing the
-//! _Privacy-Enhancing Technology_ (PET), a privacy preserving
-//! protocol for federated machine learning. Download the [whitepaper]
-//! for an introduction.
-//!
-//! [whitepaper]: https://uploads-ssl.webflow.com/5f0c5c0bb18a279f0a62919e/5f157004da6585f299fa542b_XayNet%20Whitepaper%202.1.pdf
 
 pub mod common;
 pub mod crypto;
 pub mod mask;
 pub mod message;
 pub mod model;
-// #[cfg(any(feature = "testutils", test))]
-// #[cfg_attr(docsrs, doc(cfg(feature = "testutils")))]
-// pub mod testutils;
 
 use std::collections::HashMap;
 

@@ -1,9 +1,4 @@
 //! Message utilities.
-//!
-//! See the [message module] documentation since this is a private module anyways.
-//!
-//! [message module]: crate::message
-
 mod chunkable_iterator;
 pub use chunkable_iterator::{Chunk, ChunkableIterator, Chunks, IntoChunks};
 

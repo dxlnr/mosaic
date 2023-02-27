@@ -1,9 +1,5 @@
 //! Masked objects.
 //!
-//! See the [mask module] documentation since this is a private module anyways.
-//!
-//! [mask module]: crate::mask
-
 pub mod serialization;
 
 use std::iter::Iterator;

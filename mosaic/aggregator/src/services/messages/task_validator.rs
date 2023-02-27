@@ -9,7 +9,6 @@ use crate::{
 };
 use mosaic_core::{
     common::RoundParameters,
-    crypto::ByteObject,
     message::{Message, Payload},
 };
 
@@ -46,7 +45,7 @@ impl Service<Message> for TaskValidator {
             _ => return future::ready(Err(ServiceError::UnexpectedMessage)),
         };
         #[cfg(not(feature = "secure"))]
-        let update_signature = match message.payload {
+        let _update_signature = match message.payload {
             Payload::Sum(ref _sum) => unimplemented!(),
             Payload::Update(ref update) => update.update_signature,
             Payload::Sum2(ref _sum2) => unimplemented!(),
@@ -88,9 +87,6 @@ impl Service<Message> for TaskValidator {
             //     && update_signature
             //         .map(|sig| sig.is_eligible(params.update))
             //         .unwrap_or(false);
-
-            // TODO:
-            // let is_updater = has_valid_update_signature;
         }
         let is_summer = false;
         let is_updater = true;

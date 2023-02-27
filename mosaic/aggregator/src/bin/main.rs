@@ -116,7 +116,7 @@ fn init_tracing(settings: LoggingSettings) {
         .with_thread_names(false)
         .compact();
 
-    let _fmt_subscriber = FmtSubscriber::builder()
+    FmtSubscriber::builder()
         .event_format(format)
         .with_env_filter(settings.filter)
         .with_ansi(true)

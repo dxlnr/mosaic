@@ -1,9 +1,4 @@
 //! Sum message payloads.
-//!
-//! See the [message module] documentation since this is a private module anyways.
-//!
-//! [message module]: crate::message
-
 use std::ops::Range;
 
 use anyhow::{anyhow, Context};
@@ -34,7 +29,7 @@ const EPHM_PK_RANGE: Range<usize> = range(
 /// ## Decoding a sum message
 ///
 /// ```rust
-/// # use xaynet_core::message::SumBuffer;
+/// # use mosaic_core::message::SumBuffer;
 /// let sum_signature = vec![0x11; 64];
 /// let ephm_pk = vec![0x22; 32];
 /// let bytes = [sum_signature.as_slice(), ephm_pk.as_slice()].concat();
@@ -46,7 +41,7 @@ const EPHM_PK_RANGE: Range<usize> = range(
 /// ## Encoding a sum message
 ///
 /// ```rust
-/// # use xaynet_core::message::SumBuffer;
+/// # use mosaic_core::message::SumBuffer;
 /// let sum_signature = vec![0x11; 64];
 /// let ephm_pk = vec![0x22; 32];
 /// let mut storage = vec![0xff; 96];
@@ -143,7 +138,7 @@ impl<'a, T: AsRef<[u8]> + ?Sized> SumBuffer<&'a T> {
 /// ## Decoding a message
 ///
 /// ```rust
-/// # use xaynet_core::{crypto::ByteObject, message::{FromBytes, Sum}, ParticipantTaskSignature, SumParticipantEphemeralPublicKey};
+/// # use mosaic_core::{crypto::ByteObject, message::{FromBytes, Sum}, ParticipantTaskSignature, SumParticipantEphemeralPublicKey};
 /// let signature = vec![0x11; 64];
 /// let ephm_pk = vec![0x22; 32];
 /// let bytes = [signature.as_slice(), ephm_pk.as_slice()].concat();
@@ -158,7 +153,7 @@ impl<'a, T: AsRef<[u8]> + ?Sized> SumBuffer<&'a T> {
 /// ## Encoding a message
 ///
 /// ```rust
-/// # use xaynet_core::{crypto::ByteObject, message::{ToBytes, Sum}, ParticipantTaskSignature, SumParticipantEphemeralPublicKey};
+/// # use mosaic_core::{crypto::ByteObject, message::{ToBytes, Sum}, ParticipantTaskSignature, SumParticipantEphemeralPublicKey};
 /// let sum_signature = ParticipantTaskSignature::from_slice(vec![0x11; 64].as_slice()).unwrap();
 /// let ephm_pk = SumParticipantEphemeralPublicKey::from_slice(vec![0x22; 32].as_slice()).unwrap();
 /// let msg = Sum {

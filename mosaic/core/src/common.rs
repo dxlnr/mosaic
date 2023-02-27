@@ -8,16 +8,11 @@ use crate::model::ModelConfig;
 
 use crate::{crypto::ByteObject, CoordinatorPublicKey};
 
-/// The round parameters.
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub struct RoundParameters {
     /// The public key of the coordinator used for encryption.
     pub pk: CoordinatorPublicKey,
-    // /// Fraction of participants to be selected for the sum task.
-    // pub sum: f64,
-    // /// Fraction of participants to be selected for the update task.
-    // pub update: f64,
-    /// The random round seed.
+   /// The random round seed.
     pub seed: RoundSeed,
     #[cfg(not(feature = "secure"))]
     /// [`ModelConfig`]
@@ -25,8 +20,6 @@ pub struct RoundParameters {
     #[cfg(feature = "secure")]
     /// The masking configuration
     pub mask_config: MaskConfigPair,
-    // /// The length of the model.
-    // pub model_length: usize,
     /// Sets the amount of participants in each iteration.
     pub per_round_participants: u32,
     /// Defines the number of global epochs.

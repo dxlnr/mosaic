@@ -6,7 +6,7 @@ use crate::settings::{
     MaskSettings, ModelSettings, PetSettings, PetSettingsCount, PetSettingsSum, PetSettingsSum2,
     PetSettingsTime, PetSettingsUpdate,
 };
-use xaynet_core::{
+use mosaic_core::{
     common::{RoundParameters, RoundSeed},
     crypto::{ByteObject, EncryptKeyPair},
     mask::MaskConfig,

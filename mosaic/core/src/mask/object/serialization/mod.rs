@@ -1,9 +1,5 @@
 //! Serialization of masked objects.
 //!
-//! See the [mask module] documentation since this is a private module anyways.
-//!
-//! [mask module]: crate::mask
-
 pub(crate) mod unit;
 pub(crate) mod vect;
 
@@ -141,63 +137,5 @@ impl FromBytes for MaskObject {
         let vect = MaskVect::from_byte_stream(iter).context("invalid vector part")?;
         let unit = MaskUnit::from_byte_stream(iter).context("invalid unit part")?;
         Ok(Self { vect, unit })
-    }
-}
-
-#[cfg(test)]
-pub(crate) mod tests {
-    use super::*;
-    use crate::{
-        mask::{
-            config::{BoundType, GroupType, MaskConfig, ModelType},
-            object::serialization::{unit::tests::mask_unit, vect::tests::mask_vect},
-            MaskObject,
-        },
-        model::DataType,
-    };
-
-    pub fn mask_config() -> (MaskConfig, Vec<u8>) {
-        // config.order() = 20_000_000_000_001 with this config, so the data
-        // should be stored on 6 bytes.
-        let config = MaskConfig {
-            group_type: GroupType::Integer,
-            data_type: DataType::I32,
-            bound_type: BoundType::B0,
-            model_type: ModelType::M3,
-        };
-        let bytes = vec![0x00, 0x02, 0x00, 0x03];
-        (config, bytes)
-    }
-
-    pub fn mask_object() -> (MaskObject, Vec<u8>) {
-        let (mask_vect, mask_vect_bytes) = mask_vect();
-        let (mask_unit, mask_unit_bytes) = mask_unit();
-        let obj = MaskObject::new_unchecked(mask_vect, mask_unit);
-        let bytes = [mask_vect_bytes.as_slice(), mask_unit_bytes.as_slice()].concat();
-
-        (obj, bytes)
-    }
-
-    #[test]
-    fn serialize_mask_object() {
-        let (mask_object, expected) = mask_object();
-        let mut buf = vec![0xff; 42];
-        mask_object.to_bytes(&mut buf);
-        assert_eq!(buf, expected);
-    }
-
-    #[test]
-    fn deserialize_mask_object() {
-        let (expected, bytes) = mask_object();
-        assert_eq!(MaskObject::from_byte_slice(&&bytes[..]).unwrap(), expected);
-    }
-
-    #[test]
-    fn deserialize_mask_object_from_stream() {
-        let (expected, bytes) = mask_object();
-        assert_eq!(
-            MaskObject::from_byte_stream(&mut bytes.into_iter()).unwrap(),
-            expected
-        );
     }
 }

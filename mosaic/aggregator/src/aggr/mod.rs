@@ -51,7 +51,7 @@ impl Aggregator {
         let round_params = RoundParameters {
             pk: keys.public,
             seed: RoundSeed::zeroed(),
-            model_config: ModelConfig::from(model_settings).into(),
+            model_config: ModelConfig::from(model_settings),
             per_round_participants: protocol_settings.participants,
             training_rounds: protocol_settings.training_rounds,
         };

@@ -1,9 +1,4 @@
 //! Sum2 message payloads.
-//!
-//! See the [message module] documentation since this is a private module anyways.
-//!
-//! [message module]: crate::message
-
 use std::ops::Range;
 
 use anyhow::{anyhow, Context};

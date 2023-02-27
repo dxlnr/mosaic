@@ -5,7 +5,7 @@ use displaydoc::Display;
 use thiserror::Error;
 #[cfg(feature = "model-persistence")]
 use tracing::warn;
-use tracing::{error, info};
+use tracing::info;
 
 use crate::{
     state_engine::{

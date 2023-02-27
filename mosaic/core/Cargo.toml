@@ -1,7 +1,7 @@
 [package]
 name = "mosaic_core"
 authors = ["Daniel Illner <illner@modalic.ai>"]
-description = ""
+description = "Core building blocks for the mosaic aggregation procedure."
 license = "Apache-2.0"
 version = "0.1.0"
 edition = "2021"

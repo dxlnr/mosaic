@@ -24,7 +24,6 @@ pub enum AggregationError {
 }
 
 #[derive(Debug, Default, Clone)]
-/// An aggregator for aggregating models.
 pub struct Aggregation {
     // pub global_model: Model,
 }

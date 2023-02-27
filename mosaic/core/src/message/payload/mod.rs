@@ -1,9 +1,4 @@
 //! Message payloads.
-//!
-//! See the [message module] documentation since this is a private module anyways.
-//!
-//! [message module]: crate::message
-
 pub(crate) mod chunk;
 pub(crate) mod sum;
 pub(crate) mod sum2;

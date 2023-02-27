@@ -1,7 +1,5 @@
 //! Wrappers around some of the [sodiumoxide] hashing primitives.
 //!
-//! See the [crypto module] documentation since this is a private module anyways.
-//!
 //! [sodiumoxide]: https://docs.rs/sodiumoxide/
 //! [crypto module]: crate::crypto
 

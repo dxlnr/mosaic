@@ -1,7 +1,5 @@
 //! Model representation and conversion.
 //!
-//! See the [module] documentation since this is a private module anyways.
-//!
 //! [model module]: crate::model
 use std::{
     fmt::Debug,

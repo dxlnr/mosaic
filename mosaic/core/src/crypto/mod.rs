@@ -8,7 +8,7 @@
 //! # Examples
 //! ## Encryption of messages
 //! ```
-//! # use xaynet_core::crypto::EncryptKeyPair;
+//! # use mosaic_core::crypto::EncryptKeyPair;
 //! let keys = EncryptKeyPair::generate();
 //! let message = b"Hello world!".to_vec();
 //! let cipher = keys.public.encrypt(&message);
@@ -17,7 +17,7 @@
 //!
 //! ## Signing of messages
 //! ```
-//! # use xaynet_core::crypto::SigningKeyPair;
+//! # use mosaic_core::crypto::SigningKeyPair;
 //! let keys = SigningKeyPair::generate();
 //! let message = b"Hello world!".to_vec();
 //! let signature = keys.secret.sign_detached(&message);
