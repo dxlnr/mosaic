@@ -1,7 +1,6 @@
 use async_trait::async_trait;
 use thiserror::Error;
 use url::Url;
-// use bytes::Bytes;
 
 use crate::MosaicClientTrait;
 use mosaic_core::{
@@ -11,7 +10,6 @@ use mosaic_core::{
     SumDict, UpdateSeedDict,
 };
 
-/// Error returned upon failing to build a new [`Client`]
 #[derive(Debug, Error)]
 pub enum ClientError {
     #[error("failed to deserialize data: {0}")]
@@ -28,11 +26,6 @@ pub enum ClientError {
 
     #[error("Unexpected response")]
     UnexpectedResponse(u16),
-    // #[error("Unexpected certificate extension")]
-    // UnexpectedCertificate,
-
-    // #[error("No certificate found")]
-    // NoCertificate,
 }
 
 #[cfg_attr(not(feature = "reqwest-client"), allow(dead_code))]
@@ -176,8 +169,6 @@ where
     }
 }
 
-// #[cfg(feature = "reqwest-client")]
-// #[cfg_attr(docsrs, doc(cfg(feature = "reqwest-client")))]
 #[async_trait]
 impl HttpClientTrait for reqwest::Client {
     type Error = reqwest::Error;

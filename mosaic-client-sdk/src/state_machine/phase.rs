@@ -87,8 +87,6 @@ pub struct SharedState {
 fn dummy_round_parameters() -> RoundParameters {
     RoundParameters {
         pk: PublicEncryptKey::zeroed(),
-        // sum: 0.0,
-        // update: 0.0,
         seed: RoundSeed::zeroed(),
         mask_config: MaskConfig {
             group_type: mask::GroupType::Integer,
@@ -97,7 +95,6 @@ fn dummy_round_parameters() -> RoundParameters {
             model_type: mask::ModelType::M3,
         }
         .into(),
-        // model_length: 0,
     }
 }
 #[cfg(not(feature = "secure"))]
@@ -107,8 +104,7 @@ fn dummy_round_parameters() -> RoundParameters {
         seed: RoundSeed::zeroed(),
         model_config: ModelConfig {
             data_type: model::DataType::F32,
-        }
-        .into(),
+        },
         per_round_participants: 0,
         training_rounds: 0,
     }
@@ -265,14 +261,12 @@ impl<P> Phase<P> {
         #[cfg(feature = "secure")]
         LocalModelConfig {
             data_type: self.state.shared.round_params.mask_config.vect.data_type,
-            // len: self.state.shared.round_params.model_length,
             len: 0,
         };
 
         #[cfg(not(feature = "secure"))]
         LocalModelConfig {
             data_type: self.state.shared.round_params.model_config.data_type,
-            // len: self.state.shared.round_params.model_length,
             len: 0,
         }
     }

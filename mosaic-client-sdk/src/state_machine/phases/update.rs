@@ -93,7 +93,6 @@ impl Update {
     }
 }
 
-/// The state of the update phase.
 #[derive(Serialize, Deserialize, Debug)]
 #[cfg(features = "secure")]
 pub struct Update {
@@ -106,7 +105,6 @@ pub struct Update {
 }
 #[cfg(features = "secure")]
 impl Update {
-    /// Creates a new update state.
     pub fn new(sum_signature: Signature, update_signature: Signature) -> Self {
         Update {
             sum_signature,

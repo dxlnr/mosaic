@@ -40,8 +40,7 @@ pub trait ModelStore {
     async fn load_model(&mut self) -> Result<Option<Self::Model>, Self::Error>;
 }
 
-/// A trait used by the [`StateMachine`] to communicate with the
-/// Xaynet coordinator.
+/// A trait used by the [`StateMachine`] to communicate with the aggregator.
 ///
 /// [`StateMachine`]: crate::StateMachine
 #[async_trait]
@@ -64,6 +63,6 @@ pub trait MosaicClientTrait {
     /// Retrieve the current global model, if available.
     async fn get_model(&mut self) -> Result<Option<Model>, Self::Error>;
 
-    /// Send an encrypted and signed PET message to the coordinator.
+    /// Send an encrypted and signed message to the aggregator.
     async fn send_message(&mut self, msg: Vec<u8>) -> Result<(), Self::Error>;
 }

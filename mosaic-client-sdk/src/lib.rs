@@ -3,24 +3,15 @@
     doc,
     forbid(rustdoc::broken_intra_doc_links, rustdoc::private_intra_doc_links)
 )]
-#![doc(
-    html_logo_url = "https://raw.githubusercontent.com/xaynetwork/xaynet/master/assets/xaynet_banner.png",
-    html_favicon_url = "https://raw.githubusercontent.com/xaynetwork/xaynet/master/assets/favicon.png",
-    issue_tracker_base_url = "https://github.com/xaynetwork/xaynet/issues"
-)]
-//! This crate provides building blocks for implementing participants for
-//! the [Xaynet Federated Learning platform](https://www.xaynet.dev/).
+//! This crate provides building blocks for implementing the backbone of the Client SDK.
 //!
-//! The PET protocol states that in any given round of federated learning,
+//! The protocol states that in any given round of Federated Learning,
 //! each participant of the protocol may be selected to carry out one of
 //! two tasks:
 //!
 //! - **update**: participants selected for the update task
 //!   (a.k.a. _update participants_) are responsible for sending a machine
 //!   learning model they trained
-//! - **sum**: participants selected for the sum task (a.k.a. _sum
-//!   participants_) are responsible for computing a global mask from local mask seeds sent by
-//!   the update participants
 //!
 //! Participants may also not be selected for any of these tasks, in which
 //! case they simply wait for the next round.
@@ -105,11 +96,11 @@
 //! use reqwest::Client as ReqwestClient;
 //! use tokio::time::sleep;
 //!
-//! use xaynet_core::{
+//! use mosaic_core::{
 //!     crypto::SigningKeyPair,
 //!     mask::{BoundType, DataType, FromPrimitives, GroupType, MaskConfig, Model, ModelType},
 //! };
-//! use xaynet_sdk::{
+//! use mosaic_sdk::{
 //!     client::Client,
 //!     settings::PetSettings,
 //!     ModelStore,

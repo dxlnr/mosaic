@@ -7,14 +7,10 @@ use super::{
     LocalModelConfig,
     NewRound,
     Phase,
-    // SendingSum,
-    // SendingSum2,
     SendingUpdate,
     SerializableState,
     SharedState,
     State,
-    // Sum,
-    // Sum2,
     Update,
 };
 use crate::{settings::PetSettings, ModelStore, MosaicClientTrait, Notify};

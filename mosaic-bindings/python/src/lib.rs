@@ -48,7 +48,6 @@ fn mosaic_python_sdk(py: Python, m: &PyModule) -> PyResult<()> {
 }
 
 #[pyclass]
-// #[text_signature = "(url, scalar, /)"]
 struct Client {
     inner: Option<mosaic_client_sdk::Client>,
 }
@@ -58,15 +57,15 @@ impl Client {
     #[new]
     pub fn new(url: String, scalar: f64, state: Option<Vec<u8>>) -> PyResult<Self> {
         sodiumoxide::init()
-            .map_err(|_| CryptoInit::new_err("failed to initialize crypto library"))?;
+            .map_err(|_| CryptoInit::new_err("failed to initialize crypto library."))?;
 
         let inner = if let Some(state) = state {
-            debug!("restore client");
+            debug!("restoring the client.");
             mosaic_client_sdk::Client::restore(&state, &url).map_err(|err| {
-                ClientRestore::new_err(format!("failed to restore client: {}", err))
+                ClientRestore::new_err(format!("failed to restore client: {}.", err))
             })?
         } else {
-            debug!("initialize client");
+            debug!("initializing the client.");
             let mut settings = mosaic_client_sdk::Settings::new();
             settings.set_url(url);
             settings.set_keys(mosaic_core::crypto::SigningKeyPair::generate());
@@ -74,7 +73,7 @@ impl Client {
             settings.set_max_message_size(MaxMessageSize::unlimited());
 
             mosaic_client_sdk::Client::new(settings).map_err(|err| {
-                ClientInit::new_err(format!("failed to initialize client: {}", err))
+                ClientInit::new_err(format!("failed to initialize client: {}.", err))
             })?
         };
 
@@ -87,7 +86,7 @@ impl Client {
             Some(ref mut inner) => inner,
             None => {
                 return Err(UninitializedClient::new_err(
-                    "called 'tick' on an uninitialized client. this is a bug.",
+                    "called 'step' on an uninitialized client.",
                 ))
             }
         };
@@ -102,23 +101,15 @@ impl Client {
             Some(ref mut inner) => inner,
             None => {
                 return Err(UninitializedClient::new_err(
-                    "called 'set_model' on an uninitialized client. this is a bug.",
+                    "called 'set_model' on an uninitialized client.",
                 ))
             }
         };
 
         let local_model_config = inner.local_model_config();
 
-        // if local_model.len() != local_model_config.len {
-        //     return Err(LocalModelLengthMisMatch::new_err(format!(
-        //         "the local model length is incompatible with the model length of the current model configuration {} != {}",
-        //         local_model.len(),
-        //         local_model_config.len
-        //     )));
-        // }
-
         debug!(
-            "convert local model to {:?} datatype",
+            "converting local model to {:?} datatype.",
             local_model_config.data_type
         );
 
@@ -131,14 +122,13 @@ impl Client {
     }
 
     /// Check whether the client internal state machine made progress while
-    /// executing the PET protocol. If so, the client state likely changed.
-    // #[text_signature = "($self)"]
+    /// executing the protocol. If so, the client state likely changed.
     pub fn made_progress(&self) -> PyResult<bool> {
         let inner = match self.inner {
             Some(ref inner) => inner,
             None => {
                 return Err(UninitializedClient::new_err(
-                    "called 'made_progress' on an uninitialized client. this is a bug.",
+                    "called 'made_progress' on an uninitialized client.",
                 ))
             }
         };
@@ -149,13 +139,12 @@ impl Client {
     /// Check whether the client internal state machine is waiting for the
     /// client to load its model into the store. If this method returns `true`, the
     /// caller should make sure to call [`Client::set_model()`] at some point.
-    // #[text_signature = "($self)"]
     pub fn should_set_model(&self) -> PyResult<bool> {
         let inner = match self.inner {
             Some(ref inner) => inner,
             None => {
                 return Err(UninitializedClient::new_err(
-                    "called 'should_set_model' on an uninitialized client. this is a bug.",
+                    "called 'should_set_model' on an uninitialized client.",
                 ))
             }
         };
@@ -169,13 +158,11 @@ impl Client {
             Some(ref inner) => inner,
             None => {
                 return Err(UninitializedClient::new_err(
-                    "called 'task' on an uninitialized client. this is a bug.",
+                    "called 'task' on an uninitialized client.",
                 ))
             }
         };
 
-        // FIXME:
-        // Returning an enum is currently not supported: https://github.com/PyO3/pyo3/pull/1045
         let task_as_u8 = match inner.task() {
             mosaic_client_sdk::Task::None => 0,
             mosaic_client_sdk::Task::Sum => 1,
@@ -185,13 +172,12 @@ impl Client {
         Ok(task_as_u8)
     }
 
-    // #[text_signature = "($self)"]
     pub fn new_global_model(&self) -> PyResult<bool> {
         let inner = match self.inner {
             Some(ref inner) => inner,
             None => {
                 return Err(UninitializedClient::new_err(
-                    "called 'new_global_model' on an uninitialized client. this is a bug.",
+                    "called 'new_global_model' on an uninitialized client.",
                 ))
             }
         };
@@ -199,13 +185,12 @@ impl Client {
         Ok(inner.new_global_model())
     }
 
-    // #[text_signature = "($self)"]
     pub fn global_model(&mut self, py: Python) -> PyResult<Option<Py<PyList>>> {
         let inner = match self.inner {
             Some(ref mut inner) => inner,
             None => {
                 return Err(UninitializedClient::new_err(
-                    "called 'global_model' on an uninitialized client. this is a bug.",
+                    "called 'global_model' on an uninitialized client.",
                 ))
             }
         };
@@ -253,7 +238,7 @@ macro_rules! into_primitives {
             Ok(Some(py_list.into()))
         } else {
             Err(GlobalModelDataTypeMisMatch::new_err(
-                "the global model data type is incompatible with the data type of the current model configuration",
+                "the global model data type is incompatible with the data type of the current model.",
             ))
         }
     };
@@ -270,7 +255,7 @@ macro_rules! from_primitives {
                 Ok(())
             } else {
                 Err(LocalModelDataTypeError::new_err(
-                    "the local model data type is incompatible with the data type of the current model configuration"
+                    "the local model data type is incompatible with the data type of the current model."
                 ))
             }}
     };

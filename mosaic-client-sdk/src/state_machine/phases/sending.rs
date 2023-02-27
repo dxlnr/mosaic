@@ -5,7 +5,6 @@ use tracing::{debug, error, info};
 
 use crate::{
     state_machine::{
-        // phases::Sum2,
         Awaiting,
         IntoPhase,
         Phase,
@@ -115,6 +114,4 @@ macro_rules! impl_sending {
     }
 }
 
-// impl_sending!(Sum, Sum2, "sum", "sum2");
 impl_sending!(Update, Awaiting, "update", "awaiting");
-// impl_sending!(Sum2, Awaiting, "sum2", "awaiting");

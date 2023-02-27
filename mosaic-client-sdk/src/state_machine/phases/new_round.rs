@@ -69,12 +69,6 @@ impl Phase<NewRound> {
         sk.sign_detached(&[seed, data].concat())
     }
 
-    // fn into_sum(self, sum_signature: Signature) -> Phase<Sum> {
-    //     let sum = Box::new(Sum::new(sum_signature));
-    //     let state = State::new(self.state.shared, sum);
-    //     state.into_phase(self.io)
-    // }
-
     fn into_update(self, _sum_signature: Signature, update_signature: Signature) -> Phase<Update> {
         let update = Box::new(Update::new(update_signature));
         let state = State::new(self.state.shared, update);

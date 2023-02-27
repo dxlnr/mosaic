@@ -1,4 +1,4 @@
-//! Participant implementation
+//! Client implementation
 use std::{convert::TryInto, sync::Arc};
 
 use async_trait::async_trait;
@@ -23,8 +23,7 @@ use crate::{
     TransitionOutcome,
 };
 
-/// Event emitted by the participant internal state machine as it advances through the
-/// PET protocol
+/// Event emitted by the participant internal state machine as it advances through the protocol.
 pub enum Event {
     /// Event emitted when the participant is selected for the update task
     Update,
@@ -133,10 +132,11 @@ pub enum Task {
     None,
 }
 
-/// A participant. It embeds an internal state machine that executes the PET
-/// protocol. However, it is the caller's responsibility to drive this state machine by
-/// calling [`Participant::step()`], and to take action when the participant state
-/// changes.
+/// Client 
+/// 
+/// It embeds an internal state machine that executes the protocol. 
+/// However, it is the caller's responsibility to drive this state machine by
+/// calling [`Participant::step()`], and to take action when the participant state changes.
 pub struct Client {
     /// Internal state machine
     state_machine: Option<StateMachine>,
@@ -162,8 +162,8 @@ pub struct Client {
     task: Task,
 }
 
-/// Error that can occur when instantiating a new [`Participant`], either with
-/// [`Participant::new()`] or [`Participant::restore()`]
+/// Error that can occur when instantiating a new [`Client`], either with
+/// [`Client::new()`] or [`Client::restore()`]
 #[derive(Error, Debug)]
 pub enum InitError {
     #[error("failed to deserialize the participant state {:?}", _0)]
@@ -240,7 +240,7 @@ impl Client {
         bincode::serialize(&state_machine).unwrap()
     }
 
-    /// Drive the participant internal state machine.
+    /// Drive the client internal state machine.
     ///
     /// After calling this method, the caller should check whether the participant state
     /// changed, by calling [`Participant::made_progress()`].  If the state changed, the
