@@ -74,8 +74,6 @@ pub struct HttpClient<C> {
     base_url: Url,
 }
 
-/// Error returned when trying to client a [`Client`] with an invalid
-/// address for the Xaynet coordinator.
 #[derive(Debug, Error)]
 #[error("Invalid base URL: {}", .0)]
 pub struct InvalidBaseUrl(String);
@@ -90,7 +88,7 @@ where
     ///
     /// - `client` is the HTTP client that will be used to perform the HTTP requests. Any HTTP
     ///   client can be used, as long as it implements the [`HttpClientTrait`] trait.
-    /// - `base_url` is the URL to the Xaynet coordinator
+    /// - `base_url` is the URL to the coordinator.
     ///
     /// # Errors
     ///

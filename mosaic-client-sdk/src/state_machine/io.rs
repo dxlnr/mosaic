@@ -24,19 +24,11 @@ where
 
 #[cfg(test)]
 type DynModel = Box<(dyn std::convert::AsRef<mosaic_core::model::Model> + Send)>;
-/// A trait that gathers all the [`Notify`], [`XaynetClient`] and [`ModelStore`]
-/// methods.
-///
 /// This trait is intended not to be exposed. It is a convenience for avoiding the
 /// proliferation of generic parameters in the state machine: instead of three traits,
 /// we now have only one.
 ///
-/// Note that by having only one trait, we can also use dynamic dispatch and actually
-/// get rid of all the generic parameters in the state machine.
-///
 /// ```compile_fail
-/// Box<dyn IO> // allowed
-/// Box<dyn ModelStore + Notify + XaynetClient> // not allowed
 /// ```
 #[cfg_attr(test, mockall::automock(type Model=DynModel;))]
 #[async_trait]

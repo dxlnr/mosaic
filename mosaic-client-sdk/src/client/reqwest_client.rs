@@ -35,11 +35,9 @@ impl ClientError {
 ///
 /// # Args
 ///
-/// - `address`: URL of the Xaynet coordinator to connect to
-/// - `trust_anchor_path`: path the to root certificate for TLS server authentication. The
-///   certificate must be PEM encoded.
-/// - `client_cert_path`: path to the client certificate to use for TLS client authentication. The
-///   certificate must be PEM encoded.
+/// - `address`: URL to connect to
+/// - `trust_anchor_path`: path the to root certificate for TLS server authentication. 
+/// - `client_cert_path`: path to the client certificate to use for TLS client authentication. 
 pub fn new_client(
     address: &str,
     trust_anchor_path: Option<String>,
@@ -75,7 +73,7 @@ pub fn new_client(
 
     let reqwest_client = builder.build().map_err(ClientError::other)?;
 
-    let xaynet_client = HttpClient::new(reqwest_client, address)
+    let cclient = HttpClient::new(reqwest_client, address)
         .map_err(|_| ClientError::InvalidUrl(address.to_string()))?;
-    Ok(xaynet_client)
+    Ok(cclient)
 }

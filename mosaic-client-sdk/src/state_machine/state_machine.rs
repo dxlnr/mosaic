@@ -25,25 +25,16 @@ pub enum TransitionOutcome {
     Complete(StateMachine),
 }
 
-/// PET state machine.
 #[derive(From, Debug)]
 pub enum StateMachine {
-    /// PET state machine in the "new round" phase
+    /// State machine in the "new round" phase
     NewRound(Phase<NewRound>),
-    /// PET state machine in the "awaiting" phase
+    /// State machine in the "awaiting" phase
     Awaiting(Phase<Awaiting>),
-    // /// PET state machine in the "sum" phase
-    // Sum(Phase<Sum>),
-    /// PET state machine in the "update" phase
+    /// State machine in the "update" phase
     Update(Phase<Update>),
-    // /// PET state machine in the "sum2" phase
-    // Sum2(Phase<Sum2>),
-    // /// PET state machine in the "sending sum message" phase
-    // SendingSum(Phase<SendingSum>),
-    /// PET state machine in the "sending update message" phase
+    /// State machine in the "sending update" phase
     SendingUpdate(Phase<SendingUpdate>),
-    // /// PET state machine in the "sending sum2 message" phase
-    // SendingSum2(Phase<SendingSum2>),
 }
 
 impl StateMachine {
@@ -81,29 +72,23 @@ impl StateMachine {
         match self {
             StateMachine::NewRound(ref phase) => phase.local_model_config(),
             StateMachine::Awaiting(ref phase) => phase.local_model_config(),
-            // StateMachine::Sum(ref phase) => phase.local_model_config(),
             StateMachine::Update(ref phase) => phase.local_model_config(),
-            // StateMachine::Sum2(ref phase) => phase.local_model_config(),
-            // StateMachine::SendingSum(ref phase) => phase.local_model_config(),
             StateMachine::SendingUpdate(ref phase) => phase.local_model_config(),
-            // StateMachine::SendingSum2(ref phase) => phase.local_model_config(),
         }
     }
 }
 
 impl StateMachine {
-    /// Instantiate a new PET state machine.
+    /// Instantiate a new state machine.
     ///
-    /// # Args
-    ///
-    /// - `settings`: PET settings
-    /// - `xaynet_client`: a client for communicating with the Xaynet coordinator
-    /// - `model_store`: a store from which the trained model can be
-    ///   loaded, when the participant is selected for the update task
-    /// - `notifier`: a type that the state machine can use to emit notifications
+    /// - `settings`: Some settings.
+    /// - `client`: a client for communicating with the coordinator.
+    /// - `model_store`: a store from which the trained model can be.
+    ///   loaded, when the participant is selected for the update task.
+    /// - `notifier`: a type that the state machine can use to emit notifications.
     pub fn new<X, M, N>(
         settings: PetSettings,
-        xaynet_client: X,
+        cclient: X,
         model_store: M,
         notifier: N,
     ) -> Self
@@ -112,15 +97,15 @@ impl StateMachine {
         M: ModelStore + Send + 'static,
         N: Notify + Send + 'static,
     {
-        let io = boxed_io(xaynet_client, model_store, notifier);
+        let io = boxed_io(cclient, model_store, notifier);
         let state = State::new(Box::new(SharedState::new(settings)), Box::new(Awaiting));
         state.into_phase(io).into()
     }
 
-    /// Restore the PET state machine from the given `state`.
+    /// Restore the sm from the given `state`.
     pub fn restore<X, M, N>(
         state: SerializableState,
-        xaynet_client: X,
+        cclient: X,
         model_store: M,
         notifier: N,
     ) -> Self
@@ -129,7 +114,7 @@ impl StateMachine {
         M: ModelStore + Send + 'static,
         N: Notify + Send + 'static,
     {
-        let io = boxed_io(xaynet_client, model_store, notifier);
+        let io = boxed_io(cclient, model_store, notifier);
         match state {
             SerializableState::NewRound(state) => state.into_phase(io).into(),
             SerializableState::Awaiting(state) => state.into_phase(io).into(),

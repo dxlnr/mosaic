@@ -18,9 +18,7 @@
 //!
 //! # Running a participant
 //!
-//! The communication with the Xaynet coordinator is managed by a
-//! background task that runs the PET protocol. We call it the PET
-//! agent. In practice, the agent is a simple wrapper around the
+//! In practice, the agent is a simple wrapper around the
 //! [`StateMachine`].
 //!
 //! To run a participant, you need to start an agent, and
@@ -42,7 +40,7 @@
 //! use std::time::Duration;
 //!
 //! use tokio::time::sleep;
-//! use xaynet_sdk::{StateMachine, TransitionOutcome};
+//! use mosaic_sdk::{StateMachine, TransitionOutcome};
 //!
 //! async fn run_agent(mut state_machine: StateMachine, tick: Duration) {
 //!     loop {
@@ -68,17 +66,13 @@
 //! - a cryptographic key identifying the participant, see [`PetSettings`]
 //! - a store from which it can load a model when the participant is
 //!   selected for the update task. This can be any type that
-//!   implements the [`ModelStore`] trait. In our case, we'll use a
-//!   dummy in-memory store that always returns the same model.
-//! - a client to talk with the Xaynet coordinator. This can be any
-//!   type that implements the [`XaynetClient`] trait, like the [`Client`].
+//!   implements the [`ModelStore`] trait. 
 //!   For this we're going to use the trait implementations on the `reqwest`
 //!   client that is available when compiling with `--features reqwest-client`.
 //! - a notifier that the state machine can use to send
 //!   notifications. This can be any type that implements the
 //!   [`Notify`] trait. We'll use channels for this.
 //!
-//! [`PetSettings`]: crate::settings::PetSettings
 //! [`Client`]: crate::client::Client
 //!
 //! Finally we can start our agent and log the events it emits. Here
@@ -180,13 +174,13 @@
 //! async fn main() -> Result<(), std::convert::Infallible> {
 //!     let keys = SigningKeyPair::generate();
 //!     let settings = PetSettings::new(keys);
-//!     let xaynet_client = Client::new(ReqwestClient::new(), "http://localhost:8081").unwrap();
+//!     let c_client = Client::new(ReqwestClient::new(), "http://localhost:8081").unwrap();
 //!     let (tx, rx) = mpsc::channel::<Event>();
 //!     let notifier = Notifier(tx);
 //!     let model = Model::from_primitives(vec![0; 100].into_iter()).unwrap();
 //!     let model_store = LocalModel(Arc::new(model));
 //!
-//!     let mut state_machine = StateMachine::new(settings, xaynet_client, model_store, notifier);
+//!     let mut state_machine = StateMachine::new(settings, c_client, model_store, notifier);
 //!     // Start the agent
 //!     tokio::spawn(async move {
 //!         run_agent(state_machine, Duration::from_secs(1)).await;
@@ -197,7 +191,7 @@
 //!     }
 //! }
 //! # }
-//! # fn main() {} // don't actually run anything, because the client never terminates
+//! # fn main() {} 
 //! ```
 
 pub mod client;

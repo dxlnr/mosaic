@@ -147,7 +147,7 @@ pub struct Client {
     store: Store,
     /// Async runtime to execute the state machine
     runtime: Runtime,
-    /// Xaynet client
+    /// HTTP client
     http_client: HttpClient<reqwest::Client>,
     /// Whether the participant state changed after the last call to
     /// [`Participant::step()`]

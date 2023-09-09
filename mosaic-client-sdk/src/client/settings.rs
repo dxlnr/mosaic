@@ -14,7 +14,7 @@ use thiserror::Error;
 /// A participant settings
 #[derive(Clone, Debug)]
 pub struct Settings {
-    /// The Xaynet coordinator URL.
+    /// Coordinator url.
     url: Option<String>,
     /// The participant signing keys.
     keys: Option<SigningKeyPair>,
@@ -51,7 +51,7 @@ impl Settings {
         self.scalar = Scalar::from_primitive(scalar)
     }
 
-    /// Set the Xaynet coordinator address
+    /// Set the coordinator address
     pub fn set_url(&mut self, url: String) {
         self.url = Some(url);
     }
@@ -78,7 +78,7 @@ impl Settings {
 /// Error returned when the settings are invalid
 #[derive(Debug, Error)]
 pub enum SettingsError {
-    #[error("the Xaynet coordinator URL must be specified")]
+    #[error("the coordinator URL must be specified")]
     MissingUrl,
     #[error("the participant signing key pair must be specified")]
     MissingKeys,
